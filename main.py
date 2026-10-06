@@ -37,7 +37,7 @@ query GET_DEFAULT_EVENTS_LISTING($filters: FilterInputDtoInput, $pageSize: Int) 
         contentUrl
         cost
         venue { name address area { name } }
-        artists { displayName }
+        artists { name }
         pick { blurb }
         attending
       }
@@ -191,7 +191,7 @@ def eventos():
             "hora":       hora,
             "venue":      venue.get("name", ""),
             "direccion":  venue.get("address", ""),
-            "artistas":   [a["displayName"] for a in ev.get("artists", [])],
+            "artistas":   [a.get("name", a.get("displayName", "")) for a in ev.get("artists", [])],
             "precio":     cost or "No especificado",
             "gratis":     es_gratis,
             "asistentes": ev.get("attending", 0),
