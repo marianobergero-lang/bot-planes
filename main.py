@@ -206,7 +206,7 @@ def eventos():
             continue
         venue = ev.get("venue") or {}
         cost  = (ev.get("cost") or "").strip()
-        hora  = (ev.get("startTime") or "")[:5]
+        hora  = (ev.get("startTime") or "")[11:16]
         if hora_min and hora and hora >= "08:00" and hora < hora_min:
             continue
         es_gratis = cost == "" or cost.lower() in ["free", "gratis", "0"]
