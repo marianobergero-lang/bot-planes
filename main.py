@@ -11,18 +11,44 @@ SCRAPER_API_KEY = "00aa3ccf3ef48efc379726eacdccf27f"
 RA_GRAPHQL_URL  = "https://ra.co/graphql"
 
 AREAS_RA = {
-    "london":       13,
-    "berlin":       17,
-    "amsterdam":    9,
-    "new york":     8,
-    "paris":        15,
-    "ibiza":        29,
-    "madrid":       133,
-    "barcelona":    7,
-    "buenos aires": 385,
-    "mexico city":  411,
-    "bogota":       473,
-    "santiago":     387,
+    # Europa
+    "london":        13,
+    "berlin":        17,
+    "amsterdam":     9,
+    "paris":         15,
+    "barcelona":     20,  # confirmado!
+    "madrid":        133,
+    "ibiza":         29,
+    "rome":          46,
+    "milan":         152,
+    "hamburg":       36,
+    "cologne":       42,
+    "brussels":      22,
+    "lisbon":        72,
+    "vienna":        32,
+    "prague":        86,
+    "warsaw":        98,
+    "budapest":      104,
+    "stockholm":     84,
+    "zurich":        88,
+    # Americas
+    "new york":      8,
+    "los angeles":   2,
+    "chicago":       3,
+    "buenos aires":  385,
+    "sao paulo":     55,
+    "mexico city":   411,
+    "bogota":        473,
+    "santiago":      387,
+    "miami":         26,
+    "toronto":       71,
+    "montreal":      75,
+    # Asia / Oceania
+    "tokyo":         58,
+    "melbourne":     63,
+    "sydney":        64,
+    "seoul":         94,
+    "singapore":     102,
 }
 
 RA_QUERY = """
