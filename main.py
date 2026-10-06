@@ -181,3 +181,38 @@ def eventos():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
+
+
+@app.route("/test-area")
+def test_area():
+    """Prueba un código de área específico directamente"""
+    area  = int(request.args.get("area", 7))
+    desde = request.args.get("desde", "2026-10-09")
+    hasta = request.args.get("hasta", "2026-10-11")
+
+    payload = {
+        "operationName": "GET_DEFAULT_EVENTS_LISTING",
+        "variables": {
+            "filters": {
+                "areas": {"eq": area},
+                "listingDate": {
+                    "gte": f"{desde}T00:00:00.000Z",
+                    "lte": f"{hasta}T23:59:59.000Z",
+                }
+            },
+            "pageSize": 3
+        },
+        "query": RA_QUERY
+    }
+
+    try:
+        scraper_url = "https://api.scraperapi.com/"
+        params  = {"api_key": SCRAPER_API_KEY, "url": RA_GRAPHQL_URL}
+        headers = {"Content-Type": "application/json", "Origin": "https://ra.co", "Referer": "https://ra.co/events"}
+        resp = requests.post(scraper_url, params=params, headers=headers, data=json.dumps(payload), timeout=30)
+        data = resp.json()
+        listings = data.get("data", {}).get("eventListings", {}).get("data", [])
+        total    = data.get("data", {}).get("eventListings", {}).get("totalResults", 0)
+        return jsonify({"area": area, "total": total, "primer_evento": listings[0]["event"]["title"] if listings else None})
+    except Exception as e:
+        return jsonify({"error": str(e)})
