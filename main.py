@@ -134,6 +134,7 @@ def buscar_ra(ciudad, desde, hasta, max_ev=10, hora_min=None, gratis=False):
         return [], 0
 
 def call_groq(messages):
+    print(f"[GROQ] Calling with key: {GROQ_API_KEY[:10]}... messages: {len(messages)}")
     resp = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",
         headers={
@@ -148,6 +149,9 @@ def call_groq(messages):
         },
         timeout=30
     )
+    print(f"[GROQ] Status: {resp.status_code}")
+    if not resp.ok:
+        print(f"[GROQ ERROR] {resp.text}")
     resp.raise_for_status()
     return resp.json()["choices"][0]["message"]["content"]
 
