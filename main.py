@@ -451,13 +451,19 @@ def chat():
         tipo = filtros.get("tipo", "fecha")
         ciudad_raw = filtros.get("ciudad", "berlin")
 
-        # Corrección fuzzy de ciudad
-        ciudad_corregida, ciudad_ok = corregir_ciudad(ciudad_raw)
-        if not ciudad_ok:
-            return jsonify({
-                "reply": f"No encontré la ciudad '{ciudad_raw}'. ¿Podés indicarme el nombre exacto? Las ciudades disponibles son: {', '.join(list(AREAS_RA.keys())[:10])}...",
-                "filtros": None, "eventos": [], "total_ra": 0
-            })
+        # Para búsqueda por artista la ciudad es opcional
+        tipo = filtros.get("tipo", "fecha")
+        if ciudad_raw.lower() in ["todas", "all", "cualquiera", ""]:
+            ciudad_corregida = "barcelona"  # default, no se usa para artista
+            ciudad_ok = True
+        else:
+            # Corrección fuzzy de ciudad
+            ciudad_corregida, ciudad_ok = corregir_ciudad(ciudad_raw)
+            if not ciudad_ok and tipo != "artista":
+                return jsonify({
+                    "reply": f"No encontré la ciudad '{ciudad_raw}'. ¿Podés indicarme el nombre exacto? Las ciudades disponibles son: {', '.join(list(AREAS_RA.keys())[:10])}...",
+                    "filtros": None, "eventos": [], "total_ra": 0
+                })
         if ciudad_corregida != ciudad_raw.lower():
             clean = f"(Entendí '{ciudad_corregida.title()}' por '{ciudad_raw}') " + clean
 
@@ -481,55 +487,82 @@ def chat():
             )
 
         elif tipo == "artista":
-            artista_raw = filtros.get("artista", "").replace("-", " ").strip()
-            cuando = filtros.get("cuando", "todo")
-            desde, hasta = calc_fechas(cuando)
+            artista_raw = filtros.get("artista", "").strip()
+            # Convertir a slug para RA: "Amelie Lens" -> "amelie-lens"
+            slug = re.sub(r'[^a-z0-9]+', '-', artista_raw.lower()).strip('-')
+            max_ev_artista = filtros.get("max", 10)
 
-            # Si hay ciudad busca ahí, si no busca en las principales
-            ciudades_buscar = [ciudad_corregida] if ciudad_corregida in AREAS_RA else [
-                "barcelona", "berlin", "london", "amsterdam", "madrid", "paris",
-                "ibiza", "buenos aires", "new york"
-            ]
+            # Usar la query específica de RA por artista — trae TODAS sus fechas futuras
+            payload_artista = {
+                "operationName": "GET_ARTIST_EVENTS",
+                "variables": {"slug": slug, "pageSize": max_ev_artista},
+                "query": RA_QUERY_ARTISTA
+            }
 
-            todos = []
-            for c in ciudades_buscar:
-                evs, _ = buscar_por_fecha(c, desde, hasta, max_ev=100)
-                todos.extend(evs)
+            try:
+                data_artista = ra_request(payload_artista)
+                artist_data  = data_artista.get("data", {}).get("artist")
 
-            # Búsqueda estricta: el nombre del artista debe coincidir exactamente
-            def artista_match(nombre_buscado, lista_artistas):
-                buscado = nombre_buscado.lower().strip()
-                for a in lista_artistas:
-                    a_lower = a.lower().strip()
-                    # Coincidencia exacta o muy cercana
-                    if buscado == a_lower:
-                        return True
-                    # El nombre completo está contenido
-                    if buscado in a_lower and len(buscado) > 4:
-                        palabras = buscado.split()
-                        if all(p in a_lower for p in palabras):
-                            return True
-                return False
+                if artist_data and artist_data.get("eventListings", {}).get("data"):
+                    listings_artista = artist_data["eventListings"]["data"]
+                    nombre_real = artist_data.get("name", artista_raw)
 
-            eventos_out = [e for e in todos if artista_match(artista_raw, e.get("artistas", []))]
+                    eventos_out = []
+                    hoy_str = datetime.now().strftime("%Y-%m-%d")
+                    for item in listings_artista:
+                        ev = item.get("event")
+                        if not ev: continue
+                        # Solo fechas futuras
+                        fecha_ev = (ev.get("date") or "")[:10]
+                        if fecha_ev < hoy_str: continue
+                        venue = ev.get("venue") or {}
+                        cost  = (ev.get("cost") or "").strip()
+                        precio_num = precio_categoria(cost)
+                        tiene_simbolo = any(s in cost for s in ['£','$','€'])
+                        sym = '' if tiene_simbolo else '€'
+                        if precio_num == 0:
+                            precio_label = "Gratis"
+                        elif precio_num:
+                            precio_label = f"{sym}{precio_num}"
+                        else:
+                            precio_label = "Ver precio en RA"
 
-            if not eventos_out:
-                # Intento fuzzy como último recurso
-                todos_artistas = list({a for ev in todos for a in ev.get("artistas", [])})
-                artista_corregido, artista_ok = corregir_artista(artista_raw, todos_artistas)
-                if artista_ok and artista_corregido.lower() != artista_raw.lower():
-                    clean = f"(Entendí '{artista_corregido}' por '{artista_raw}') " + clean
-                    eventos_out = [e for e in todos if artista_match(artista_corregido, e.get("artistas", []))]
+                        eventos_out.append({
+                            "titulo":       ev.get("title", ""),
+                            "fecha":        fecha_ev,
+                            "hora":         (ev.get("startTime") or "")[11:16],
+                            "hora_fin":     "",
+                            "venue":        venue.get("name", ""),
+                            "direccion":    venue.get("address", ""),
+                            "ciudad_venue": (venue.get("area") or {}).get("name", ""),
+                            "artistas":     [a.get("name","") for a in ev.get("artists",[])],
+                            "precio":       cost or "No especificado",
+                            "precio_label": precio_label,
+                            "precio_num":   precio_num,
+                            "gratis":       precio_num == 0,
+                            "asistentes":   ev.get("attending", 0),
+                            "destacado":    "",
+                            "url":          f"https://ra.co{ev.get('contentUrl','')}",
+                            "fuente":       "Resident Advisor",
+                        })
 
-            if not eventos_out:
-                ciudades_str = ", ".join(ciudades_buscar[:5])
-                return jsonify({
-                    "reply": f"No encontré a '{artista_raw}' en los eventos de este finde en {ciudades_str}. Puede que no tenga fechas confirmadas en RA para estos días.",
-                    "filtros": filtros, "eventos": [], "total_ra": 0
-                })
-
-            eventos_out = eventos_out[:filtros.get("max", 8)]
-            total_ra = len(eventos_out)
+                    if eventos_out:
+                        eventos_out.sort(key=lambda x: x.get("fecha",""))
+                        total_ra = len(eventos_out)
+                        clean = f"Próximas fechas de {nombre_real}:"
+                    else:
+                        return jsonify({
+                            "reply": f"No encontré próximas fechas de {nombre_real} en RA. Puede que no tenga shows confirmados por el momento.",
+                            "filtros": filtros, "eventos": [], "total_ra": 0
+                        })
+                else:
+                    return jsonify({
+                        "reply": f"No encontré al artista '{artista_raw}' en RA. ¿Podés verificar el nombre exacto?",
+                        "filtros": filtros, "eventos": [], "total_ra": 0
+                    })
+            except Exception as e:
+                print(f"[ARTISTA ERROR] {e}")
+                return jsonify({"error": str(e)}), 500
 
         elif tipo == "venue":
             venue_raw = filtros.get("venue", "")
