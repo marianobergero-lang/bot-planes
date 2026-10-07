@@ -105,7 +105,8 @@ Si busca por FECHA+CIUDAD necesitás:
 
 Si busca por ARTISTA necesitás:
 - Nombre del artista
-- Ciudad (opcional)
+- Ciudad (opcional) — si no da ciudad, igual buscá en las principales ciudades
+- Si no da ciudad, usá "todas" en el JSON
 
 Si busca por VENUE/DISCO necesitás:
 - Nombre del venue/disco o evento
@@ -126,14 +127,25 @@ Cuando tengas suficiente info, escribí este bloque al final:
 }
 ###FIN###
 
-O para artista:
+O para artista (con ciudad):
 ###FILTROS###
 {
   "tipo": "artista",
-  "artista": "nina kraviz",
+  "artista": "amelie lens",
   "ciudad": "barcelona",
   "cuando": "todo",
-  "max": 5
+  "max": 8
+}
+###FIN###
+
+O para artista (sin ciudad — busca en todas):
+###FILTROS###
+{
+  "tipo": "artista",
+  "artista": "amelie lens",
+  "ciudad": "todas",
+  "cuando": "todo",
+  "max": 8
 }
 ###FIN###
 
@@ -165,7 +177,8 @@ IMPORTANTE:
 - Géneros que conocés: techno, house, progressive, minimal, drum&bass, reggaeton, cumbia, jazz, indie, pop, rock, electrónica en general.
 - Si el usuario menciona un género, guardalo para sugerirle eventos afines.
 - Cuando saludés al usuario por primera vez, decí exactamente: "¡Hola! ¿Qué plan estás buscando? Podés decirme una ciudad, un DJ/artista, un venue/disco o una fecha determinada... y buscamos tu plan ideal!"
-- Siempre escribí "venue/disco" cuando te refieras a un lugar."""
+- Siempre escribí "venue/disco" cuando te refieras a un lugar.
+- IMPORTANTE: el filtro de "aire libre" o "cubierto" todavía no está disponible. Si el usuario lo pide, avisale: "Por ahora no puedo filtrar por aire libre/cubierto automáticamente — esa función viene pronto! Mientras tanto busco por fecha y ciudad y vos elegís el que más te gusta." Luego continuá con la búsqueda normal sin ese filtro y NO lo incluyas en el JSON de filtros."""
 
 def corregir_ciudad(ciudad_input):
     """Corrige errores tipográficos en nombres de ciudades"""
@@ -468,27 +481,54 @@ def chat():
             )
 
         elif tipo == "artista":
-            artista_raw = filtros.get("artista", "").replace("-", " ")
-            desde, hasta = calc_fechas(filtros.get("cuando", "todo"))
-            todos, _ = buscar_por_fecha(ciudad_corregida, desde, hasta, max_ev=100)
+            artista_raw = filtros.get("artista", "").replace("-", " ").strip()
+            cuando = filtros.get("cuando", "todo")
+            desde, hasta = calc_fechas(cuando)
 
-            todos_artistas = list({a for ev in todos for a in ev.get("artistas", [])})
-            artista_corregido, artista_ok = corregir_artista(artista_raw, todos_artistas)
+            # Si hay ciudad busca ahí, si no busca en las principales
+            ciudades_buscar = [ciudad_corregida] if ciudad_corregida in AREAS_RA else [
+                "barcelona", "berlin", "london", "amsterdam", "madrid", "paris",
+                "ibiza", "buenos aires", "new york"
+            ]
 
-            if artista_ok and artista_corregido.lower() != artista_raw.lower():
-                clean = f"(Entendí '{artista_corregido}' por '{artista_raw}') " + clean
+            todos = []
+            for c in ciudades_buscar:
+                evs, _ = buscar_por_fecha(c, desde, hasta, max_ev=100)
+                todos.extend(evs)
 
-            eventos_out = [e for e in todos if any(
-                artista_corregido.lower() in a.lower() for a in e.get("artistas", [])
-            )]
+            # Búsqueda estricta: el nombre del artista debe coincidir exactamente
+            def artista_match(nombre_buscado, lista_artistas):
+                buscado = nombre_buscado.lower().strip()
+                for a in lista_artistas:
+                    a_lower = a.lower().strip()
+                    # Coincidencia exacta o muy cercana
+                    if buscado == a_lower:
+                        return True
+                    # El nombre completo está contenido
+                    if buscado in a_lower and len(buscado) > 4:
+                        palabras = buscado.split()
+                        if all(p in a_lower for p in palabras):
+                            return True
+                return False
 
-            if not eventos_out and not artista_ok:
+            eventos_out = [e for e in todos if artista_match(artista_raw, e.get("artistas", []))]
+
+            if not eventos_out:
+                # Intento fuzzy como último recurso
+                todos_artistas = list({a for ev in todos for a in ev.get("artistas", [])})
+                artista_corregido, artista_ok = corregir_artista(artista_raw, todos_artistas)
+                if artista_ok and artista_corregido.lower() != artista_raw.lower():
+                    clean = f"(Entendí '{artista_corregido}' por '{artista_raw}') " + clean
+                    eventos_out = [e for e in todos if artista_match(artista_corregido, e.get("artistas", []))]
+
+            if not eventos_out:
+                ciudades_str = ", ".join(ciudades_buscar[:5])
                 return jsonify({
-                    "reply": f"No encontré a '{artista_raw}' en eventos de {ciudad_corregida} este finde. ¿Podés verificar el nombre exacto del artista?",
+                    "reply": f"No encontré a '{artista_raw}' en los eventos de este finde en {ciudades_str}. Puede que no tenga fechas confirmadas en RA para estos días.",
                     "filtros": filtros, "eventos": [], "total_ra": 0
                 })
 
-            eventos_out = eventos_out[:filtros.get("max", 5)]
+            eventos_out = eventos_out[:filtros.get("max", 8)]
             total_ra = len(eventos_out)
 
         elif tipo == "venue":
