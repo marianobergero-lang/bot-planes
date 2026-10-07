@@ -228,16 +228,24 @@ def calc_fechas(cuando):
     return fmt(vier), fmt(dom)  # todo = viernes + sábado + domingo
 
 def precio_categoria(cost_str):
-    """Convierte string de precio a número aproximado"""
+    """Convierte string de precio al mínimo — para mostrar 'desde X€'"""
     if not cost_str or cost_str.strip() == "":
         return None
-    cost = cost_str.lower().strip()
-    if cost in ["free", "gratis", "0"]:
+    cost = cost_str.strip()
+    if cost.lower() in ["free", "gratis", "0", "€", "£", "$"]:
         return 0
-    nums = re.findall(r'\d+', cost)
-    if nums:
-        return int(nums[0])
-    return None
+    # Extraer todos los números del string
+    nums = re.findall(r'\d+(?:[.,]\d+)?', cost)
+    if not nums:
+        return None
+    # Convertir a float y devolver el mínimo (precio más barato)
+    valores = []
+    for n in nums:
+        try:
+            valores.append(float(n.replace(',', '.')))
+        except:
+            pass
+    return int(min(valores)) if valores else None
 
 def formatear_evento(ev, venue_data=None):
     venue = ev.get("venue") or {}
@@ -246,26 +254,31 @@ def formatear_evento(ev, venue_data=None):
     artistas = [a.get("name", "") for a in ev.get("artists", [])]
     precio_num = precio_categoria(cost)
 
+    # Símbolo de moneda
+    tiene_simbolo = any(s in cost for s in ['£', '$', '€'])
+    sym = '' if tiene_simbolo else '€'
+
     if precio_num == 0:
         precio_label = "Gratis"
         es_gratis = True
     elif precio_num is not None and precio_num < 15:
-        precio_label = f"Barato · {cost}"
+        precio_label = f"Desde {sym}{precio_num}"
         es_gratis = False
     elif precio_num is not None and precio_num <= 30:
-        precio_label = f"Normal · {cost}"
+        precio_label = f"Desde {sym}{precio_num}"
         es_gratis = False
     elif precio_num is not None:
-        precio_label = f"Caro · {cost}"
+        precio_label = f"Desde {sym}{precio_num}"
         es_gratis = False
     else:
-        precio_label = "Ver en RA"
+        precio_label = "Ver precio en RA"
         es_gratis = False
 
     return {
         "titulo":       ev.get("title", ""),
         "fecha":        (ev.get("date") or "")[:10],
         "hora":         hora,
+        "hora_fin":     (ev.get("endTime") or "")[11:16],
         "venue":        venue.get("name", ""),
         "direccion":    venue.get("address", ""),
         "ciudad_venue": (venue.get("area") or {}).get("name", ""),
