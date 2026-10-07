@@ -3,6 +3,7 @@ from flask_cors import CORS
 import requests
 import json
 import os
+import re
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
@@ -23,13 +24,13 @@ AREAS_RA = {
     "tokyo": 58, "melbourne": 63, "sydney": 64, "seoul": 94,
 }
 
-RA_QUERY = """
+# Query por fecha/ciudad
+RA_QUERY_FECHA = """
 query GET_DEFAULT_EVENTS_LISTING($filters: FilterInputDtoInput, $pageSize: Int) {
   eventListings(filters: $filters, pageSize: $pageSize, page: 1,
     sort: { listingDate: { priority: 1, order: ASCENDING } }) {
     data {
-      id
-      listingDate
+      id listingDate
       event {
         id title date startTime endTime contentUrl cost attending
         venue { name address area { name id } }
@@ -42,27 +43,110 @@ query GET_DEFAULT_EVENTS_LISTING($filters: FilterInputDtoInput, $pageSize: Int) 
 }
 """
 
-SYSTEM_PROMPT = """Sos un asistente de planes para el fin de semana. Tu estilo es amigable, directo y canchero — como un amigo que conoce bien la movida nocturna. Hablás en español rioplatense (che, dale, copado, buenísimo, etc.) pero sin exagerar.
+# Query por artista
+RA_QUERY_ARTISTA = """
+query GET_ARTIST_EVENTS($slug: String!, $pageSize: Int) {
+  artist(slug: $slug) {
+    name
+    eventListings(pageSize: $pageSize) {
+      data {
+        event {
+          id title date startTime contentUrl cost attending
+          venue { name address area { name } }
+          artists { name }
+        }
+      }
+    }
+  }
+}
+"""
 
-Tu trabajo es hacer preguntas para entender qué quiere el usuario y buscar eventos reales en Resident Advisor.
+# Query busqueda general
+RA_QUERY_SEARCH = """
+query SEARCH_EVENTS($query: String!, $pageSize: Int) {
+  eventListings(
+    filters: { title: { contains: $query } }
+    pageSize: $pageSize
+    page: 1
+    sort: { listingDate: { priority: 1, order: ASCENDING } }
+  ) {
+    data {
+      event {
+        id title date startTime contentUrl cost attending
+        venue { name address area { name } }
+        artists { name }
+        pick { blurb }
+      }
+    }
+    totalResults
+  }
+}
+"""
 
-FLUJO — hacé UNA pregunta por vez, salteando las que ya respondió:
-1. Ciudad (tenés disponibles: Buenos Aires, Berlin, Barcelona, London, Amsterdam, Madrid, New York, Paris, Ibiza, Rome, Lisbon, Tokyo, Melbourne, Mexico City, Bogota, Santiago, Sao Paulo, Toronto, Miami, Vienna, Prague, Budapest, Stockholm, Brussels, Hamburg)
-2. Cuándo: viernes, sábado, o todo el finde
-3. Horario: tarde (18hs+), noche (22hs+), madrugada (00hs+), o da igual
-4. Lugar: cubierto (club/boliche/sala), aire libre (open air/parque/terraza), o da igual
-5. Entrada: gratis, pago, o da igual
+SYSTEM_PROMPT = """Sos un asistente experto en planes para salir, especialmente electrónica y cultura de club. Tu estilo es amigable, directo y canchero — como un amigo que conoce bien la movida. Hablás en español rioplatense pero sin exagerar.
 
-Cuando tengas ciudad + cuándo + horario + lugar, escribí exactamente este bloque al final de tu mensaje:
+Podés buscar eventos de tres formas distintas:
+1. Por fecha + ciudad: "qué hay el sábado en Berlin"
+2. Por artista/DJ: "dónde toca Nina Kraviz" o "hay algo de Amelie Lens"
+3. Por venue/evento: "qué hay en Berghain" o "busco Brunch Elektrónik"
+
+FLUJO — detectá qué tipo de búsqueda quiere el usuario y hacé UNA pregunta por vez:
+
+Si busca por FECHA+CIUDAD necesitás:
+- Ciudad
+- Cuándo (viernes, sábado, todo el finde)
+- Horario (tarde 18hs+, noche 22hs+, madrugada 00hs+, da igual)
+- Lugar (cubierto/club, aire libre, da igual)
+- Precio (gratis, barato <15€, normal 15-30€, caro >30€, da igual)
+
+Si busca por ARTISTA necesitás:
+- Nombre del artista
+- Ciudad (opcional)
+
+Si busca por VENUE/EVENTO necesitás:
+- Nombre del venue o evento
+- Ciudad (opcional)
+
+Cuando tengas suficiente info, escribí este bloque al final:
 ###FILTROS###
-{"ciudad":"barcelona","cuando":"sabado","hora_min":"22:00","lugar":"cubierto","gratis":false,"max":10}
+{
+  "tipo": "fecha",
+  "ciudad": "barcelona",
+  "cuando": "sabado",
+  "hora_min": "22:00",
+  "lugar": "cubierto",
+  "precio_max": 30,
+  "gratis": false,
+  "max": 8
+}
+###FIN###
+
+O para artista:
+###FILTROS###
+{
+  "tipo": "artista",
+  "artista": "nina-kraviz",
+  "ciudad": "barcelona",
+  "max": 5
+}
+###FIN###
+
+O para venue/evento:
+###FILTROS###
+{
+  "tipo": "busqueda",
+  "query": "Brunch Elektrónik",
+  "ciudad": "barcelona",
+  "max": 5
+}
 ###FIN###
 
 IMPORTANTE:
-- Si el usuario dice algo como "el sábado a la noche en Berlin en un club", procesá todo de una y pedí solo lo que falta.
-- Sé breve, máximo 2-3 líneas. Nada de listas largas.
-- Cuando mostrés que vas a buscar, sé entusiasta pero breve.
-- Si el usuario quiere buscar de nuevo, empezá desde el principio con buena onda."""
+- Si el usuario dice "el sábado a la noche en Berlin en un club", procesá todo de una.
+- Para artistas, convertí el nombre a slug: "Nina Kraviz" → "nina-kraviz", "Amelie Lens" → "amelie-lens"
+- Sé breve, máximo 2-3 líneas. Conversacional y con onda.
+- Géneros que conocés: techno, house, progressive, minimal, drum&bass, reggaeton, cumbia, jazz, indie, pop, rock, electrónica en general.
+- Si el usuario menciona un género, guardalo para sugerirle eventos afines."""
 
 def ra_request(payload):
     scraper_url = "https://api.scraperapi.com/"
@@ -78,90 +162,6 @@ def finde_proximo():
     domingo = viernes + timedelta(days=2)
     return viernes.strftime("%Y-%m-%d"), domingo.strftime("%Y-%m-%d")
 
-def buscar_ra(ciudad, desde, hasta, max_ev=10, hora_min=None, gratis=False):
-    area = AREAS_RA.get(ciudad.lower().strip())
-    if not area:
-        return [], 0
-
-    payload = {
-        "operationName": "GET_DEFAULT_EVENTS_LISTING",
-        "variables": {
-            "filters": {
-                "areas": {"eq": area},
-                "listingDate": {"gte": f"{desde}T00:00:00.000Z", "lte": f"{hasta}T23:59:59.000Z"}
-            },
-            "pageSize": max_ev * 3
-        },
-        "query": RA_QUERY
-    }
-
-    try:
-        data     = ra_request(payload)
-        listings = data.get("data", {}).get("eventListings", {}).get("data", [])
-        total    = data.get("data", {}).get("eventListings", {}).get("totalResults", 0)
-
-        eventos = []
-        for item in listings:
-            ev = item.get("event")
-            if not ev: continue
-            venue = ev.get("venue") or {}
-            cost  = (ev.get("cost") or "").strip()
-            hora  = (ev.get("startTime") or "")[11:16]
-            if hora_min and hora and hora >= "08:00" and hora < hora_min:
-                continue
-            es_gratis = cost == "" or cost.lower() in ["free", "gratis", "0"]
-            if gratis and not es_gratis:
-                continue
-            eventos.append({
-                "titulo":     ev.get("title", ""),
-                "fecha":      (ev.get("date") or "")[:10],
-                "hora":       hora,
-                "venue":      venue.get("name", ""),
-                "direccion":  venue.get("address", ""),
-                "artistas":   [a.get("name", "") for a in ev.get("artists", [])],
-                "precio":     cost or "No especificado",
-                "gratis":     es_gratis,
-                "asistentes": ev.get("attending", 0),
-                "destacado":  (ev.get("pick") or {}).get("blurb", ""),
-                "url":        f"https://ra.co{ev.get('contentUrl', '')}",
-                "fuente":     "Resident Advisor",
-            })
-
-        eventos.sort(key=lambda x: x.get("asistentes", 0), reverse=True)
-        return eventos[:max_ev], total
-    except Exception as e:
-        print(f"[RA ERROR] {e}")
-        return [], 0
-
-def call_groq(messages):
-    print(f"[GROQ] Calling with key: {GROQ_API_KEY[:10]}... messages: {len(messages)}")
-    resp = requests.post(
-        "https://api.groq.com/openai/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {GROQ_API_KEY}",
-            "Content-Type": "application/json"
-        },
-        json={
-            "model": "openai/gpt-oss-120b",
-            "messages": [{"role": "system", "content": SYSTEM_PROMPT}] + messages,
-            "max_tokens": 800,
-            "temperature": 0.7,
-        },
-        timeout=30
-    )
-    print(f"[GROQ] Status: {resp.status_code}")
-    if not resp.ok:
-        print(f"[GROQ ERROR] {resp.text}")
-    resp.raise_for_status()
-    return resp.json()["choices"][0]["message"]["content"]
-
-def parse_filters(text):
-    import re
-    m = re.search(r'###FILTROS###\s*([\s\S]*?)\s*###FIN###', text)
-    if not m: return None
-    try: return json.loads(m.group(1))
-    except: return None
-
 def calc_fechas(cuando):
     hoy = datetime.now()
     dias = (4 - hoy.weekday()) % 7 or 7
@@ -173,16 +173,161 @@ def calc_fechas(cuando):
     if cuando == "sabado":  return fmt(sab),  fmt(sab)
     return fmt(vier), fmt(dom)
 
+def precio_categoria(cost_str):
+    """Convierte string de precio a número aproximado"""
+    if not cost_str or cost_str.strip() == "":
+        return None
+    cost = cost_str.lower().strip()
+    if cost in ["free", "gratis", "0"]:
+        return 0
+    nums = re.findall(r'\d+', cost)
+    if nums:
+        return int(nums[0])
+    return None
+
+def formatear_evento(ev, venue_data=None):
+    venue = ev.get("venue") or {}
+    cost  = (ev.get("cost") or "").strip()
+    hora  = (ev.get("startTime") or "")[11:16]
+    artistas = [a.get("name", "") for a in ev.get("artists", [])]
+    precio_num = precio_categoria(cost)
+
+    if precio_num == 0:
+        precio_label = "Gratis"
+        es_gratis = True
+    elif precio_num is not None and precio_num < 15:
+        precio_label = f"Barato · {cost}"
+        es_gratis = False
+    elif precio_num is not None and precio_num <= 30:
+        precio_label = f"Normal · {cost}"
+        es_gratis = False
+    elif precio_num is not None:
+        precio_label = f"Caro · {cost}"
+        es_gratis = False
+    else:
+        precio_label = "Ver en RA"
+        es_gratis = False
+
+    return {
+        "titulo":       ev.get("title", ""),
+        "fecha":        (ev.get("date") or "")[:10],
+        "hora":         hora,
+        "venue":        venue.get("name", ""),
+        "direccion":    venue.get("address", ""),
+        "ciudad_venue": (venue.get("area") or {}).get("name", ""),
+        "artistas":     artistas,
+        "precio":       cost or "No especificado",
+        "precio_label": precio_label,
+        "precio_num":   precio_num,
+        "gratis":       es_gratis,
+        "asistentes":   ev.get("attending", 0),
+        "destacado":    (ev.get("pick") or {}).get("blurb", ""),
+        "url":          f"https://ra.co{ev.get('contentUrl', '')}",
+        "fuente":       "Resident Advisor",
+    }
+
+def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None):
+    area = AREAS_RA.get(ciudad.lower().strip())
+    if not area:
+        return [], 0
+
+    payload = {
+        "operationName": "GET_DEFAULT_EVENTS_LISTING",
+        "variables": {
+            "filters": {
+                "areas": {"eq": area},
+                "listingDate": {"gte": f"{desde}T00:00:00.000Z", "lte": f"{hasta}T23:59:59.000Z"}
+            },
+            "pageSize": 50
+        },
+        "query": RA_QUERY_FECHA
+    }
+
+    try:
+        data     = ra_request(payload)
+        listings = data.get("data", {}).get("eventListings", {}).get("data", [])
+        total    = data.get("data", {}).get("eventListings", {}).get("totalResults", 0)
+
+        eventos = []
+        for item in listings:
+            ev = item.get("event")
+            if not ev: continue
+
+            ev_fmt = formatear_evento(ev)
+            hora = ev_fmt["hora"]
+
+            # Filtro hora
+            if hora_min and hora and hora >= "08:00" and hora < hora_min:
+                continue
+            # Filtro gratis
+            if gratis and not ev_fmt["gratis"]:
+                continue
+            # Filtro precio máximo
+            if precio_max is not None and ev_fmt["precio_num"] is not None and ev_fmt["precio_num"] > precio_max:
+                continue
+
+            eventos.append(ev_fmt)
+
+        eventos.sort(key=lambda x: x.get("asistentes", 0), reverse=True)
+        return eventos[:max_ev], total
+
+    except Exception as e:
+        print(f"[RA FECHA ERROR] {e}")
+        return [], 0
+
+def buscar_por_busqueda(query, ciudad=None, max_ev=5):
+    """Busca por nombre de evento o venue"""
+    payload = {
+        "operationName": "SEARCH_EVENTS",
+        "variables": {"query": query, "pageSize": max_ev * 2},
+        "query": RA_QUERY_SEARCH
+    }
+    try:
+        data     = ra_request(payload)
+        listings = data.get("data", {}).get("eventListings", {}).get("data", [])
+        total    = data.get("data", {}).get("eventListings", {}).get("totalResults", 0)
+        eventos  = [formatear_evento(item["event"]) for item in listings if item.get("event")]
+        if ciudad:
+            eventos = [e for e in eventos if ciudad.lower() in (e.get("ciudad_venue") or "").lower()]
+        eventos.sort(key=lambda x: x.get("asistentes", 0), reverse=True)
+        return eventos[:max_ev], total
+    except Exception as e:
+        print(f"[RA SEARCH ERROR] {e}")
+        return [], 0
+
+def call_groq(messages):
+    print(f"[GROQ] key: {GROQ_API_KEY[:10]}... msgs: {len(messages)}")
+    resp = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+        json={
+            "model": "openai/gpt-oss-120b",
+            "messages": [{"role": "system", "content": SYSTEM_PROMPT}] + messages,
+            "max_tokens": 800,
+            "temperature": 0.7,
+        },
+        timeout=30
+    )
+    print(f"[GROQ] status: {resp.status_code}")
+    if not resp.ok:
+        print(f"[GROQ ERROR] {resp.text}")
+    resp.raise_for_status()
+    return resp.json()["choices"][0]["message"]["content"]
+
+def parse_filters(text):
+    m = re.search(r'###FILTROS###\s*([\s\S]*?)\s*###FIN###', text)
+    if not m: return None
+    try: return json.loads(m.group(1))
+    except: return None
+
 @app.route("/")
 def home():
-    return jsonify({"status": "ok", "ciudades": list(AREAS_RA.keys())})
+    return jsonify({"status": "ok", "version": "fase1", "ciudades": list(AREAS_RA.keys())})
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    """Endpoint principal del chat — recibe historial y devuelve respuesta + eventos si aplica"""
     body     = request.json or {}
     messages = body.get("messages", [])
-
     if not messages:
         return jsonify({"error": "messages requerido"}), 400
 
@@ -192,21 +337,40 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
     filtros = parse_filters(reply)
-    clean   = reply.replace(r'###FILTROS###[\s\S]*?###FIN###', '').strip()
-    import re
-    clean = re.sub(r'###FILTROS###[\s\S]*?###FIN###', '', reply).strip()
+    clean   = re.sub(r'###FILTROS###[\s\S]*?###FIN###', '', reply).strip()
 
     eventos_out = []
     total_ra    = 0
 
     if filtros:
-        desde, hasta = calc_fechas(filtros.get("cuando", "todo"))
-        hora_min     = filtros.get("hora_min")
-        gratis       = filtros.get("gratis", False)
-        ciudad       = filtros.get("ciudad", "berlin")
-        max_ev       = filtros.get("max", 10)
+        tipo = filtros.get("tipo", "fecha")
 
-        eventos_out, total_ra = buscar_ra(ciudad, desde, hasta, max_ev, hora_min, gratis)
+        if tipo == "fecha":
+            desde, hasta = calc_fechas(filtros.get("cuando", "todo"))
+            eventos_out, total_ra = buscar_por_fecha(
+                ciudad    = filtros.get("ciudad", "berlin"),
+                desde     = desde,
+                hasta     = hasta,
+                max_ev    = filtros.get("max", 8),
+                hora_min  = filtros.get("hora_min"),
+                gratis    = filtros.get("gratis", False),
+                precio_max = filtros.get("precio_max"),
+            )
+
+        elif tipo == "busqueda":
+            eventos_out, total_ra = buscar_por_busqueda(
+                query  = filtros.get("query", ""),
+                ciudad = filtros.get("ciudad"),
+                max_ev = filtros.get("max", 5),
+            )
+
+        elif tipo == "artista":
+            # Por ahora usamos búsqueda general con el nombre del artista
+            eventos_out, total_ra = buscar_por_busqueda(
+                query  = filtros.get("artista", "").replace("-", " "),
+                ciudad = filtros.get("ciudad"),
+                max_ev = filtros.get("max", 5),
+            )
 
     return jsonify({
         "reply":    clean,
@@ -217,20 +381,21 @@ def chat():
 
 @app.route("/eventos")
 def eventos():
-    ciudad   = request.args.get("ciudad", "london").lower().strip()
-    desde    = request.args.get("desde")
-    hasta    = request.args.get("hasta")
-    hora_min = request.args.get("hora_min")
-    gratis   = request.args.get("gratis") == "true"
-    max_ev   = int(request.args.get("max", 10))
+    ciudad    = request.args.get("ciudad", "london").lower().strip()
+    desde     = request.args.get("desde")
+    hasta     = request.args.get("hasta")
+    hora_min  = request.args.get("hora_min")
+    gratis    = request.args.get("gratis") == "true"
+    precio_max = int(request.args.get("precio_max", 9999))
+    max_ev    = int(request.args.get("max", 8))
 
     if not desde or not hasta:
         desde, hasta = finde_proximo()
 
     if ciudad not in AREAS_RA:
-        return jsonify({"error": f"Ciudad '{ciudad}' no encontrada", "disponibles": list(AREAS_RA.keys())}), 400
+        return jsonify({"error": f"Ciudad '{ciudad}' no encontrada"}), 400
 
-    evs, total = buscar_ra(ciudad, desde, hasta, max_ev, hora_min, gratis)
+    evs, total = buscar_por_fecha(ciudad, desde, hasta, max_ev, hora_min, gratis, precio_max)
     return jsonify({"ciudad": ciudad, "desde": desde, "hasta": hasta, "total_ra": total, "total": len(evs), "eventos": evs})
 
 @app.route("/find-area")
