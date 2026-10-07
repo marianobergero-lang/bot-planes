@@ -254,11 +254,24 @@ def corregir_artista(artista_input, lista_artistas):
         return lista_lower[matches[0]], True
     return artista_input, False
 
+RA_HEADERS = {
+    "Content-Type": "application/json",
+    "Origin": "https://ra.co",
+    "Referer": "https://ra.co/events",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+}
+
 def ra_request(payload):
+    """Para eventos — usa ScraperAPI para evitar bloqueos por IP"""
     scraper_url = "https://api.scraperapi.com/"
     params  = {"api_key": SCRAPER_API_KEY, "url": RA_GRAPHQL_URL}
-    headers = {"Content-Type": "application/json", "Origin": "https://ra.co", "Referer": "https://ra.co/events"}
-    resp = requests.post(scraper_url, params=params, headers=headers, data=json.dumps(payload), timeout=30)
+    resp = requests.post(scraper_url, params=params, headers=RA_HEADERS, data=json.dumps(payload), timeout=30)
+    return resp.json()
+
+def ra_request_direct(payload):
+    """Para artistas — directo sin proxy, más rápido"""
+    resp = requests.post(RA_GRAPHQL_URL, headers=RA_HEADERS, json=payload, timeout=20)
+    resp.raise_for_status()
     return resp.json()
 
 def finde_proximo():
@@ -567,7 +580,7 @@ def chat():
                         "variables": {"slug": slug, "pageSize": 20},
                         "query": RA_QUERY_ARTISTA
                     }
-                    data_artista = ra_request(payload_artista)
+                    data_artista = ra_request_direct(payload_artista)
                     candidate = data_artista.get("data", {}).get("artist")
                     if candidate and candidate.get("eventListings", {}).get("data"):
                         artist_data = candidate
