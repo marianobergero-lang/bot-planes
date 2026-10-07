@@ -20,9 +20,9 @@
     --accent2:   #c94f18;
     --petroleo:  #173F4F;
     --arena:     #E9DFD0;
-    --text:      #f0ede8;
-    --muted:     #8ab8c8;
-    --dim:       #4a7a8a;
+    --text:      #f5f2ee;
+    --muted:     #c0ccd0;
+    --dim:       #8aaab5;
     --green:     #4cde8f;
     --blue:      #4cb8ff;
     --orange:    #E9682E;
@@ -352,7 +352,12 @@ function addMsg(role, text, opts = [], events = []) {
     const card = document.createElement('div');
     card.className = 'ev-card';
     const artists = (ev.artistas || []).slice(0, 4).join(' · ') + ((ev.artistas||[]).length > 4 ? ` +${ev.artistas.length-4}` : '');
-    const hora = ev.hora && ev.hora !== '23:59' ? ev.hora + 'hs' : 'Noche';
+    const horaInicio = ev.hora && ev.hora !== '23:59' ? ev.hora : null;
+    const horaFin = ev.hora_fin && ev.hora_fin !== '23:59' ? ev.hora_fin : null;
+    let horaStr = '';
+    if (horaInicio && horaFin) horaStr = `${horaInicio} → ${horaFin}hs`;
+    else if (horaInicio) horaStr = `desde las ${horaInicio}hs`;
+    else horaStr = 'Noche';
     const { cls, txt } = badgeInfo(ev);
     const fecha = formatFecha(ev.fecha);
 
@@ -364,7 +369,7 @@ function addMsg(role, text, opts = [], events = []) {
       ${artists ? `<div class="ev-artists">👤 ${artists}</div>` : ''}
       <div class="ev-meta">
         ${fecha ? `<span class="ev-date">📅 ${fecha}</span>` : ''}
-        <span>🕐 ${hora}</span>
+        <span>🕐 ${horaStr}</span>
         ${ev.venue ? `<span>📍 ${ev.venue}</span>` : ''}
       </div>
       ${ev.destacado ? `<div class="ev-destacado">${ev.destacado.slice(0,130)}${ev.destacado.length>130?'…':''}</div>` : ''}
