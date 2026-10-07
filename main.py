@@ -607,6 +607,7 @@ def chat():
                         "query": RA_QUERY_ARTISTA
                     }
                     data_artista = ra_request_direct(payload_artista)
+                    print(f"[ARTISTA RESP] {str(data_artista)[:200]}")
                     candidate = data_artista.get("data", {}).get("artist")
                     if candidate and candidate.get("eventListings", {}).get("data"):
                         artist_data = candidate
