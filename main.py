@@ -94,7 +94,11 @@ FLUJO — detectá qué tipo de búsqueda quiere el usuario y hacé UNA pregunta
 
 Si busca por FECHA+CIUDAD necesitás:
 - Ciudad
-- Cuándo (viernes, sábado, todo el finde) — si dice "próxima semana" o algo vago, confirmá con el usuario: "¿Te referís al finde del viernes X al domingo X?" y esperá confirmación antes de buscar
+- Cuándo — interpretá así:
+  * "este finde" / "el finde" / "fin de semana" → "todo" (viernes + sábado + domingo)
+  * "el viernes" → "viernes"
+  * "el sábado" → "sabado"
+  * "próxima semana" o vago → confirmá con el usuario: "¿Te referís al finde del viernes X al domingo X?"
 - Horario (tarde 18hs+, noche 22hs+, madrugada 00hs+, da igual)
 - Lugar (cubierto/club, aire libre, da igual)
 - Precio (gratis, barato <15€, normal 15-30€, caro >30€, da igual)
