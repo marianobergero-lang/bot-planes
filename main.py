@@ -125,8 +125,9 @@ O para artista:
 ###FILTROS###
 {
   "tipo": "artista",
-  "artista": "nina-kraviz",
+  "artista": "nina kraviz",
   "ciudad": "barcelona",
+  "cuando": "todo",
   "max": 5
 }
 ###FIN###
@@ -147,6 +148,29 @@ IMPORTANTE:
 - Sé breve, máximo 2-3 líneas. Conversacional y con onda.
 - Géneros que conocés: techno, house, progressive, minimal, drum&bass, reggaeton, cumbia, jazz, indie, pop, rock, electrónica en general.
 - Si el usuario menciona un género, guardalo para sugerirle eventos afines."""
+
+def corregir_ciudad(ciudad_input):
+    """Corrige errores tipográficos en nombres de ciudades"""
+    from difflib import get_close_matches
+    ciudad = ciudad_input.lower().strip()
+    if ciudad in AREAS_RA:
+        return ciudad, True
+    matches = get_close_matches(ciudad, AREAS_RA.keys(), n=1, cutoff=0.6)
+    if matches:
+        return matches[0], True
+    return ciudad, False
+
+def corregir_artista(artista_input, lista_artistas):
+    """Corrige errores tipográficos en nombres de artistas"""
+    from difflib import get_close_matches
+    artista = artista_input.lower().strip()
+    lista_lower = {a.lower(): a for a in lista_artistas}
+    if artista in lista_lower:
+        return lista_lower[artista], True
+    matches = get_close_matches(artista, lista_lower.keys(), n=1, cutoff=0.6)
+    if matches:
+        return lista_lower[matches[0]], True
+    return artista_input, False
 
 def ra_request(payload):
     scraper_url = "https://api.scraperapi.com/"
@@ -344,33 +368,62 @@ def chat():
 
     if filtros:
         tipo = filtros.get("tipo", "fecha")
+        ciudad_raw = filtros.get("ciudad", "berlin")
+
+        # Corrección fuzzy de ciudad
+        ciudad_corregida, ciudad_ok = corregir_ciudad(ciudad_raw)
+        if not ciudad_ok:
+            return jsonify({
+                "reply": f"No encontré la ciudad '{ciudad_raw}'. ¿Podés indicarme el nombre exacto? Las ciudades disponibles son: {', '.join(list(AREAS_RA.keys())[:10])}...",
+                "filtros": None, "eventos": [], "total_ra": 0
+            })
+        if ciudad_corregida != ciudad_raw.lower():
+            clean = f"(Entendí '{ciudad_corregida.title()}' por '{ciudad_raw}') " + clean
 
         if tipo == "fecha":
             desde, hasta = calc_fechas(filtros.get("cuando", "todo"))
             eventos_out, total_ra = buscar_por_fecha(
-                ciudad    = filtros.get("ciudad", "berlin"),
-                desde     = desde,
-                hasta     = hasta,
-                max_ev    = filtros.get("max", 8),
-                hora_min  = filtros.get("hora_min"),
-                gratis    = filtros.get("gratis", False),
+                ciudad     = ciudad_corregida,
+                desde      = desde,
+                hasta      = hasta,
+                max_ev     = filtros.get("max", 8),
+                hora_min   = filtros.get("hora_min"),
+                gratis     = filtros.get("gratis", False),
                 precio_max = filtros.get("precio_max"),
             )
 
         elif tipo == "busqueda":
             eventos_out, total_ra = buscar_por_busqueda(
                 query  = filtros.get("query", ""),
-                ciudad = filtros.get("ciudad"),
+                ciudad = ciudad_corregida,
                 max_ev = filtros.get("max", 5),
             )
 
         elif tipo == "artista":
-            # Por ahora usamos búsqueda general con el nombre del artista
-            eventos_out, total_ra = buscar_por_busqueda(
-                query  = filtros.get("artista", "").replace("-", " "),
-                ciudad = filtros.get("ciudad"),
-                max_ev = filtros.get("max", 5),
-            )
+            artista_raw = filtros.get("artista", "").replace("-", " ")
+            desde, hasta = calc_fechas(filtros.get("cuando", "todo"))
+            # Traemos todos los eventos de la ciudad y filtramos por artista
+            todos, _ = buscar_por_fecha(ciudad_corregida, desde, hasta, max_ev=100)
+
+            # Construimos lista de todos los artistas para fuzzy matching
+            todos_artistas = list({a for ev in todos for a in ev.get("artistas", [])})
+            artista_corregido, artista_ok = corregir_artista(artista_raw, todos_artistas)
+
+            if artista_ok and artista_corregido.lower() != artista_raw.lower():
+                clean = f"(Entendí '{artista_corregido}' por '{artista_raw}') " + clean
+
+            eventos_out = [e for e in todos if any(
+                artista_corregido.lower() in a.lower() for a in e.get("artistas", [])
+            )]
+
+            if not eventos_out and not artista_ok:
+                return jsonify({
+                    "reply": f"No encontré a '{artista_raw}' en eventos de {ciudad_corregida} este finde. ¿Podés verificar el nombre exacto del artista?",
+                    "filtros": filtros, "eventos": [], "total_ra": 0
+                })
+
+            eventos_out = eventos_out[:filtros.get("max", 5)]
+            total_ra = len(eventos_out)
 
     return jsonify({
         "reply":    clean,
