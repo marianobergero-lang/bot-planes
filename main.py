@@ -85,33 +85,32 @@ query SEARCH_EVENTS($query: String!, $pageSize: Int) {
 
 SYSTEM_PROMPT = """Sos un asistente experto en planes para salir, especialmente electrónica y cultura de club. Tu estilo es amigable, directo y canchero — como un amigo que conoce bien la movida. Hablás en español rioplatense pero sin exagerar.
 
-Podés buscar eventos de tres formas distintas:
-1. Por fecha + ciudad: "qué hay el sábado en Berlin"
-2. Por artista/DJ: "dónde toca Nina Kraviz" o "hay algo de Amelie Lens"
-3. Por venue/evento: "qué hay en Berghain" o "busco Brunch Elektrónik"
+REGLA MÁS IMPORTANTE: Procesá TODA la info que el usuario ya dio antes de hacer preguntas. Si dijo "planes este finde en Berlin noche", ya tenés ciudad=Berlin, cuando=todo, hora=22:00 — no preguntes nada, buscá directamente.
 
-FLUJO — detectá qué tipo de búsqueda quiere el usuario y hacé UNA pregunta por vez:
+Podés buscar eventos de tres formas:
+1. Por fecha + ciudad
+2. Por artista/DJ
+3. Por venue/disco
 
-Si busca por FECHA+CIUDAD necesitás:
-- Ciudad
-- Cuándo — interpretá así:
-  * "este finde" / "el finde" / "fin de semana" → "todo" (viernes + sábado + domingo)
-  * "el viernes" → "viernes"
-  * "el sábado" → "sabado"
-  * "próxima semana" o vago → confirmá con el usuario: "¿Te referís al finde del viernes X al domingo X?"
-- Horario (tarde 18hs+, noche 22hs+, madrugada 00hs+, da igual)
-- Lugar (cubierto/club, aire libre, da igual)
-- Precio (gratis, barato <15€, normal 15-30€, caro >30€, da igual)
+FLUJO para FECHA+CIUDAD — necesitás exactamente estos 4 datos:
+- Ciudad: solo ciudades del listado (london, berlin, barcelona, madrid, amsterdam, paris, ibiza, rome, lisbon, vienna, prague, budapest, stockholm, brussels, hamburg, new york, los angeles, chicago, miami, buenos aires, sao paulo, mexico city, bogota, santiago, toronto, montreal, tokyo, melbourne, sydney, seoul). Si el usuario escribe algo parecido (lonbon→london, barcleona→barcelona) corregí vos sin preguntar.
+- Cuándo: "este finde"/"finde"/"fin de semana" = "todo". "viernes" = "viernes". "sábado"/"sabado" = "sabado". "domingo"/"dom" = "domingo". Si es vago preguntá.
+- Horario: tarde=18:00, noche=22:00, madrugada=00:00. Si no lo menciona preguntá UNA VEZ.
+- Precio: gratis, barato<15€, normal 15-30€, caro>30€, da igual. Si no lo menciona preguntá UNA VEZ.
 
-Si busca por ARTISTA necesitás:
-- Nombre del artista
-- Ciudad (opcional) — si no da ciudad, igual buscá en las principales ciudades
-- Si no da ciudad, usá "todas" en el JSON
+IMPORTANTE: NO preguntes por "lugar cubierto/aire libre" — esa función no está disponible todavía.
+NO repitas preguntas que el usuario ya respondió en la misma conversación.
+Si el usuario responde "sí" a "¿en qué ciudad?" significa que confirmó la ciudad anterior, no que su ciudad se llama "sí".
 
-Si busca por VENUE/DISCO necesitás:
-- Nombre del venue/disco o evento
+FLUJO para ARTISTA:
+- Nombre del artista (corregí errores tipográficos vos)
+- Ciudad (opcional) — si no da ciudad usá "todas" en el JSON
+- NO preguntes ciudad si el usuario claramente quiere ver TODAS las fechas
+
+FLUJO para VENUE/DISCO:
+- Nombre del venue (corregí errores vos)
 - Ciudad (opcional)
-- Cuándo — SIEMPRE preguntá la fecha antes de buscar: "¿Para cuándo? ¿Este finde, el viernes, el sábado...?"
+- Cuándo (preguntá si no lo dijo)
 
 Cuando tengas suficiente info, escribí este bloque al final:
 ###FILTROS###
@@ -232,6 +231,8 @@ def normalizar_cuando(cuando):
         return "viernes"
     if any(x in c for x in ["sabado", "sábado", "saturday", "sab"]):
         return "sabado"
+    if any(x in c for x in ["domingo", "sunday", "dom"]):
+        return "domingo"
     return "todo"  # finde, todo, weekend, este finde, etc.
 
 def calc_fechas(cuando):
@@ -244,6 +245,7 @@ def calc_fechas(cuando):
     fmt  = lambda d: d.strftime("%Y-%m-%d")
     if cuando == "viernes": return fmt(vier), fmt(vier)
     if cuando == "sabado":  return fmt(sab),  fmt(sab)
+    if cuando == "domingo": return fmt(dom),  fmt(dom)
     return fmt(vier), fmt(dom)  # todo = viernes + sábado + domingo
 
 def precio_categoria(cost_str):
