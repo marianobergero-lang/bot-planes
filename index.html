@@ -3,110 +3,310 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bot de Planes 🎉</title>
+<title>Let's PartIA · by Stepwise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #181A1B;
+    --surface:   #1f2223;
+    --card:      #252829;
+    --border:    #2e3234;
+    --border2:   #3d4244;
+    --accent:    #E9682E;
+    --accent2:   #c94f18;
+    --petroleo:  #173F4F;
+    --arena:     #E9DFD0;
+    --text:      #f0ede8;
+    --muted:     #9A9590;
+    --dim:       #5a5855;
+    --green:     #4cde8f;
+    --blue:      #4cb8ff;
+    --orange:    #E9682E;
+    --radius:    12px;
+  }
+
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    background: #08080f; color: #e0d8ff;
-    height: 100vh; display: flex; flex-direction: column; align-items: center;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 15px;
   }
+
+  /* HEADER */
   header {
-    width: 100%; padding: 14px 20px;
-    background: #0d0d1a; border-bottom: 1px solid #1a1a30;
-    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    width: 100%;
+    padding: 14px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
   }
-  .logo {
+
+  .header-left { display: flex; align-items: center; gap: 12px; }
+
+  .logo-mark {
     width: 36px; height: 36px;
-    background: linear-gradient(135deg, #7c6cfc, #fc6c8f);
-    border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
   }
-  header h1 { font-size: 15px; font-weight: 500; }
-  header p  { font-size: 11px; color: #6060a0; }
-  .chat { width: 100%; max-width: 700px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  #msgs { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 14px; }
-  .msg { display: flex; flex-direction: column; gap: 5px; animation: fadein .2s ease; }
+  .logo-mark svg { width: 19px; height: 19px; }
+
+  .app-name {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+    color: var(--text);
+  }
+  .app-name span { color: var(--accent); }
+
+  .app-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 1px;
+    letter-spacing: 0.1px;
+  }
+
+  .powered {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--dim);
+  }
+  .stepwise-logo {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+  }
+
+  /* CHAT */
+  .chat {
+    width: 100%;
+    max-width: 720px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  #msgs {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .msg { display: flex; flex-direction: column; gap: 6px; animation: fadein .2s ease; }
   .msg.bot  { align-items: flex-start; }
   .msg.user { align-items: flex-end; }
-  .bubble {
-    max-width: 85%; padding: 11px 15px; border-radius: 16px;
-    font-size: 14px; line-height: 1.65; white-space: pre-wrap; word-break: break-word;
-  }
-  .bot  .bubble { background: #13132a; border: 1px solid #252545; border-bottom-left-radius: 3px; }
-  .user .bubble { background: #1e1060; border: 1px solid #3a2080; border-bottom-right-radius: 3px; color: #c8b8ff; }
-  .opts { display: flex; flex-wrap: wrap; gap: 7px; max-width: 85%; margin-top: 2px; }
-  .opt {
-    background: #1a1a2e; border: 1px solid #2a2a4a; color: #b0a8e8;
-    padding: 7px 14px; border-radius: 20px; font-size: 13px;
-    cursor: pointer; font-family: inherit; transition: all .15s;
-  }
-  .opt:hover { background: #7c6cfc; color: white; border-color: #7c6cfc; }
-  .time { font-size: 11px; color: #40407a; padding: 0 3px; }
 
-  /* Evento card mejorada */
+  .bubble {
+    max-width: 82%;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    letter-spacing: -0.1px;
+  }
+  .bot .bubble {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 3px;
+    color: var(--text);
+  }
+  .user .bubble {
+    background: #2a1a0e;
+    border: 1px solid #4a2e18;
+    border-bottom-right-radius: 3px;
+    color: #f0c8a0;
+  }
+
+  /* OPCIONES */
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; max-width: 82%; }
+  .opt {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .opt:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .time { font-size: 11px; color: var(--dim); padding: 0 4px; }
+
+  /* EVENTO CARD */
   .ev-card {
-    background: #0e0e22; border: 1px solid #2a2a4a; border-radius: 12px;
-    padding: 13px 15px; margin-top: 9px; display: flex; flex-direction: column; gap: 6px; width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    width: 100%;
     transition: border-color .15s;
   }
-  .ev-card:hover { border-color: #4a4a7a; }
-  .ev-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-  .ev-title { font-weight: 500; font-size: 14px; color: #e0d8ff; flex: 1; }
-  .ev-badge {
-    font-size: 11px; padding: 2px 8px; border-radius: 10px; white-space: nowrap; flex-shrink: 0;
-  }
-  .badge-gratis { background: #0f3020; color: #5dcaa5; border: 1px solid #1a5035; }
-  .badge-barato { background: #1a2a10; color: #90c060; border: 1px solid #2a4020; }
-  .badge-normal { background: #1a1a30; color: #9090d0; border: 1px solid #2a2a50; }
-  .badge-caro   { background: #301010; color: #d06060; border: 1px solid #501a1a; }
-  .badge-nd     { background: #1a1a20; color: #606080; border: 1px solid #2a2a3a; }
-  .ev-artists { font-size: 12.5px; color: #9080d0; }
-  .ev-meta { font-size: 12px; color: #6060a0; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-  .ev-destacado { font-size: 12px; color: #8080b0; font-style: italic; line-height: 1.4; }
-  .ev-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
-  .ev-asistentes { font-size: 11px; color: #50508a; }
-  .ev-link { font-size: 12px; color: #7c6cfc; text-decoration: none; font-weight: 500; }
-  .ev-link:hover { text-decoration: underline; }
+  .ev-card:hover { border-color: var(--accent); }
 
+  .ev-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .ev-title { font-weight: 500; font-size: 14px; color: var(--text); flex: 1; line-height: 1.4; }
+
+  .ev-badge {
+    font-size: 11px; font-weight: 500;
+    padding: 3px 9px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0;
+    letter-spacing: 0.2px;
+  }
+  .badge-gratis { background: #0a2818; color: var(--green); border: 1px solid #1a4828; }
+  .badge-barato { background: #0a2010; color: #90e060; border: 1px solid #1a4020; }
+  .badge-normal { background: #101828; color: var(--blue); border: 1px solid #1a3040; }
+  .badge-caro   { background: #2a1808; color: var(--accent); border: 1px solid #4a2e18; }
+  .badge-nd     { background: var(--card); color: var(--dim); border: 1px solid var(--border); }
+
+  .ev-artists { font-size: 12.5px; color: var(--muted); }
+
+  .ev-meta {
+    font-size: 12px; color: var(--dim);
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+  }
+
+  .ev-date {
+    font-size: 12px; font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.2px;
+  }
+
+  .ev-destacado {
+    font-size: 12px; color: var(--muted);
+    font-style: italic; line-height: 1.5;
+    border-left: 2px solid var(--accent);
+    padding-left: 10px;
+    opacity: .8;
+  }
+
+  .ev-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 2px;
+  }
+  .ev-asistentes { font-size: 11px; color: var(--dim); }
+  .ev-link {
+    font-size: 12px; font-weight: 600;
+    color: var(--accent); text-decoration: none;
+    letter-spacing: -0.1px;
+  }
+  .ev-link:hover { color: var(--accent2); }
+
+  /* TYPING */
   .typing { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
-  .typing span { width: 7px; height: 7px; border-radius: 50%; background: #6060a0; animation: bounce .9s infinite; }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--dim);
+    animation: bounce .9s infinite;
+  }
   .typing span:nth-child(2) { animation-delay: .15s; }
   .typing span:nth-child(3) { animation-delay: .3s; }
-  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
-  @keyframes fadein { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
 
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+  @keyframes fadein { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+  /* INPUT */
   .input-area {
-    padding: 12px 16px 20px; border-top: 1px solid #1a1a30; background: #0d0d1a;
-    display: flex; gap: 9px; align-items: center; width: 100%; max-width: 700px; flex-shrink: 0;
+    padding: 14px 20px 22px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    max-width: 720px;
+    flex-shrink: 0;
   }
+
   #inp {
-    flex: 1; background: #13132a; border: 1px solid #252545; color: #e0d8ff;
-    padding: 10px 14px; border-radius: 11px; font-size: 14px; font-family: inherit;
-    outline: none; transition: border-color .15s;
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 11px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s;
   }
-  #inp:focus { border-color: #7c6cfc; }
-  #inp::placeholder { color: #404060; }
+  #inp:focus { border-color: var(--accent); }
+  #inp::placeholder { color: var(--dim); }
+
   #sendbtn {
-    width: 42px; height: 42px; border-radius: 10px; border: none;
-    background: linear-gradient(135deg, #7c6cfc, #9c6cfc);
-    cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 44px; height: 44px;
+    border-radius: 10px; border: none;
+    background: var(--accent);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background .15s;
   }
+  #sendbtn:hover { background: var(--accent2); }
   #sendbtn:disabled { opacity: .4; cursor: default; }
-  ::-webkit-scrollbar { width: 3px; }
-  ::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 4px; }
 </style>
 </head>
 <body>
+
 <header>
-  <div class="logo">🎉</div>
-  <div><h1>Bot de Planes</h1><p>Eventos reales · Resident Advisor</p></div>
+  <div class="header-left">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18V5l12-2v13"/>
+        <circle cx="6" cy="18" r="3"/>
+        <circle cx="18" cy="16" r="3"/>
+      </svg>
+    </div>
+    <div>
+      <div class="app-name">Let's Part<span>IA</span></div>
+      <div class="app-sub">Many events · Your event</div>
+    </div>
+  </div>
+  <div class="powered">
+    <span>powered by</span>
+    <div class="stepwise-logo">stepwise</div>
+  </div>
 </header>
+
 <div class="chat">
   <div id="msgs"></div>
   <div class="input-area">
-    <input id="inp" placeholder="Escribí lo que querés... ciudad, DJ, venue, fecha" type="text">
-    <button id="sendbtn" onclick="send()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    <input id="inp" placeholder="Ciudad, DJ, venue, fecha... escribí lo que querés" type="text">
+    <button id="sendbtn" onclick="send()" aria-label="Enviar">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
     </button>
   </div>
 </div>
@@ -118,37 +318,32 @@ let busy = false;
 
 function now() { return new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }); }
 
-function badgeClass(ev) {
-  if (ev.gratis) return 'badge-gratis';
-  if (ev.precio_num === null || ev.precio_num === undefined) return 'badge-nd';
-  if (ev.precio_num < 15) return 'badge-barato';
-  if (ev.precio_num <= 30) return 'badge-normal';
-  return 'badge-caro';
-}
-
-function badgeText(ev) {
-  if (ev.gratis) return '🟢 Gratis';
-  if (ev.precio_num === null || ev.precio_num === undefined) return '💶 Ver precio';
-  const p = ev.precio_num;
-  const simbolo = ev.precio && (ev.precio.includes('£') || ev.precio.includes('$') || ev.precio.includes('€')) 
-    ? '' : '€';
-  if (p < 15) return `💚 Barato · ${simbolo}${ev.precio}`;
-  if (p <= 30) return `💙 Normal · ${simbolo}${ev.precio}`;
-  return `🔴 Caro · ${simbolo}${ev.precio}`;
-}
+const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
 function formatFecha(fechaStr) {
   if (!fechaStr) return '';
   const d = new Date(fechaStr + 'T12:00:00');
-  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  return `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
+  return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
+}
+
+function badgeInfo(ev) {
+  if (ev.gratis) return { cls: 'badge-gratis', txt: '✦ Gratis' };
+  const p = ev.precio_num;
+  const raw = ev.precio || '';
+  const hasSym = /[£$€]/.test(raw);
+  const sym = hasSym ? '' : '€';
+  if (p === null || p === undefined) return { cls: 'badge-nd', txt: '· Ver precio' };
+  if (p < 15)  return { cls: 'badge-barato', txt: `↓ ${sym}${raw}` };
+  if (p <= 30) return { cls: 'badge-normal', txt: `· ${sym}${raw}` };
+  return { cls: 'badge-caro', txt: `↑ ${sym}${raw}` };
 }
 
 function addMsg(role, text, opts = [], events = []) {
   const msgs = document.getElementById('msgs');
   const wrap = document.createElement('div');
   wrap.className = `msg ${role}`;
+
   const bub = document.createElement('div');
   bub.className = 'bubble';
   bub.textContent = text;
@@ -157,25 +352,24 @@ function addMsg(role, text, opts = [], events = []) {
     const card = document.createElement('div');
     card.className = 'ev-card';
     const artists = (ev.artistas || []).slice(0, 4).join(' · ') + ((ev.artistas||[]).length > 4 ? ` +${ev.artistas.length-4}` : '');
-    const hora = ev.hora && ev.hora !== '23:59' ? `🕐 ${ev.hora}hs` : '🌙 Noche';
-    const badge = badgeText(ev);
-    const bClass = badgeClass(ev);
+    const hora = ev.hora && ev.hora !== '23:59' ? ev.hora + 'hs' : 'Noche';
+    const { cls, txt } = badgeInfo(ev);
+    const fecha = formatFecha(ev.fecha);
 
     card.innerHTML = `
       <div class="ev-header">
-        <div class="ev-title">🎵 ${ev.titulo}</div>
-        <div class="ev-badge ${bClass}">${badge}</div>
+        <div class="ev-title">${ev.titulo}</div>
+        <div class="ev-badge ${cls}">${txt}</div>
       </div>
       ${artists ? `<div class="ev-artists">👤 ${artists}</div>` : ''}
       <div class="ev-meta">
-        ${ev.fecha ? `<span>📅 ${formatFecha(ev.fecha)}</span>` : ''}
-        <span>${hora}</span>
+        ${fecha ? `<span class="ev-date">📅 ${fecha}</span>` : ''}
+        <span>🕐 ${hora}</span>
         ${ev.venue ? `<span>📍 ${ev.venue}</span>` : ''}
-        ${ev.ciudad_venue ? `<span>🌆 ${ev.ciudad_venue}</span>` : ''}
       </div>
-      ${ev.destacado ? `<div class="ev-destacado">"${ev.destacado.slice(0, 120)}${ev.destacado.length > 120 ? '...' : ''}"</div>` : ''}
+      ${ev.destacado ? `<div class="ev-destacado">${ev.destacado.slice(0,130)}${ev.destacado.length>130?'…':''}</div>` : ''}
       <div class="ev-footer">
-        <div class="ev-asistentes">${ev.asistentes ? `👥 ${ev.asistentes} van` : ''}</div>
+        <div class="ev-asistentes">${ev.asistentes ? `${ev.asistentes} personas van` : ''}</div>
         <a class="ev-link" href="${ev.url}" target="_blank">Ver en RA →</a>
       </div>
     `;
@@ -219,7 +413,7 @@ function getOpts(reply) {
   const low = reply.toLowerCase();
   if (low.includes('ciudad') || low.includes('dónde') || low.includes('donde'))
     return ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid'];
-  if (low.includes('viernes') && low.includes('sábado'))
+  if (low.includes('viernes') && (low.includes('sábado') || low.includes('sabado')))
     return ['Viernes', 'Sábado', 'Todo el finde'];
   if (low.includes('tarde') || low.includes('noche') || low.includes('horario'))
     return ['Tarde (18hs)', 'Noche (22hs)', 'Madrugada (00hs)', 'Me da igual'];
@@ -260,19 +454,20 @@ async function handleSend(texto) {
       const tipo = filtros.tipo || 'fecha';
       let intro = '';
       if (tipo === 'fecha') {
-        intro = `Encontré ${total} eventos en ${filtros.ciudad} 🎉\nAcá van los mejores:`;
+        const n = eventos.length;
+        intro = `Hay ${total} eventos en ${filtros.ciudad} — acá están los ${n} que mejor matchean lo que buscás:`;
       } else if (tipo === 'artista') {
-        const nombreArtista = (filtros.artista || '').replace(/-/g,' ');
-        intro = `Acá están los próximos eventos de ${nombreArtista} 🎵`;
+        const nombre = (filtros.artista || '').replace(/-/g,' ');
+        intro = `Encontré ${eventos.length} evento${eventos.length > 1 ? 's' : ''} de ${nombre}:`;
       } else if (tipo === 'venue') {
-        intro = `Esto encontré en ${filtros.venue || 'ese venue'} 📍`;
+        intro = `Esto hay en ${filtros.venue || 'ese venue'}:`;
       } else {
-        intro = filtros.query ? `Esto encontré para "${filtros.query}" 🔍` : 'Acá van los resultados 🔍';
+        intro = filtros.query ? `Resultados para "${filtros.query}":` : 'Acá van los resultados:';
       }
       addMsg('bot', intro, ['🔄 Nueva búsqueda'], eventos);
     } else if (filtros && eventos.length === 0) {
       addMsg('bot',
-        `Busqué en RA pero no encontré nada con esos filtros 😕\n${total ? `RA tiene ${total} eventos en total para esas fechas.` : ''}\n¿Probamos con otros filtros?`,
+        `Busqué en RA pero no encontré nada con esos filtros.${total ? `\nEn total hay ${total} eventos — probá sin filtro de hora o precio.` : ''}`,
         ['🔄 Nueva búsqueda', 'Sin filtro de hora', 'Sin filtro de precio']
       );
     } else {
@@ -280,7 +475,7 @@ async function handleSend(texto) {
     }
   } catch(e) {
     hideTyping();
-    addMsg('bot', 'Ups, algo falló. Intentá de nuevo 🙏', ['🔄 Reiniciar']);
+    addMsg('bot', 'Algo falló conectando con el servidor. Intentá de nuevo.', ['🔄 Reiniciar']);
   }
 
   busy = false;
@@ -310,7 +505,7 @@ document.getElementById('inp').addEventListener('keydown', e => {
     );
   } catch {
     hideTyping();
-    addMsg('bot', '¡Hola! Soy tu bot de planes 🎉\n¿Qué estás buscando? Podés decirme una ciudad, un DJ, un venue...',
+    addMsg('bot', '¡Hola! ¿Qué estás buscando? Podés decirme una ciudad, un DJ, un venue o una fecha.',
       ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid']
     );
   }
