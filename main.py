@@ -262,10 +262,9 @@ RA_HEADERS = {
 }
 
 def ra_request(payload):
-    """Para eventos — usa ScraperAPI para evitar bloqueos por IP"""
-    scraper_url = "https://api.scraperapi.com/"
-    params  = {"api_key": SCRAPER_API_KEY, "url": RA_GRAPHQL_URL}
-    resp = requests.post(scraper_url, params=params, headers=RA_HEADERS, data=json.dumps(payload), timeout=30)
+    """Request directo a RA sin proxy"""
+    resp = requests.post(RA_GRAPHQL_URL, headers=RA_HEADERS, json=payload, timeout=20)
+    resp.raise_for_status()
     return resp.json()
 
 def ra_request_direct(payload):
