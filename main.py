@@ -97,6 +97,17 @@ query GET_ARTIST_EVENTS($slug: String!, $pageSize: Int) {
 """
 
 # Query busqueda general
+RA_QUERY_ARTIST_SEARCH = """
+query SEARCH_ARTISTS($query: String!) {
+  artistSearch(query: $query) {
+    id
+    name
+    contentUrl
+    followerCount
+  }
+}
+"""
+
 RA_QUERY_SEARCH = """
 query SEARCH_EVENTS($query: String!, $pageSize: Int) {
   eventListings(
@@ -607,41 +618,52 @@ def chat():
                             "filtros": filtros, "eventos": [], "total_ra": 0
                         })
                 else:
-                    # Fallback: buscar por nombre en eventos de ciudades principales
-                    print(f"[ARTISTA] Slug no encontrado, buscando por nombre en eventos...")
-                    hasta_90 = (datetime.now() + timedelta(days=90)).strftime("%Y-%m-%d")
-                    ciudades_buscar = ["barcelona","berlin","london","amsterdam","madrid","paris","ibiza","buenos aires","new york","milan","rome","lisbon","munich"]
-                    todos_evs = []
-                    for c in ciudades_buscar:
-                        evs, _ = buscar_por_fecha(c, hoy_str, hasta_90, max_ev=100)
-                        todos_evs.extend(evs)
+                    # Buscar artistas similares en RA
+                    try:
+                        payload_search = {
+                            "operationName": "SEARCH_ARTISTS",
+                            "variables": {"query": artista_raw},
+                            "query": RA_QUERY_ARTIST_SEARCH
+                        }
+                        data_search = ra_request(payload_search)
+                        artistas_similares = data_search.get("data", {}).get("artistSearch", [])
 
-                    # Deduplicar
-                    vistos, sin_dup = set(), []
-                    for e in todos_evs:
-                        k = e.get("url","")
-                        if k not in vistos:
-                            vistos.add(k); sin_dup.append(e)
+                        if artistas_similares:
+                            opciones = []
+                            for a in artistas_similares[:4]:
+                                nombre = a.get("name", "")
+                                url    = f"https://ra.co{a.get('contentUrl', '')}"
+                                slug_a = (a.get("contentUrl") or "").replace("/dj/", "")
+                                seguidores = a.get("followerCount", 0)
+                                opciones.append({
+                                    "nombre": nombre,
+                                    "url": url,
+                                    "slug": slug_a,
+                                    "seguidores": seguidores
+                                })
 
-                    palabras = [p for p in artista_lower.split() if len(p) > 2]
-                    encontrados = [e for e in sin_dup if any(
-                        artista_lower in a.lower() or all(p in a.lower() for p in palabras)
-                        for a in e.get("artistas", [])
-                    )]
-                    encontrados.sort(key=lambda x: x.get("fecha",""))
+                            # Formatear mensaje con opciones
+                            msg = f"No encontré '{artista_raw}' exacto en RA. ¿Te referís a alguno de estos?\n\n"
+                            for i, o in enumerate(opciones, 1):
+                                seg = f" · {o['seguidores']} seguidores" if o['seguidores'] else ""
+                                msg += f"{i}. {o['nombre']}{seg}\n"
+                            msg += "\nDecime el número o el nombre exacto y busco sus fechas."
 
-                    if encontrados:
-                        nombre_real = artista_raw.title()
-                        for e in encontrados:
-                            for a in e.get("artistas",[]):
-                                if any(p in a.lower() for p in palabras if len(p)>3):
-                                    nombre_real = a; break
-                        eventos_out = encontrados[:max_ev_artista]
-                        total_ra    = len(encontrados)
-                        clean = f"Próximas fechas de {nombre_real}:"
-                    else:
+                            return jsonify({
+                                "reply": msg,
+                                "filtros": filtros,
+                                "eventos": [],
+                                "total_ra": 0,
+                                "artistas_similares": opciones
+                            })
+                        else:
+                            return jsonify({
+                                "reply": f"No encontré a '{artista_raw}' en RA. Verificá el nombre en ra.co y decime el nombre exacto.",
+                                "filtros": filtros, "eventos": [], "total_ra": 0
+                            })
+                    except Exception:
                         return jsonify({
-                            "reply": f"No encontré a '{artista_raw}' en RA. Puede que el nombre sea diferente — buscalo en ra.co/dj/[nombre] para confirmar.",
+                            "reply": f"No encontré a '{artista_raw}' en RA. Verificá el nombre en ra.co/dj/{slug_guion}",
                             "filtros": filtros, "eventos": [], "total_ra": 0
                         })
             except Exception as e:
