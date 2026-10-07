@@ -531,10 +531,13 @@ def chat():
             )
 
         elif tipo == "artista":
-            artista_raw = filtros.get("artista", "").strip()
+            artista_raw = (filtros.get("artista") or filtros.get("query") or "").strip()
+            if not artista_raw:
+                return jsonify({"reply": "¿Qué artista o DJ querés buscar?", "filtros": None, "eventos": [], "total_ra": 0})
             # Convertir a slug para RA: "Amelie Lens" -> "amelie-lens"
             slug = re.sub(r'[^a-z0-9]+', '-', artista_raw.lower()).strip('-')
             max_ev_artista = filtros.get("max", 10)
+            print(f"[ARTISTA] buscando slug='{slug}' para '{artista_raw}'")
 
             # Usar la query específica de RA por artista — trae TODAS sus fechas futuras
             payload_artista = {
