@@ -129,9 +129,20 @@ function badgeClass(ev) {
 function badgeText(ev) {
   if (ev.gratis) return '🟢 Gratis';
   if (ev.precio_num === null || ev.precio_num === undefined) return '💶 Ver precio';
-  if (ev.precio_num < 15) return `💚 Barato · ${ev.precio}`;
-  if (ev.precio_num <= 30) return `💙 Normal · ${ev.precio}`;
-  return `🔴 Caro · ${ev.precio}`;
+  const p = ev.precio_num;
+  const simbolo = ev.precio && (ev.precio.includes('£') || ev.precio.includes('$') || ev.precio.includes('€')) 
+    ? '' : '€';
+  if (p < 15) return `💚 Barato · ${simbolo}${ev.precio}`;
+  if (p <= 30) return `💙 Normal · ${simbolo}${ev.precio}`;
+  return `🔴 Caro · ${simbolo}${ev.precio}`;
+}
+
+function formatFecha(fechaStr) {
+  if (!fechaStr) return '';
+  const d = new Date(fechaStr + 'T12:00:00');
+  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
 }
 
 function addMsg(role, text, opts = [], events = []) {
@@ -157,8 +168,9 @@ function addMsg(role, text, opts = [], events = []) {
       </div>
       ${artists ? `<div class="ev-artists">👤 ${artists}</div>` : ''}
       <div class="ev-meta">
-        ${ev.venue ? `<span>📍 ${ev.venue}</span>` : ''}
+        ${ev.fecha ? `<span>📅 ${formatFecha(ev.fecha)}</span>` : ''}
         <span>${hora}</span>
+        ${ev.venue ? `<span>📍 ${ev.venue}</span>` : ''}
         ${ev.ciudad_venue ? `<span>🌆 ${ev.ciudad_venue}</span>` : ''}
       </div>
       ${ev.destacado ? `<div class="ev-destacado">"${ev.destacado.slice(0, 120)}${ev.destacado.length > 120 ? '...' : ''}"</div>` : ''}
@@ -250,9 +262,12 @@ async function handleSend(texto) {
       if (tipo === 'fecha') {
         intro = `Encontré ${total} eventos en ${filtros.ciudad} 🎉\nAcá van los mejores:`;
       } else if (tipo === 'artista') {
-        intro = `Acá están los próximos eventos de ${filtros.artista.replace(/-/g,' ')} 🎵`;
+        const nombreArtista = (filtros.artista || '').replace(/-/g,' ');
+        intro = `Acá están los próximos eventos de ${nombreArtista} 🎵`;
+      } else if (tipo === 'venue') {
+        intro = `Esto encontré en ${filtros.venue || 'ese venue'} 📍`;
       } else {
-        intro = `Esto encontré para "${filtros.query}" 🔍`;
+        intro = filtros.query ? `Esto encontré para "${filtros.query}" 🔍` : 'Acá van los resultados 🔍';
       }
       addMsg('bot', intro, ['🔄 Nueva búsqueda'], eventos);
     } else if (filtros && eventos.length === 0) {
