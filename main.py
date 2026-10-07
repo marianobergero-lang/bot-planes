@@ -80,18 +80,12 @@ query GET_DEFAULT_EVENTS_LISTING($filters: FilterInputDtoInput, $pageSize: Int, 
 
 # Query por artista
 RA_QUERY_ARTISTA = """
-query GET_ARTIST_EVENTS($slug: String!, $pageSize: Int) {
+query GET_ARTIST_EVENTS($slug: String!) {
   artist(slug: $slug) {
+    id
     name
-    eventListings(pageSize: $pageSize) {
-      data {
-        event {
-          id title date startTime contentUrl cost attending
-          venue { name address area { name } }
-          artists { name }
-        }
-      }
-    }
+    contentUrl
+    followerCount
   }
 }
 """
@@ -596,60 +590,62 @@ def chat():
 
                 slugs = slugs_a_probar
 
-                artist_data = None
-                slug_usado  = None
+                # Verificar artista y obtener su ID
+                artist_info = None
+                nombre_real = artista_raw.title()
 
                 for slug in slugs:
                     print(f"[ARTISTA] Probando slug: '{slug}'")
-                    payload_artista = {
+                    payload_check = {
                         "operationName": "GET_ARTIST_EVENTS",
-                        "variables": {"slug": slug, "pageSize": 20},
+                        "variables": {"slug": slug},
                         "query": RA_QUERY_ARTISTA
                     }
-                    data_artista = ra_request_direct(payload_artista)
-                    print(f"[ARTISTA RESP] {str(data_artista)[:200]}")
-                    candidate = data_artista.get("data", {}).get("artist")
-                    if candidate and candidate.get("eventListings", {}).get("data"):
-                        artist_data = candidate
-                        slug_usado  = slug
+                    data_check = ra_request_direct(payload_check)
+                    print(f"[ARTISTA RESP] {str(data_check)[:300]}")
+                    candidate = data_check.get("data", {}).get("artist")
+                    if candidate and candidate.get("id") and not data_check.get("errors"):
+                        artist_info = candidate
+                        nombre_real = candidate.get("name", artista_raw)
+                        print(f"[ARTISTA] Encontrado: {nombre_real} (id={candidate.get('id')})")
                         break
 
-                if artist_data:
-                    nombre_real      = artist_data.get("name", artista_raw)
-                    listings_artista = artist_data["eventListings"]["data"]
+                if artist_info:
+                    # Buscar eventos con filtro por artista usando eventListings global
+                    artist_id = artist_info.get("id")
+                    hoy_str   = datetime.now().strftime("%Y-%m-%d")
+                    hasta_90  = (datetime.now() + timedelta(days=90)).strftime("%Y-%m-%d")
+
+                    payload_ev = {
+                        "operationName": "GET_DEFAULT_EVENTS_LISTING",
+                        "variables": {
+                            "filters": {
+                                "artists": {"eq": int(artist_id)},
+                                "listingDate": {
+                                    "gte": f"{hoy_str}T00:00:00.000Z",
+                                    "lte": f"{hasta_90}T23:59:59.000Z",
+                                }
+                            },
+                            "pageSize": max_ev_artista,
+                            "page": 1
+                        },
+                        "query": RA_QUERY_FECHA
+                    }
+                    data_ev = ra_request_direct(payload_ev)
+                    listings = data_ev.get("data", {}).get("eventListings", {}).get("data", [])
+                    total_found = data_ev.get("data", {}).get("eventListings", {}).get("totalResults", 0)
+                    print(f"[ARTISTA] Eventos encontrados: {total_found}")
+
                     eventos_out = []
-                    for item in listings_artista:
+                    for item in listings:
                         ev = item.get("event")
                         if not ev: continue
-                        fecha_ev = (ev.get("date") or "")[:10]
-                        if fecha_ev < hoy_str: continue
-                        venue      = ev.get("venue") or {}
-                        cost       = (ev.get("cost") or "").strip()
-                        precio_num = precio_categoria(cost)
-                        tiene_sim  = any(s in cost for s in ['£','$','€'])
-                        sym        = '' if tiene_sim else '€'
-                        precio_label = "Gratis" if precio_num == 0 else (f"{sym}{precio_num}" if precio_num else "Ver precio en RA")
-                        eventos_out.append({
-                            "titulo":       ev.get("title", ""),
-                            "fecha":        fecha_ev,
-                            "hora":         (ev.get("startTime") or "")[11:16],
-                            "hora_fin":     (ev.get("endTime")   or "")[11:16],
-                            "venue":        venue.get("name", ""),
-                            "direccion":    venue.get("address", ""),
-                            "ciudad_venue": (venue.get("area") or {}).get("name", ""),
-                            "artistas":     [a.get("name","") for a in ev.get("artists",[])],
-                            "precio":       cost or "No especificado",
-                            "precio_label": precio_label,
-                            "precio_num":   precio_num,
-                            "gratis":       precio_num == 0,
-                            "asistentes":   ev.get("attending", 0),
-                            "destacado":    "",
-                            "url":          f"https://ra.co{ev.get('contentUrl','')}",
-                            "fuente":       "Resident Advisor",
-                        })
+                        ev_fmt = formatear_evento(ev)
+                        eventos_out.append(ev_fmt)
+
                     eventos_out.sort(key=lambda x: x.get("fecha",""))
                     if eventos_out:
-                        total_ra = len(eventos_out)
+                        total_ra = total_found
                         eventos_out = eventos_out[:max_ev_artista]
                         clean = f"Próximas fechas de {nombre_real}:"
                     else:
@@ -659,7 +655,7 @@ def chat():
                         })
                 else:
                     return jsonify({
-                        "reply": f"No encontré a '{artista_raw}' en RA con ese nombre exacto.\n\nProbá buscarlo en ra.co/dj/{slug_guion} o ra.co/dj/{slug_sin_esp} — si alguna URL abre su perfil, decime el nombre exacto como aparece ahí y busco sus fechas.",
+                        "reply": f"No encontré a '{artista_raw}' en RA.\n\nProbá buscarlo en ra.co/dj/{slug_guion} — si abre su perfil, decime el nombre exacto y busco sus fechas.",
                         "filtros": filtros, "eventos": [], "total_ra": 0
                     })
             except Exception as e:
