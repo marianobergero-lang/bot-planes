@@ -534,51 +534,55 @@ def chat():
             artista_raw = (filtros.get("artista") or filtros.get("query") or "").strip()
             if not artista_raw:
                 return jsonify({"reply": "¿Qué artista o DJ querés buscar?", "filtros": None, "eventos": [], "total_ra": 0})
-            # Convertir a slug para RA: "Amelie Lens" -> "amelie-lens"
-            slug = re.sub(r'[^a-z0-9]+', '-', artista_raw.lower()).strip('-')
             max_ev_artista = filtros.get("max", 10)
-            print(f"[ARTISTA] buscando slug='{slug}' para '{artista_raw}'")
-
-            # Usar la query específica de RA por artista — trae TODAS sus fechas futuras
-            payload_artista = {
-                "operationName": "GET_ARTIST_EVENTS",
-                "variables": {"slug": slug, "pageSize": max_ev_artista},
-                "query": RA_QUERY_ARTISTA
-            }
+            print(f"[ARTISTA] buscando '{artista_raw}' en ciudades principales")
 
             try:
-                data_artista = ra_request(payload_artista)
-                artist_data  = data_artista.get("data", {}).get("artist")
+                hoy_str = datetime.now().strftime("%Y-%m-%d")
+                artista_lower = artista_raw.lower().strip()
 
-                if artist_data and artist_data.get("eventListings", {}).get("data") and not data_artista.get("errors"):
+                # Generar variantes del slug
+                slug_guion    = re.sub(r'[^a-z0-9]+', '-', artista_lower).strip('-')
+                slug_sin_esp  = re.sub(r'[^a-z0-9]+', '',  artista_lower)
+                slugs = list(dict.fromkeys([slug_guion, slug_sin_esp]))  # sin duplicados
+
+                artist_data = None
+                slug_usado  = None
+
+                for slug in slugs:
+                    print(f"[ARTISTA] Probando slug: '{slug}'")
+                    payload_artista = {
+                        "operationName": "GET_ARTIST_EVENTS",
+                        "variables": {"slug": slug, "pageSize": 20},
+                        "query": RA_QUERY_ARTISTA
+                    }
+                    data_artista = ra_request(payload_artista)
+                    candidate = data_artista.get("data", {}).get("artist")
+                    if candidate and candidate.get("eventListings", {}).get("data"):
+                        artist_data = candidate
+                        slug_usado  = slug
+                        break
+
+                if artist_data:
+                    nombre_real      = artist_data.get("name", artista_raw)
                     listings_artista = artist_data["eventListings"]["data"]
-                    nombre_real = artist_data.get("name", artista_raw)
-
                     eventos_out = []
-                    hoy_str = datetime.now().strftime("%Y-%m-%d")
                     for item in listings_artista:
                         ev = item.get("event")
                         if not ev: continue
-                        # Solo fechas futuras
                         fecha_ev = (ev.get("date") or "")[:10]
                         if fecha_ev < hoy_str: continue
-                        venue = ev.get("venue") or {}
-                        cost  = (ev.get("cost") or "").strip()
+                        venue      = ev.get("venue") or {}
+                        cost       = (ev.get("cost") or "").strip()
                         precio_num = precio_categoria(cost)
-                        tiene_simbolo = any(s in cost for s in ['£','$','€'])
-                        sym = '' if tiene_simbolo else '€'
-                        if precio_num == 0:
-                            precio_label = "Gratis"
-                        elif precio_num:
-                            precio_label = f"{sym}{precio_num}"
-                        else:
-                            precio_label = "Ver precio en RA"
-
+                        tiene_sim  = any(s in cost for s in ['£','$','€'])
+                        sym        = '' if tiene_sim else '€'
+                        precio_label = "Gratis" if precio_num == 0 else (f"{sym}{precio_num}" if precio_num else "Ver precio en RA")
                         eventos_out.append({
                             "titulo":       ev.get("title", ""),
                             "fecha":        fecha_ev,
                             "hora":         (ev.get("startTime") or "")[11:16],
-                            "hora_fin":     "",
+                            "hora_fin":     (ev.get("endTime")   or "")[11:16],
                             "venue":        venue.get("name", ""),
                             "direccion":    venue.get("address", ""),
                             "ciudad_venue": (venue.get("area") or {}).get("name", ""),
@@ -592,45 +596,52 @@ def chat():
                             "url":          f"https://ra.co{ev.get('contentUrl','')}",
                             "fuente":       "Resident Advisor",
                         })
-
+                    eventos_out.sort(key=lambda x: x.get("fecha",""))
                     if eventos_out:
-                        eventos_out.sort(key=lambda x: x.get("fecha",""))
                         total_ra = len(eventos_out)
+                        eventos_out = eventos_out[:max_ev_artista]
                         clean = f"Próximas fechas de {nombre_real}:"
                     else:
                         return jsonify({
-                            "reply": f"No encontré próximas fechas de {nombre_real} en RA. Puede que no tenga shows confirmados por el momento.",
+                            "reply": f"No encontré próximas fechas de {nombre_real} en RA por el momento.",
                             "filtros": filtros, "eventos": [], "total_ra": 0
                         })
                 else:
-                    # Slug no funcionó — buscar por nombre en eventos de ciudades principales
-                    print(f"[ARTISTA] Slug '{slug}' no encontrado, buscando por nombre...")
-                    ciudades_principales = ["barcelona","berlin","london","amsterdam","madrid","paris","ibiza","buenos aires","new york"]
-                    hoy_str = datetime.now().strftime("%Y-%m-%d")
-                    desde_hoy = hoy_str
-                    hasta_mes = (datetime.now() + timedelta(days=60)).strftime("%Y-%m-%d")
-
+                    # Fallback: buscar por nombre en eventos de ciudades principales
+                    print(f"[ARTISTA] Slug no encontrado, buscando por nombre en eventos...")
+                    hasta_90 = (datetime.now() + timedelta(days=90)).strftime("%Y-%m-%d")
+                    ciudades_buscar = ["barcelona","berlin","london","amsterdam","madrid","paris","ibiza","buenos aires","new york","milan","rome","lisbon","munich"]
                     todos_evs = []
-                    for c in ciudades_principales:
-                        evs, _ = buscar_por_fecha(c, desde_hoy, hasta_mes, max_ev=100)
+                    for c in ciudades_buscar:
+                        evs, _ = buscar_por_fecha(c, hoy_str, hasta_90, max_ev=100)
                         todos_evs.extend(evs)
 
-                    # Buscar el artista en los eventos
-                    artista_lower = artista_raw.lower()
-                    palabras = artista_lower.split()
-                    encontrados = [e for e in todos_evs if any(
-                        all(p in a.lower() for p in palabras)
+                    # Deduplicar
+                    vistos, sin_dup = set(), []
+                    for e in todos_evs:
+                        k = e.get("url","")
+                        if k not in vistos:
+                            vistos.add(k); sin_dup.append(e)
+
+                    palabras = [p for p in artista_lower.split() if len(p) > 2]
+                    encontrados = [e for e in sin_dup if any(
+                        artista_lower in a.lower() or all(p in a.lower() for p in palabras)
                         for a in e.get("artistas", [])
                     )]
+                    encontrados.sort(key=lambda x: x.get("fecha",""))
 
                     if encontrados:
-                        encontrados.sort(key=lambda x: x.get("fecha",""))
-                        eventos_out = encontrados[:filtros.get("max",10)]
-                        total_ra = len(eventos_out)
-                        clean = f"Próximas fechas de {artista_raw.title()} que encontré:"
+                        nombre_real = artista_raw.title()
+                        for e in encontrados:
+                            for a in e.get("artistas",[]):
+                                if any(p in a.lower() for p in palabras if len(p)>3):
+                                    nombre_real = a; break
+                        eventos_out = encontrados[:max_ev_artista]
+                        total_ra    = len(encontrados)
+                        clean = f"Próximas fechas de {nombre_real}:"
                     else:
                         return jsonify({
-                            "reply": f"No encontré próximas fechas de '{artista_raw}' en RA. Probá con el nombre exacto como aparece en ra.co.",
+                            "reply": f"No encontré a '{artista_raw}' en RA. Puede que el nombre sea diferente — buscalo en ra.co/dj/[nombre] para confirmar.",
                             "filtros": filtros, "eventos": [], "total_ra": 0
                         })
             except Exception as e:
