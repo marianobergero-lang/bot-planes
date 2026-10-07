@@ -132,7 +132,18 @@ O para artista:
 }
 ###FIN###
 
-O para venue/evento:
+O para venue/disco:
+###FILTROS###
+{
+  "tipo": "venue",
+  "venue": "Les Enfants Brillants",
+  "ciudad": "barcelona",
+  "cuando": "todo",
+  "max": 8
+}
+###FIN###
+
+O para evento específico:
 ###FILTROS###
 {
   "tipo": "busqueda",
@@ -402,10 +413,8 @@ def chat():
         elif tipo == "artista":
             artista_raw = filtros.get("artista", "").replace("-", " ")
             desde, hasta = calc_fechas(filtros.get("cuando", "todo"))
-            # Traemos todos los eventos de la ciudad y filtramos por artista
             todos, _ = buscar_por_fecha(ciudad_corregida, desde, hasta, max_ev=100)
 
-            # Construimos lista de todos los artistas para fuzzy matching
             todos_artistas = list({a for ev in todos for a in ev.get("artistas", [])})
             artista_corregido, artista_ok = corregir_artista(artista_raw, todos_artistas)
 
@@ -423,6 +432,34 @@ def chat():
                 })
 
             eventos_out = eventos_out[:filtros.get("max", 5)]
+            total_ra = len(eventos_out)
+
+        elif tipo == "venue":
+            venue_raw = filtros.get("venue", "")
+            desde, hasta = calc_fechas(filtros.get("cuando", "todo"))
+            todos, _ = buscar_por_fecha(ciudad_corregida, desde, hasta, max_ev=100)
+
+            # Fuzzy matching de venue
+            todos_venues = list({e.get("venue", "") for e in todos if e.get("venue")})
+            from difflib import get_close_matches
+            matches = get_close_matches(venue_raw.lower(), [v.lower() for v in todos_venues], n=1, cutoff=0.5)
+
+            if matches:
+                venue_match = matches[0]
+                if venue_match != venue_raw.lower():
+                    clean = f"(Entendí '{venue_match.title()}' por '{venue_raw}') " + clean
+                eventos_out = [e for e in todos if venue_match in e.get("venue", "").lower()]
+            else:
+                # Búsqueda parcial
+                eventos_out = [e for e in todos if venue_raw.lower() in e.get("venue", "").lower()]
+
+            if not eventos_out:
+                return jsonify({
+                    "reply": f"No encontré eventos en '{venue_raw}' en {ciudad_corregida} este finde. ¿Podés verificar el nombre exacto del venue?",
+                    "filtros": filtros, "eventos": [], "total_ra": 0
+                })
+
+            eventos_out = eventos_out[:filtros.get("max", 8)]
             total_ra = len(eventos_out)
 
     return jsonify({
