@@ -14,14 +14,49 @@ GROQ_API_KEY    = os.environ.get("GROQ_API_KEY", "")
 RA_GRAPHQL_URL  = "https://ra.co/graphql"
 
 AREAS_RA = {
-    "london": 13, "berlin": 17, "amsterdam": 9, "paris": 15,
-    "barcelona": 20, "madrid": 133, "ibiza": 29, "rome": 46,
-    "milan": 152, "hamburg": 36, "lisbon": 72, "vienna": 32,
-    "brussels": 22, "prague": 86, "budapest": 104, "stockholm": 84,
-    "new york": 8, "los angeles": 2, "chicago": 3, "miami": 26,
-    "buenos aires": 385, "sao paulo": 55, "mexico city": 411,
-    "bogota": 473, "santiago": 387, "toronto": 71, "montreal": 75,
-    "tokyo": 58, "melbourne": 63, "sydney": 64, "seoul": 94,
+    # Europa — verificados ✅
+    "london":        13,
+    "berlin":        34,
+    "amsterdam":     29,
+    "barcelona":     20,
+    "madrid":        41,
+    "ibiza":         25,
+    "mallorca":      661,
+    "valencia":      607,
+    "paris":         44,
+    "rome":          351,
+    "milan":         347,
+    "munich":        151,
+    "lisbon":        53,
+    "porto":         364,
+    "turin":         348,
+    "south spain":   169,
+    # Europa — sin verificar
+    "hamburg":       36,
+    "vienna":        32,
+    "brussels":      22,
+    "prague":        86,
+    "budapest":      104,
+    "stockholm":     84,
+    # Americas — verificados ✅
+    "buenos aires":  395,
+    "rio de janeiro": 401,
+    # Americas — sin verificar
+    "new york":      8,
+    "los angeles":   2,
+    "chicago":       17,
+    "miami":         26,
+    "sao paulo":     55,
+    "mexico city":   411,
+    "bogota":        473,
+    "santiago":      387,
+    "toronto":       71,
+    "montreal":      75,
+    # Asia / Oceania — sin verificar
+    "tokyo":         58,
+    "melbourne":     63,
+    "sydney":        64,
+    "seoul":         94,
 }
 
 # Query por fecha/ciudad
