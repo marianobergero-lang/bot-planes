@@ -292,7 +292,7 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
                 "areas": {"eq": area},
                 "listingDate": {"gte": f"{desde}T00:00:00.000Z", "lte": f"{hasta}T23:59:59.000Z"}
             },
-            "pageSize": 200
+            "pageSize": 100
         },
         "query": RA_QUERY_FECHA
     }
