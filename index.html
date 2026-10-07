@@ -6,45 +6,42 @@
 <title>Let's PartIA · by Stepwise</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:        #0e1518;
-    --surface:   #173F4F;
-    --card:      #1a3040;
-    --border:    #1f4a5e;
-    --border2:   #2a5c72;
-    --accent:    #E9682E;
-    --accent2:   #c94f18;
-    --petroleo:  #173F4F;
-    --arena:     #E9DFD0;
-    --text:      #f5f2ee;
-    --muted:     #c0ccd0;
-    --dim:       #8aaab5;
-    --green:     #4cde8f;
-    --blue:      #4cb8ff;
-    --orange:    #E9682E;
-    --radius:    12px;
+    --bg:       #0a0a0a;
+    --surface:  #111111;
+    --card:     #181818;
+    --border:   #242424;
+    --border2:  #333333;
+    --orange:   #E9682E;
+    --orange2:  #c94f18;
+    --neon:     #39FF14;
+    --fucsia:   #FF2D8B;
+    --amarillo: #FFE600;
+    --text:     #F5F5F5;
+    --muted:    #999999;
+    --dim:      #555555;
   }
 
   body {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
     background: var(--bg);
     color: var(--text);
     height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: 15px;
+    overflow: hidden;
   }
 
   /* HEADER */
   header {
     width: 100%;
     padding: 14px 24px;
-    background: var(--surface);
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -55,228 +52,234 @@
   .header-left { display: flex; align-items: center; gap: 12px; }
 
   .logo-mark {
-    width: 36px; height: 36px;
-    background: var(--accent);
-    border-radius: 8px;
+    width: 34px; height: 34px;
+    background: var(--orange);
+    border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
-  .logo-mark svg { width: 19px; height: 19px; }
+  .logo-mark svg { width: 18px; height: 18px; }
 
   .app-name {
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: -0.4px;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
     color: var(--text);
   }
-  .app-name span { color: var(--accent); }
+  .app-name span { color: var(--orange); }
+  .app-sub { font-size: 11px; color: var(--dim); margin-top: 1px; }
 
-  .app-sub {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 1px;
-    letter-spacing: 0.1px;
-  }
+  .powered { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); }
+  .stepwise-logo { font-size: 12px; font-weight: 700; color: var(--orange); letter-spacing: -0.3px; }
 
-  .powered {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--dim);
-  }
-  .stepwise-logo {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--accent);
-    letter-spacing: -0.3px;
-  }
-
-  /* CHAT */
+  /* CHAT WRAPPER */
   .chat {
-    width: 100%;
-    max-width: 720px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+    width: 100%; max-width: 720px;
+    flex: 1; display: flex; flex-direction: column;
     overflow: hidden;
   }
 
   #msgs {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px 20px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    flex: 1; overflow-y: auto;
+    padding: 20px 20px 8px;
+    display: flex; flex-direction: column;
+    gap: 14px;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
 
+  /* BIENVENIDA */
+  .welcome {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 24px 16px 16px;
+    gap: 20px;
+    animation: fadein .3s ease;
+  }
+
+  .welcome-title {
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    color: var(--text);
+  }
+  .welcome-title .ia { color: var(--orange); }
+  .welcome-title .part { color: var(--text); }
+
+  .welcome-sub {
+    font-size: 15px;
+    color: var(--muted);
+    font-weight: 400;
+    letter-spacing: -0.2px;
+  }
+
+  .welcome-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .welcome-btn {
+    background: var(--card);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 14px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+    display: flex; flex-direction: column;
+    gap: 6px;
+    transition: all .15s;
+    letter-spacing: -0.2px;
+  }
+  .welcome-btn .icon { font-size: 20px; }
+  .welcome-btn:hover { border-color: var(--orange); background: #1e1208; transform: translateY(-1px); }
+  .welcome-btn:nth-child(1):hover { border-color: var(--orange); }
+  .welcome-btn:nth-child(2):hover { border-color: var(--neon); }
+  .welcome-btn:nth-child(3):hover { border-color: var(--fucsia); }
+  .welcome-btn:nth-child(4):hover { border-color: var(--amarillo); }
+  .welcome-btn:nth-child(5):hover { border-color: var(--orange); }
+  .welcome-btn:nth-child(6):hover { border-color: var(--neon); }
+
+  .welcome-divider {
+    font-size: 12px;
+    color: var(--dim);
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; max-width: 600px;
+  }
+  .welcome-divider::before, .welcome-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* MENSAJES */
   .msg { display: flex; flex-direction: column; gap: 6px; animation: fadein .2s ease; }
   .msg.bot  { align-items: flex-start; }
   .msg.user { align-items: flex-end; }
 
   .bubble {
-    max-width: 82%;
-    padding: 12px 16px;
-    border-radius: var(--radius);
-    font-size: 14px;
-    line-height: 1.7;
-    white-space: pre-wrap;
-    word-break: break-word;
-    letter-spacing: -0.1px;
+    max-width: 82%; padding: 12px 16px; border-radius: 14px;
+    font-size: 14px; line-height: 1.65; white-space: pre-wrap; word-break: break-word;
+    letter-spacing: -0.1px; font-weight: 400;
   }
   .bot .bubble {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-bottom-left-radius: 3px;
-    color: var(--text);
+    background: var(--card); border: 1px solid var(--border);
+    border-bottom-left-radius: 3px; color: var(--text);
   }
   .user .bubble {
-    background: #2a1a0e;
-    border: 1px solid #4a2e18;
-    border-bottom-right-radius: 3px;
-    color: #f0c8a0;
+    background: #1e0e05; border: 1px solid #4a2010;
+    border-bottom-right-radius: 3px; color: #f0c090;
+    font-weight: 500;
   }
 
   /* OPCIONES */
-  .opts { display: flex; flex-wrap: wrap; gap: 8px; max-width: 82%; }
+  .opts { display: flex; flex-wrap: wrap; gap: 7px; max-width: 82%; }
   .opt {
-    background: transparent;
-    border: 1px solid var(--border2);
-    color: var(--muted);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all .15s;
+    background: transparent; border: 1px solid var(--border2);
+    color: var(--muted); padding: 6px 14px; border-radius: 20px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; transition: all .15s; letter-spacing: -0.1px;
   }
-  .opt:hover {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-    font-weight: 500;
-  }
+  .opt:hover { background: var(--orange); border-color: var(--orange); color: #fff; }
 
   .time { font-size: 11px; color: var(--dim); padding: 0 4px; }
 
   /* EVENTO CARD */
   .ev-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    width: 100%;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; margin-top: 10px;
+    display: flex; flex-direction: column; gap: 7px; width: 100%;
     transition: border-color .15s;
   }
-  .ev-card:hover { border-color: var(--accent); }
+  .ev-card:hover { border-color: var(--orange); }
 
   .ev-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-  .ev-title { font-weight: 500; font-size: 14px; color: var(--text); flex: 1; line-height: 1.4; }
+  .ev-title { font-weight: 700; font-size: 14px; color: var(--text); flex: 1; line-height: 1.3; letter-spacing: -0.3px; }
 
   .ev-badge {
-    font-size: 11px; font-weight: 500;
-    padding: 3px 9px; border-radius: 20px;
-    white-space: nowrap; flex-shrink: 0;
-    letter-spacing: 0.2px;
+    font-size: 11px; font-weight: 700; padding: 3px 9px;
+    border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+    letter-spacing: 0.3px; text-transform: uppercase;
   }
-  .badge-gratis { background: #0a2818; color: var(--green); border: 1px solid #1a4828; }
+  .badge-gratis { background: #002a10; color: var(--neon); border: 1px solid #004820; }
   .badge-barato { background: #0a2010; color: #90e060; border: 1px solid #1a4020; }
-  .badge-normal { background: #101828; color: var(--blue); border: 1px solid #1a3040; }
-  .badge-caro   { background: #2a1808; color: var(--accent); border: 1px solid #4a2e18; }
+  .badge-normal { background: #1a0e00; color: var(--orange); border: 1px solid #3a2010; }
+  .badge-caro   { background: #2a001a; color: var(--fucsia); border: 1px solid #4a0030; }
   .badge-nd     { background: var(--card); color: var(--dim); border: 1px solid var(--border); }
 
-  .ev-artists { font-size: 12.5px; color: var(--muted); }
+  .ev-artists { font-size: 12.5px; color: var(--muted); font-weight: 500; }
 
   .ev-meta {
     font-size: 12px; color: var(--dim);
-    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
   }
-
-  .ev-date {
-    font-size: 12px; font-weight: 600;
-    color: var(--accent);
-    letter-spacing: 0.2px;
-  }
+  .ev-date { font-size: 12px; font-weight: 700; color: var(--fucsia); letter-spacing: 0.2px; }
+  .ev-hora { font-weight: 600; color: var(--muted); }
 
   .ev-destacado {
-    font-size: 12px; color: var(--muted);
-    font-style: italic; line-height: 1.5;
-    border-left: 2px solid var(--accent);
-    padding-left: 10px;
-    opacity: .8;
+    font-size: 12px; color: var(--muted); font-style: italic;
+    line-height: 1.5; border-left: 2px solid var(--orange); padding-left: 10px; opacity: .8;
   }
 
-  .ev-footer {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-top: 2px;
-  }
+  .ev-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
   .ev-asistentes { font-size: 11px; color: var(--dim); }
   .ev-link {
-    font-size: 12px; font-weight: 600;
-    color: var(--accent); text-decoration: none;
-    letter-spacing: -0.1px;
+    font-size: 12px; font-weight: 700; color: var(--orange);
+    text-decoration: none; letter-spacing: -0.1px; text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
-  .ev-link:hover { color: var(--accent2); }
+  .ev-link:hover { color: var(--orange2); }
 
   /* TYPING */
   .typing { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
   .typing span {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--dim);
+    width: 6px; height: 6px; border-radius: 50%; background: var(--dim);
     animation: bounce .9s infinite;
   }
   .typing span:nth-child(2) { animation-delay: .15s; }
   .typing span:nth-child(3) { animation-delay: .3s; }
 
   @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
-  @keyframes fadein { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadein { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
   /* INPUT */
   .input-area {
-    padding: 14px 20px 22px;
-    border-top: 1px solid var(--border);
-    background: var(--surface);
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    width: 100%;
-    max-width: 720px;
-    flex-shrink: 0;
+    padding: 12px 20px 20px; border-top: 1px solid var(--border);
+    background: var(--bg); display: flex; gap: 10px; align-items: center;
+    width: 100%; max-width: 720px; flex-shrink: 0;
   }
 
   #inp {
-    flex: 1;
-    background: var(--card);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 11px 16px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-family: inherit;
-    outline: none;
-    transition: border-color .15s;
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 12px 16px; border-radius: 10px;
+    font-size: 14px; font-family: inherit; outline: none;
+    transition: border-color .15s; font-weight: 400; letter-spacing: -0.1px;
   }
-  #inp:focus { border-color: var(--accent); }
+  #inp:focus { border-color: var(--orange); }
   #inp::placeholder { color: var(--dim); }
 
   #sendbtn {
-    width: 44px; height: 44px;
-    border-radius: 10px; border: none;
-    background: var(--accent);
-    cursor: pointer;
+    width: 46px; height: 46px; border-radius: 10px; border: none;
+    background: var(--orange); cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: background .15s;
+    flex-shrink: 0; transition: background .15s;
   }
-  #sendbtn:hover { background: var(--accent2); }
+  #sendbtn:hover { background: var(--orange2); }
   #sendbtn:disabled { opacity: .4; cursor: default; }
+
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  @media (max-width: 480px) {
+    .welcome-grid { grid-template-columns: repeat(2, 1fr); }
+    .welcome-title { font-size: 32px; }
+  }
 </style>
 </head>
 <body>
@@ -284,14 +287,14 @@
 <header>
   <div class="header-left">
     <div class="logo-mark">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 18V5l12-2v13"/>
         <circle cx="6" cy="18" r="3"/>
         <circle cx="18" cy="16" r="3"/>
       </svg>
     </div>
     <div>
-      <div class="app-name">Let's Part<span>IA</span></div>
+      <div class="app-name">Let's <span>Part</span>IA</div>
       <div class="app-sub">Many events · Your event</div>
     </div>
   </div>
@@ -304,7 +307,7 @@
 <div class="chat">
   <div id="msgs"></div>
   <div class="input-area">
-    <input id="inp" placeholder="Ciudad, DJ, venue, fecha... escribí lo que querés" type="text">
+    <input id="inp" placeholder="...o contame qué tenés en mente y armamos tu plan 🎯" type="text">
     <button id="sendbtn" onclick="send()" aria-label="Enviar">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
     </button>
@@ -315,11 +318,12 @@
 const RAILWAY = "https://bot-planes-production.up.railway.app";
 let history = [];
 let busy = false;
-
-function now() { return new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }); }
+let welcomeShown = true;
 
 const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+function now() { return new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }); }
 
 function formatFecha(fechaStr) {
   if (!fechaStr) return '';
@@ -328,22 +332,91 @@ function formatFecha(fechaStr) {
 }
 
 function badgeInfo(ev) {
-  if (ev.gratis) return { cls: 'badge-gratis', txt: '✦ Gratis' };
+  if (ev.gratis) return { cls: 'badge-gratis', txt: 'GRATIS' };
   const p = ev.precio_num;
   const raw = ev.precio || '';
   const hasSym = /[£$€]/.test(raw);
   const sym = hasSym ? '' : '€';
-  if (p === null || p === undefined) return { cls: 'badge-nd', txt: '· Ver precio' };
-  if (p < 15)  return { cls: 'badge-barato', txt: `↓ ${sym}${raw}` };
-  if (p <= 30) return { cls: 'badge-normal', txt: `· ${sym}${raw}` };
-  return { cls: 'badge-caro', txt: `↑ ${sym}${raw}` };
+  if (p === null || p === undefined) return { cls: 'badge-nd', txt: 'VER PRECIO' };
+  if (p < 15)  return { cls: 'badge-barato', txt: `${sym}${p}` };
+  if (p <= 30) return { cls: 'badge-normal', txt: `${sym}${p}` };
+  return { cls: 'badge-caro', txt: `${sym}${p}` };
 }
 
+// ── PANTALLA DE BIENVENIDA ─────────────────────────────────────────────────
+function showWelcome() {
+  const msgs = document.getElementById('msgs');
+  const welcome = document.createElement('div');
+  welcome.className = 'welcome';
+  welcome.id = 'welcome-screen';
+
+  welcome.innerHTML = `
+    <div class="welcome-title">
+      Let's <span class="ia">PartIA</span>
+    </div>
+    <div class="welcome-sub">Tu asistente de planes para salir — eventos reales de Resident Advisor</div>
+
+    <div class="welcome-grid">
+      <button class="welcome-btn" onclick="quickSearch('planes-finde')">
+        <span class="icon">🗓️</span>
+        <span>Planes este finde</span>
+      </button>
+      <button class="welcome-btn" onclick="quickSearch('gratis-barato')">
+        <span class="icon">💸</span>
+        <span>Gratis o barato</span>
+      </button>
+      <button class="welcome-btn" onclick="quickSearch('tarde-dia')">
+        <span class="icon">🌅</span>
+        <span>Algo de día / tarde</span>
+      </button>
+      <button class="welcome-btn" onclick="quickSearch('buscar-dj')">
+        <span class="icon">🎧</span>
+        <span>Fechas de un DJ</span>
+      </button>
+      <button class="welcome-btn" onclick="quickSearch('buscar-disco')">
+        <span class="icon">🏠</span>
+        <span>Ir a una disco</span>
+      </button>
+      <button class="welcome-btn" onclick="quickSearch('por-genero')">
+        <span class="icon">🎵</span>
+        <span>Por género musical</span>
+      </button>
+    </div>
+
+    <div class="welcome-divider">o simplemente escribí</div>
+  `;
+
+  msgs.appendChild(welcome);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+const QUICK_MESSAGES = {
+  'planes-finde':  'Quiero planes para este finde',
+  'gratis-barato': 'Busco algo gratis o barato este finde',
+  'tarde-dia':     'Quiero algo de día o tarde, open air o sunset',
+  'buscar-dj':     'Quiero buscar las próximas fechas de un DJ o artista',
+  'buscar-disco':  'Quiero saber qué hay en una disco o venue en particular',
+  'por-genero':    'Quiero buscar eventos por género musical',
+};
+
+function quickSearch(tipo) {
+  const msg = QUICK_MESSAGES[tipo];
+  removeWelcome();
+  handleSend(msg);
+}
+
+function removeWelcome() {
+  const w = document.getElementById('welcome-screen');
+  if (w) w.remove();
+  welcomeShown = false;
+}
+
+// ── UI ─────────────────────────────────────────────────────────────────────
 function addMsg(role, text, opts = [], events = []) {
+  removeWelcome();
   const msgs = document.getElementById('msgs');
   const wrap = document.createElement('div');
   wrap.className = `msg ${role}`;
-
   const bub = document.createElement('div');
   bub.className = 'bubble';
   bub.textContent = text;
@@ -351,13 +424,13 @@ function addMsg(role, text, opts = [], events = []) {
   events.forEach(ev => {
     const card = document.createElement('div');
     card.className = 'ev-card';
-    const artists = (ev.artistas || []).slice(0, 4).join(' · ') + ((ev.artistas||[]).length > 4 ? ` +${ev.artistas.length-4}` : '');
+    const artists = (ev.artistas || []).slice(0,4).join(' · ') + ((ev.artistas||[]).length>4?` +${ev.artistas.length-4}`:'');
     const horaInicio = ev.hora && ev.hora !== '23:59' ? ev.hora : null;
-    const horaFin = ev.hora_fin && ev.hora_fin !== '23:59' ? ev.hora_fin : null;
+    const horaFin    = ev.hora_fin && ev.hora_fin !== '23:59' ? ev.hora_fin : null;
     let horaStr = '';
-    if (horaInicio && horaFin) horaStr = `${horaInicio} → ${horaFin}hs`;
-    else if (horaInicio) horaStr = `desde las ${horaInicio}hs`;
-    else horaStr = 'Noche';
+    if (horaInicio && horaFin) horaStr = `${horaInicio} → ${horaFin}`;
+    else if (horaInicio)       horaStr = `desde ${horaInicio}`;
+    else                        horaStr = 'Noche';
     const { cls, txt } = badgeInfo(ev);
     const fecha = formatFecha(ev.fecha);
 
@@ -369,12 +442,13 @@ function addMsg(role, text, opts = [], events = []) {
       ${artists ? `<div class="ev-artists">👤 ${artists}</div>` : ''}
       <div class="ev-meta">
         ${fecha ? `<span class="ev-date">📅 ${fecha}</span>` : ''}
-        <span>🕐 ${horaStr}</span>
+        <span class="ev-hora">🕐 ${horaStr}</span>
         ${ev.venue ? `<span>📍 ${ev.venue}</span>` : ''}
+        ${ev.ciudad_venue ? `<span>🌆 ${ev.ciudad_venue}</span>` : ''}
       </div>
       ${ev.destacado ? `<div class="ev-destacado">${ev.destacado.slice(0,130)}${ev.destacado.length>130?'…':''}</div>` : ''}
       <div class="ev-footer">
-        <div class="ev-asistentes">${ev.asistentes ? `${ev.asistentes} personas van` : ''}</div>
+        <div class="ev-asistentes">${ev.asistentes ? `${ev.asistentes} van` : ''}</div>
         <a class="ev-link" href="${ev.url}" target="_blank">Ver en RA →</a>
       </div>
     `;
@@ -403,6 +477,7 @@ function addMsg(role, text, opts = [], events = []) {
 }
 
 function showTyping() {
+  removeWelcome();
   const msgs = document.getElementById('msgs');
   const w = document.createElement('div');
   w.className = 'msg bot'; w.id = 'typing';
@@ -422,10 +497,10 @@ function getOpts(reply) {
     return ['Viernes', 'Sábado', 'Todo el finde'];
   if (low.includes('tarde') || low.includes('noche') || low.includes('horario'))
     return ['Tarde (18hs)', 'Noche (22hs)', 'Madrugada (00hs)', 'Me da igual'];
-  if (low.includes('cubierto') || low.includes('aire libre'))
-    return ['Cubierto (club)', 'Aire libre', 'Me da igual'];
   if (low.includes('gratis') || low.includes('precio') || low.includes('entrada'))
     return ['Gratis', 'Barato (<15€)', 'Normal (15-30€)', 'Me da igual'];
+  if (low.includes('género') || low.includes('genero') || low.includes('música'))
+    return ['Techno', 'House', 'Progressive', 'Reggaeton', 'Indie / Alternativo', 'Otro'];
   return [];
 }
 
@@ -460,20 +535,19 @@ async function handleSend(texto) {
       let intro = '';
       if (tipo === 'fecha') {
         const n = eventos.length;
-        intro = `Hay ${total} eventos en ${filtros.ciudad} — acá están los ${n} que mejor matchean lo que buscás:`;
+        intro = `Hay ${total} eventos en ${filtros.ciudad} — acá están los ${n} que mejor matchean:\n\n💡 Precios orientativos, verificá en RA antes de comprar.`;
       } else if (tipo === 'artista') {
         const nombre = (filtros.artista || '').replace(/-/g,' ');
-        intro = `Encontré ${eventos.length} evento${eventos.length > 1 ? 's' : ''} de ${nombre}:`;
+        intro = `Próximas fechas de ${nombre}:`;
       } else if (tipo === 'venue') {
-        intro = `Esto hay en ${filtros.venue || 'ese venue'}:`;
+        intro = `Esto hay en ${filtros.venue || 'ese venue/disco'}:`;
       } else {
         intro = filtros.query ? `Resultados para "${filtros.query}":` : 'Acá van los resultados:';
       }
-      const disclaimer = '\n\n💡 Los precios son orientativos — verificá en RA antes de comprar, pueden haber early birds o cambios.';
-      addMsg('bot', intro + disclaimer, ['🔄 Nueva búsqueda'], eventos);
+      addMsg('bot', intro, ['🔄 Nueva búsqueda'], eventos);
     } else if (filtros && eventos.length === 0) {
       addMsg('bot',
-        `Busqué en RA pero no encontré nada con esos filtros.${total ? `\nEn total hay ${total} eventos — probá sin filtro de hora o precio.` : ''}`,
+        `No encontré nada con esos filtros.${total ? `\nEn total hay ${total} eventos — probá sin filtros.` : ''}`,
         ['🔄 Nueva búsqueda', 'Sin filtro de hora', 'Sin filtro de precio']
       );
     } else {
@@ -481,7 +555,7 @@ async function handleSend(texto) {
     }
   } catch(e) {
     hideTyping();
-    addMsg('bot', 'Algo falló conectando con el servidor. Intentá de nuevo.', ['🔄 Reiniciar']);
+    addMsg('bot', 'Algo falló. Intentá de nuevo.', ['🔄 Reiniciar']);
   }
 
   busy = false;
@@ -494,28 +568,8 @@ document.getElementById('inp').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); send(); }
 });
 
-(async () => {
-  showTyping();
-  try {
-    const res = await fetch(`${RAILWAY}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: 'hola!' }] })
-    });
-    const data = await res.json();
-    hideTyping();
-    history.push({ role: 'user', content: 'hola!' });
-    history.push({ role: 'assistant', content: data.reply });
-    addMsg('bot', data.reply,
-      ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid']
-    );
-  } catch {
-    hideTyping();
-    addMsg('bot', '¡Hola! ¿Qué plan estás buscando? Podés decirme una ciudad, un DJ/artista, un venue/disco o una fecha determinada... y buscamos tu plan ideal!',
-      ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid']
-    );
-  }
-})();
+// Arranque — mostrar pantalla de bienvenida directamente
+showWelcome();
 </script>
 </body>
 </html>
