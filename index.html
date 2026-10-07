@@ -6,24 +6,23 @@
 <title>Let's PartIA · by Stepwise</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:       #0a0a0a;
-    --surface:  #111111;
-    --card:     #181818;
-    --border:   #242424;
-    --border2:  #333333;
-    --orange:   #E9682E;
-    --orange2:  #c94f18;
-    --neon:     #39FF14;
-    --fucsia:   #FF2D8B;
-    --amarillo: #FFE600;
-    --text:     #F5F5F5;
-    --muted:    #999999;
-    --dim:      #555555;
+    --bg:      #0a0a0a;
+    --surface: #111111;
+    --card:    #181818;
+    --border:  #2a2a2a;
+    --border2: #383838;
+    --orange:  #E9682E;
+    --orange2: #c94f18;
+    --neon:    #39FF14;
+    --yellow:  #FFE600;
+    --text:    #F5F5F5;
+    --muted:   #aaaaaa;
+    --dim:     #666666;
   }
 
   body {
@@ -48,71 +47,49 @@
     justify-content: space-between;
     flex-shrink: 0;
   }
-
   .header-left { display: flex; align-items: center; gap: 12px; }
-
   .logo-mark {
-    width: 34px; height: 34px;
-    background: var(--orange);
-    border-radius: 6px;
+    width: 36px; height: 36px;
+    background: var(--orange); border-radius: 7px;
     display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
   }
-  .logo-mark svg { width: 18px; height: 18px; }
-
-  .app-name {
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    color: var(--text);
-  }
+  .logo-mark svg { width: 19px; height: 19px; }
+  .app-name { font-size: 18px; font-weight: 800; letter-spacing: -0.6px; }
   .app-name span { color: var(--orange); }
   .app-sub { font-size: 11px; color: var(--dim); margin-top: 1px; }
-
   .powered { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); }
-  .stepwise-logo { font-size: 12px; font-weight: 700; color: var(--orange); letter-spacing: -0.3px; }
+  .stepwise-logo { font-size: 12px; font-weight: 700; color: var(--orange); }
 
-  /* CHAT WRAPPER */
-  .chat {
-    width: 100%; max-width: 720px;
-    flex: 1; display: flex; flex-direction: column;
-    overflow: hidden;
-  }
+  /* CHAT */
+  .chat { width: 100%; max-width: 740px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
   #msgs {
     flex: 1; overflow-y: auto;
-    padding: 20px 20px 8px;
-    display: flex; flex-direction: column;
-    gap: 14px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    padding: 24px 22px 10px;
+    display: flex; flex-direction: column; gap: 16px;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
   }
 
   /* BIENVENIDA */
   .welcome {
     display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    text-align: center;
-    padding: 24px 16px 16px;
-    gap: 20px;
-    animation: fadein .3s ease;
+    gap: 22px; animation: fadein .3s ease;
   }
 
   .welcome-title {
-    font-size: clamp(28px, 6vw, 48px);
-    font-weight: 700;
-    letter-spacing: -1.5px;
-    line-height: 1.1;
+    font-size: clamp(36px, 7vw, 58px);
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1.05;
     color: var(--text);
   }
   .welcome-title .ia { color: var(--orange); }
-  .welcome-title .part { color: var(--text); }
 
   .welcome-sub {
-    font-size: 15px;
-    color: var(--muted);
-    font-weight: 400;
-    letter-spacing: -0.2px;
+    font-size: 16px; color: var(--muted);
+    font-weight: 400; letter-spacing: -0.2px;
+    line-height: 1.5;
+    max-width: 500px;
   }
 
   .welcome-grid {
@@ -120,39 +97,54 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     width: 100%;
-    max-width: 600px;
   }
 
   .welcome-btn {
     background: var(--card);
     border: 1px solid var(--border2);
     color: var(--text);
-    padding: 14px 12px;
+    padding: 16px 14px;
     border-radius: 10px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
     text-align: left;
-    display: flex; flex-direction: column;
-    gap: 6px;
+    display: flex; flex-direction: column; gap: 8px;
     transition: all .15s;
     letter-spacing: -0.2px;
+    line-height: 1.3;
   }
-  .welcome-btn .icon { font-size: 20px; }
-  .welcome-btn:hover { border-color: var(--orange); background: #1e1208; transform: translateY(-1px); }
-  .welcome-btn:nth-child(1):hover { border-color: var(--orange); }
-  .welcome-btn:nth-child(2):hover { border-color: var(--neon); }
-  .welcome-btn:nth-child(3):hover { border-color: var(--fucsia); }
-  .welcome-btn:nth-child(4):hover { border-color: var(--amarillo); }
-  .welcome-btn:nth-child(5):hover { border-color: var(--orange); }
-  .welcome-btn:nth-child(6):hover { border-color: var(--neon); }
+  .welcome-btn .icon { font-size: 22px; }
+  .welcome-btn:hover { border-color: var(--orange); background: #1e1208; transform: translateY(-2px); }
+  .welcome-btn:nth-child(2):hover { border-color: var(--neon); background: #081808; }
+  .welcome-btn:nth-child(3):hover { border-color: var(--yellow); background: #181400; }
+  .welcome-btn:nth-child(4):hover { border-color: var(--orange); background: #1e1208; }
+  .welcome-btn:nth-child(5):hover { border-color: var(--neon); background: #081808; }
+
+  .ver-mas-btn {
+    background: transparent;
+    border: 1px dashed var(--border2);
+    color: var(--dim);
+    padding: 16px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s;
+    letter-spacing: -0.1px;
+  }
+  .ver-mas-btn:hover { border-color: var(--muted); color: var(--muted); }
+
+  /* Opciones extra ocultas */
+  .extra-opts { display: none; grid-template-columns: repeat(3,1fr); gap: 10px; }
+  .extra-opts.visible { display: grid; animation: fadein .2s ease; }
 
   .welcome-divider {
-    font-size: 12px;
-    color: var(--dim);
-    display: flex; align-items: center; gap: 10px;
-    width: 100%; max-width: 600px;
+    font-size: 13px; color: var(--dim);
+    display: flex; align-items: center; gap: 12px;
   }
   .welcome-divider::before, .welcome-divider::after {
     content: ''; flex: 1; height: 1px; background: var(--border);
@@ -164,9 +156,9 @@
   .msg.user { align-items: flex-end; }
 
   .bubble {
-    max-width: 82%; padding: 12px 16px; border-radius: 14px;
-    font-size: 14px; line-height: 1.65; white-space: pre-wrap; word-break: break-word;
-    letter-spacing: -0.1px; font-weight: 400;
+    max-width: 84%; padding: 13px 17px; border-radius: 14px;
+    font-size: 15px; line-height: 1.6; white-space: pre-wrap;
+    word-break: break-word; letter-spacing: -0.1px;
   }
   .bot .bubble {
     background: var(--card); border: 1px solid var(--border);
@@ -174,17 +166,16 @@
   }
   .user .bubble {
     background: #1e0e05; border: 1px solid #4a2010;
-    border-bottom-right-radius: 3px; color: #f0c090;
-    font-weight: 500;
+    border-bottom-right-radius: 3px; color: #f0c090; font-weight: 500;
   }
 
   /* OPCIONES */
-  .opts { display: flex; flex-wrap: wrap; gap: 7px; max-width: 82%; }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; max-width: 84%; }
   .opt {
     background: transparent; border: 1px solid var(--border2);
-    color: var(--muted); padding: 6px 14px; border-radius: 20px;
-    font-size: 13px; font-weight: 500; cursor: pointer;
-    font-family: inherit; transition: all .15s; letter-spacing: -0.1px;
+    color: var(--muted); padding: 7px 15px; border-radius: 20px;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    font-family: inherit; transition: all .15s;
   }
   .opt:hover { background: var(--orange); border-color: var(--orange); color: #fff; }
 
@@ -193,53 +184,53 @@
   /* EVENTO CARD */
   .ev-card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px 16px; margin-top: 10px;
-    display: flex; flex-direction: column; gap: 7px; width: 100%;
+    border-radius: 10px; padding: 15px 17px; margin-top: 10px;
+    display: flex; flex-direction: column; gap: 8px; width: 100%;
     transition: border-color .15s;
   }
   .ev-card:hover { border-color: var(--orange); }
 
   .ev-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-  .ev-title { font-weight: 700; font-size: 14px; color: var(--text); flex: 1; line-height: 1.3; letter-spacing: -0.3px; }
+  .ev-title { font-weight: 700; font-size: 15px; color: var(--text); flex: 1; line-height: 1.3; letter-spacing: -0.3px; }
 
   .ev-badge {
-    font-size: 11px; font-weight: 700; padding: 3px 9px;
+    font-size: 11px; font-weight: 700; padding: 4px 10px;
     border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-    letter-spacing: 0.3px; text-transform: uppercase;
+    letter-spacing: 0.4px; text-transform: uppercase;
   }
-  .badge-gratis { background: #002a10; color: var(--neon); border: 1px solid #004820; }
-  .badge-barato { background: #0a2010; color: #90e060; border: 1px solid #1a4020; }
-  .badge-normal { background: #1a0e00; color: var(--orange); border: 1px solid #3a2010; }
-  .badge-caro   { background: #2a001a; color: var(--fucsia); border: 1px solid #4a0030; }
+  .badge-gratis { background: #002a10; color: var(--neon);   border: 1px solid #005020; }
+  .badge-barato { background: #0a2010; color: #90e060;        border: 1px solid #1a4020; }
+  .badge-normal { background: #1e0e00; color: var(--orange);  border: 1px solid #3a2010; }
+  .badge-caro   { background: #1e1200; color: var(--yellow);  border: 1px solid #3a3000; }
   .badge-nd     { background: var(--card); color: var(--dim); border: 1px solid var(--border); }
 
-  .ev-artists { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+  .ev-artists { font-size: 13.5px; color: var(--muted); font-weight: 500; }
 
   .ev-meta {
-    font-size: 12px; color: var(--dim);
-    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    font-size: 13px; color: var(--dim);
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
   }
-  .ev-date { font-size: 12px; font-weight: 700; color: var(--fucsia); letter-spacing: 0.2px; }
-  .ev-hora { font-weight: 600; color: var(--muted); }
+  .ev-date  { font-weight: 700; color: var(--yellow); letter-spacing: 0.2px; }
+  .ev-hora  { font-weight: 600; color: var(--muted); }
 
   .ev-destacado {
-    font-size: 12px; color: var(--muted); font-style: italic;
-    line-height: 1.5; border-left: 2px solid var(--orange); padding-left: 10px; opacity: .8;
+    font-size: 13px; color: var(--muted); font-style: italic;
+    line-height: 1.5; border-left: 2px solid var(--orange);
+    padding-left: 10px; opacity: .8;
   }
 
   .ev-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
-  .ev-asistentes { font-size: 11px; color: var(--dim); }
+  .ev-asistentes { font-size: 12px; color: var(--dim); }
   .ev-link {
     font-size: 12px; font-weight: 700; color: var(--orange);
-    text-decoration: none; letter-spacing: -0.1px; text-transform: uppercase;
-    letter-spacing: 0.5px;
+    text-decoration: none; letter-spacing: 0.5px; text-transform: uppercase;
   }
   .ev-link:hover { color: var(--orange2); }
 
   /* TYPING */
   .typing { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
   .typing span {
-    width: 6px; height: 6px; border-radius: 50%; background: var(--dim);
+    width: 7px; height: 7px; border-radius: 50%; background: var(--dim);
     animation: bounce .9s infinite;
   }
   .typing span:nth-child(2) { animation-delay: .15s; }
@@ -250,22 +241,21 @@
 
   /* INPUT */
   .input-area {
-    padding: 12px 20px 20px; border-top: 1px solid var(--border);
+    padding: 14px 22px 22px; border-top: 1px solid var(--border);
     background: var(--bg); display: flex; gap: 10px; align-items: center;
-    width: 100%; max-width: 720px; flex-shrink: 0;
+    width: 100%; max-width: 740px; flex-shrink: 0;
   }
-
   #inp {
     flex: 1; background: var(--surface); border: 1px solid var(--border);
-    color: var(--text); padding: 12px 16px; border-radius: 10px;
-    font-size: 14px; font-family: inherit; outline: none;
-    transition: border-color .15s; font-weight: 400; letter-spacing: -0.1px;
+    color: var(--text); padding: 13px 17px; border-radius: 10px;
+    font-size: 15px; font-family: inherit; outline: none;
+    transition: border-color .15s; letter-spacing: -0.1px;
   }
   #inp:focus { border-color: var(--orange); }
   #inp::placeholder { color: var(--dim); }
 
   #sendbtn {
-    width: 46px; height: 46px; border-radius: 10px; border: none;
+    width: 48px; height: 48px; border-radius: 10px; border: none;
     background: var(--orange); cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; transition: background .15s;
@@ -276,9 +266,10 @@
   ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
-  @media (max-width: 480px) {
-    .welcome-grid { grid-template-columns: repeat(2, 1fr); }
-    .welcome-title { font-size: 32px; }
+  @media (max-width: 520px) {
+    .welcome-grid { grid-template-columns: repeat(2,1fr); }
+    .extra-opts.visible { grid-template-columns: repeat(2,1fr); }
+    .welcome-title { font-size: 36px; }
   }
 </style>
 </head>
@@ -309,7 +300,7 @@
   <div class="input-area">
     <input id="inp" placeholder="...o contame qué tenés en mente y armamos tu plan 🎯" type="text">
     <button id="sendbtn" onclick="send()" aria-label="Enviar">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
     </button>
   </div>
 </div>
@@ -318,7 +309,6 @@
 const RAILWAY = "https://bot-planes-production.up.railway.app";
 let history = [];
 let busy = false;
-let welcomeShown = true;
 
 const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -343,7 +333,7 @@ function badgeInfo(ev) {
   return { cls: 'badge-caro', txt: `${sym}${p}` };
 }
 
-// ── PANTALLA DE BIENVENIDA ─────────────────────────────────────────────────
+// ── BIENVENIDA ─────────────────────────────────────────────────────────────
 function showWelcome() {
   const msgs = document.getElementById('msgs');
   const welcome = document.createElement('div');
@@ -351,64 +341,81 @@ function showWelcome() {
   welcome.id = 'welcome-screen';
 
   welcome.innerHTML = `
-    <div class="welcome-title">
-      Let's <span class="ia">PartIA</span>
+    <div>
+      <div class="welcome-title">Let's <span class="ia">PartIA</span></div>
+      <div class="welcome-sub" style="margin-top:12px">Tu asistente de planes para salir.<br>Eventos reales de Resident Advisor.</div>
     </div>
-    <div class="welcome-sub">Tu asistente de planes para salir — eventos reales de Resident Advisor</div>
 
     <div class="welcome-grid">
       <button class="welcome-btn" onclick="quickSearch('planes-finde')">
-        <span class="icon">🗓️</span>
-        <span>Planes este finde</span>
+        <span class="icon">🗓️</span>Planes este finde
       </button>
       <button class="welcome-btn" onclick="quickSearch('gratis-barato')">
-        <span class="icon">💸</span>
-        <span>Gratis o barato</span>
+        <span class="icon">💸</span>Gratis o barato
       </button>
       <button class="welcome-btn" onclick="quickSearch('tarde-dia')">
-        <span class="icon">🌅</span>
-        <span>Algo de día / tarde</span>
+        <span class="icon">🌅</span>Algo de día / tarde
       </button>
       <button class="welcome-btn" onclick="quickSearch('buscar-dj')">
-        <span class="icon">🎧</span>
-        <span>Fechas de un DJ</span>
+        <span class="icon">🎧</span>Fechas de un DJ
       </button>
       <button class="welcome-btn" onclick="quickSearch('buscar-disco')">
-        <span class="icon">🏠</span>
-        <span>Ir a una disco</span>
+        <span class="icon">🏠</span>Ir a una disco
       </button>
-      <button class="welcome-btn" onclick="quickSearch('por-genero')">
-        <span class="icon">🎵</span>
-        <span>Por género musical</span>
+      <button class="ver-mas-btn" onclick="toggleExtra()">
+        ＋ Ver más opciones
       </button>
     </div>
 
-    <div class="welcome-divider">o simplemente escribí</div>
+    <div class="extra-opts" id="extra-opts">
+      <button class="welcome-btn" onclick="quickSearch('por-genero')">
+        <span class="icon">🎵</span>Por género musical
+      </button>
+      <button class="welcome-btn" onclick="quickSearch('explorar-ciudad')">
+        <span class="icon">🌍</span>Explorar una ciudad
+      </button>
+      <button class="welcome-btn" onclick="quickSearch('festivales')">
+        <span class="icon">🎪</span>Festivales y eventos grandes
+      </button>
+    </div>
+
+    <div class="welcome-divider">o simplemente escribí lo que tenés en mente</div>
   `;
 
   msgs.appendChild(welcome);
-  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function toggleExtra() {
+  const extra = document.getElementById('extra-opts');
+  const btn = document.querySelector('.ver-mas-btn');
+  if (extra.classList.contains('visible')) {
+    extra.classList.remove('visible');
+    btn.textContent = '＋ Ver más opciones';
+  } else {
+    extra.classList.add('visible');
+    btn.textContent = '－ Ver menos';
+  }
 }
 
 const QUICK_MESSAGES = {
-  'planes-finde':  'Quiero planes para este finde',
-  'gratis-barato': 'Busco algo gratis o barato este finde',
-  'tarde-dia':     'Quiero algo de día o tarde, open air o sunset',
-  'buscar-dj':     'Quiero buscar las próximas fechas de un DJ o artista',
-  'buscar-disco':  'Quiero saber qué hay en una disco o venue en particular',
-  'por-genero':    'Quiero buscar eventos por género musical',
+  'planes-finde':     'Quiero planes para este finde',
+  'gratis-barato':    'Busco algo gratis o barato este finde',
+  'tarde-dia':        'Quiero algo de día o tarde, open air o sunset',
+  'buscar-dj':        'Quiero buscar las próximas fechas de un DJ o artista',
+  'buscar-disco':     'Quiero saber qué hay en una disco o venue en particular',
+  'por-genero':       'Quiero buscar eventos por género musical',
+  'explorar-ciudad':  'Quiero explorar qué hay en una ciudad',
+  'festivales':       'Busco festivales o eventos grandes',
 };
 
 function quickSearch(tipo) {
-  const msg = QUICK_MESSAGES[tipo];
   removeWelcome();
-  handleSend(msg);
+  handleSend(QUICK_MESSAGES[tipo]);
 }
 
 function removeWelcome() {
   const w = document.getElementById('welcome-screen');
   if (w) w.remove();
-  welcomeShown = false;
 }
 
 // ── UI ─────────────────────────────────────────────────────────────────────
@@ -424,13 +431,10 @@ function addMsg(role, text, opts = [], events = []) {
   events.forEach(ev => {
     const card = document.createElement('div');
     card.className = 'ev-card';
-    const artists = (ev.artistas || []).slice(0,4).join(' · ') + ((ev.artistas||[]).length>4?` +${ev.artistas.length-4}`:'');
+    const artists = (ev.artistas||[]).slice(0,4).join(' · ') + ((ev.artistas||[]).length>4?` +${ev.artistas.length-4}`:'');
     const horaInicio = ev.hora && ev.hora !== '23:59' ? ev.hora : null;
     const horaFin    = ev.hora_fin && ev.hora_fin !== '23:59' ? ev.hora_fin : null;
-    let horaStr = '';
-    if (horaInicio && horaFin) horaStr = `${horaInicio} → ${horaFin}`;
-    else if (horaInicio)       horaStr = `desde ${horaInicio}`;
-    else                        horaStr = 'Noche';
+    let horaStr = horaInicio && horaFin ? `${horaInicio} → ${horaFin}` : horaInicio ? `desde ${horaInicio}` : 'Noche';
     const { cls, txt } = badgeInfo(ev);
     const fecha = formatFecha(ev.fecha);
 
@@ -534,11 +538,9 @@ async function handleSend(texto) {
       const tipo = filtros.tipo || 'fecha';
       let intro = '';
       if (tipo === 'fecha') {
-        const n = eventos.length;
-        intro = `Hay ${total} eventos en ${filtros.ciudad} — acá están los ${n} que mejor matchean:\n\n💡 Precios orientativos, verificá en RA antes de comprar.`;
+        intro = `Hay ${total} eventos en ${filtros.ciudad} — acá están los ${eventos.length} que mejor matchean:\n\n💡 Precios orientativos, verificá en RA antes de comprar.`;
       } else if (tipo === 'artista') {
-        const nombre = (filtros.artista || '').replace(/-/g,' ');
-        intro = `Próximas fechas de ${nombre}:`;
+        intro = `Próximas fechas de ${(filtros.artista||'').replace(/-/g,' ')}:`;
       } else if (tipo === 'venue') {
         intro = `Esto hay en ${filtros.venue || 'ese venue/disco'}:`;
       } else {
@@ -568,7 +570,6 @@ document.getElementById('inp').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); send(); }
 });
 
-// Arranque — mostrar pantalla de bienvenida directamente
 showWelcome();
 </script>
 </body>
