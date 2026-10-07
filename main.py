@@ -565,10 +565,33 @@ def chat():
                 hoy_str = datetime.now().strftime("%Y-%m-%d")
                 artista_lower = artista_raw.lower().strip()
 
-                # Generar variantes del slug
-                slug_guion    = re.sub(r'[^a-z0-9]+', '-', artista_lower).strip('-')
-                slug_sin_esp  = re.sub(r'[^a-z0-9]+', '',  artista_lower)
-                slugs = list(dict.fromkeys([slug_guion, slug_sin_esp]))  # sin duplicados
+                # Primero buscar el artista en RA para obtener el slug correcto
+                slugs_a_probar = []
+                try:
+                    search_payload = {
+                        "operationName": "SEARCH_ARTISTS",
+                        "variables": {"query": artista_raw},
+                        "query": RA_QUERY_ARTIST_SEARCH
+                    }
+                    search_data = ra_request_direct(search_payload)
+                    artistas_encontrados = search_data.get("data", {}).get("artistSearch", [])
+                    print(f"[ARTISTA] Búsqueda encontró: {[a.get('name') for a in artistas_encontrados[:3]]}")
+                    for a in artistas_encontrados[:3]:
+                        content_url = a.get("contentUrl", "")
+                        slug_ra = content_url.replace("/dj/", "").strip("/")
+                        if slug_ra:
+                            slugs_a_probar.append(slug_ra)
+                except Exception as se:
+                    print(f"[ARTISTA SEARCH ERROR] {se}")
+
+                # Agregar variantes generadas como fallback
+                slug_guion   = re.sub(r'[^a-z0-9]+', '-', artista_lower).strip('-')
+                slug_sin_esp = re.sub(r'[^a-z0-9]+', '',  artista_lower)
+                for s in [slug_guion, slug_sin_esp]:
+                    if s not in slugs_a_probar:
+                        slugs_a_probar.append(s)
+
+                slugs = slugs_a_probar
 
                 artist_data = None
                 slug_usado  = None
