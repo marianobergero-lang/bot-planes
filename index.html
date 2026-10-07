@@ -469,7 +469,8 @@ async function handleSend(texto) {
       } else {
         intro = filtros.query ? `Resultados para "${filtros.query}":` : 'Acá van los resultados:';
       }
-      addMsg('bot', intro, ['🔄 Nueva búsqueda'], eventos);
+      const disclaimer = '\n\n💡 Los precios son orientativos — verificá en RA antes de comprar, pueden haber early birds o cambios.';
+      addMsg('bot', intro + disclaimer, ['🔄 Nueva búsqueda'], eventos);
     } else if (filtros && eventos.length === 0) {
       addMsg('bot',
         `Busqué en RA pero no encontré nada con esos filtros.${total ? `\nEn total hay ${total} eventos — probá sin filtro de hora o precio.` : ''}`,
