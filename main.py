@@ -438,6 +438,10 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
 
             eventos.append(ev_fmt)
 
+        # Filtrar eventos pasados
+        hoy = datetime.now().strftime("%Y-%m-%d")
+        eventos = [e for e in eventos if e.get("fecha", "") >= hoy]
+
         # Ordenar por fecha primero, luego popularidad dentro de cada día
         eventos.sort(key=lambda x: (x.get("fecha", ""), -x.get("asistentes", 0)))
         return eventos[:max_ev], total
