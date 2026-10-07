@@ -262,13 +262,13 @@ def formatear_evento(ev, venue_data=None):
         precio_label = "Gratis"
         es_gratis = True
     elif precio_num is not None and precio_num < 15:
-        precio_label = f"Desde {sym}{precio_num}"
+        precio_label = f"~{sym}{precio_num} · Barato"
         es_gratis = False
     elif precio_num is not None and precio_num <= 30:
-        precio_label = f"Desde {sym}{precio_num}"
+        precio_label = f"~{sym}{precio_num} · Normal"
         es_gratis = False
     elif precio_num is not None:
-        precio_label = f"Desde {sym}{precio_num}"
+        precio_label = f"~{sym}{precio_num} · Caro"
         es_gratis = False
     else:
         precio_label = "Ver precio en RA"
