@@ -204,7 +204,19 @@ def finde_proximo():
     domingo = viernes + timedelta(days=2)
     return viernes.strftime("%Y-%m-%d"), domingo.strftime("%Y-%m-%d")
 
+def normalizar_cuando(cuando):
+    """Normaliza distintas formas de decir cuándo"""
+    if not cuando:
+        return "todo"
+    c = cuando.lower().strip()
+    if any(x in c for x in ["viernes", "friday", "vie"]):
+        return "viernes"
+    if any(x in c for x in ["sabado", "sábado", "saturday", "sab"]):
+        return "sabado"
+    return "todo"  # finde, todo, weekend, este finde, etc.
+
 def calc_fechas(cuando):
+    cuando = normalizar_cuando(cuando)
     hoy = datetime.now()
     dias = (4 - hoy.weekday()) % 7 or 7
     vier = hoy + timedelta(days=dias)
@@ -213,7 +225,7 @@ def calc_fechas(cuando):
     fmt  = lambda d: d.strftime("%Y-%m-%d")
     if cuando == "viernes": return fmt(vier), fmt(vier)
     if cuando == "sabado":  return fmt(sab),  fmt(sab)
-    return fmt(vier), fmt(dom)
+    return fmt(vier), fmt(dom)  # todo = viernes + sábado + domingo
 
 def precio_categoria(cost_str):
     """Convierte string de precio a número aproximado"""
