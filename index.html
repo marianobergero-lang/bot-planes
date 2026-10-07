@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bot de Planes 🎉</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #08080f; color: #e0d8ff;
+    height: 100vh; display: flex; flex-direction: column; align-items: center;
+  }
+  header {
+    width: 100%; padding: 14px 20px;
+    background: #0d0d1a; border-bottom: 1px solid #1a1a30;
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  }
+  .logo {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #7c6cfc, #fc6c8f);
+    border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  header h1 { font-size: 15px; font-weight: 500; }
+  header p  { font-size: 11px; color: #6060a0; }
+  .chat { width: 100%; max-width: 700px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #msgs { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 14px; }
+  .msg { display: flex; flex-direction: column; gap: 5px; animation: fadein .2s ease; }
+  .msg.bot  { align-items: flex-start; }
+  .msg.user { align-items: flex-end; }
+  .bubble {
+    max-width: 85%; padding: 11px 15px; border-radius: 16px;
+    font-size: 14px; line-height: 1.65; white-space: pre-wrap; word-break: break-word;
+  }
+  .bot  .bubble { background: #13132a; border: 1px solid #252545; border-bottom-left-radius: 3px; }
+  .user .bubble { background: #1e1060; border: 1px solid #3a2080; border-bottom-right-radius: 3px; color: #c8b8ff; }
+  .opts { display: flex; flex-wrap: wrap; gap: 7px; max-width: 85%; margin-top: 2px; }
+  .opt {
+    background: #1a1a2e; border: 1px solid #2a2a4a; color: #b0a8e8;
+    padding: 7px 14px; border-radius: 20px; font-size: 13px;
+    cursor: pointer; font-family: inherit; transition: all .15s;
+  }
+  .opt:hover { background: #7c6cfc; color: white; border-color: #7c6cfc; }
+  .time { font-size: 11px; color: #40407a; padding: 0 3px; }
+  .ev-card {
+    background: #0e0e22; border: 1px solid #2a2a4a; border-radius: 11px;
+    padding: 12px 14px; margin-top: 8px; display: flex; flex-direction: column; gap: 5px; width: 100%;
+  }
+  .ev-title   { font-weight: 500; font-size: 14px; color: #e0d8ff; }
+  .ev-artists { font-size: 12.5px; color: #9080d0; }
+  .ev-meta    { font-size: 12px; color: #6060a0; display: flex; gap: 12px; flex-wrap: wrap; }
+  .ev-price   { font-size: 12px; color: #5dcaa5; }
+  .ev-link    { font-size: 12px; color: #7c6cfc; text-decoration: none; }
+  .ev-link:hover { text-decoration: underline; }
+  .typing { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
+  .typing span { width: 7px; height: 7px; border-radius: 50%; background: #6060a0; animation: bounce .9s infinite; }
+  .typing span:nth-child(2) { animation-delay: .15s; }
+  .typing span:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+  @keyframes fadein { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+  .input-area {
+    padding: 12px 16px 20px; border-top: 1px solid #1a1a30; background: #0d0d1a;
+    display: flex; gap: 9px; align-items: center; width: 100%; max-width: 700px; flex-shrink: 0;
+  }
+  #inp {
+    flex: 1; background: #13132a; border: 1px solid #252545; color: #e0d8ff;
+    padding: 10px 14px; border-radius: 11px; font-size: 14px; font-family: inherit;
+    outline: none; transition: border-color .15s;
+  }
+  #inp:focus { border-color: #7c6cfc; }
+  #inp::placeholder { color: #404060; }
+  #sendbtn {
+    width: 42px; height: 42px; border-radius: 10px; border: none;
+    background: linear-gradient(135deg, #7c6cfc, #9c6cfc);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  #sendbtn:disabled { opacity: .4; cursor: default; }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🎉</div>
+  <div><h1>Bot de Planes</h1><p>Eventos reales · Resident Advisor</p></div>
+</header>
+<div class="chat">
+  <div id="msgs"></div>
+  <div class="input-area">
+    <input id="inp" placeholder="Escribí lo que querés o elegí una opción..." type="text">
+    <button id="sendbtn" onclick="send()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const RAILWAY = "https://bot-planes-production.up.railway.app";
+let history = [];
+let busy = false;
+
+function now() { return new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }); }
+
+function addMsg(role, text, opts = [], events = []) {
+  const msgs = document.getElementById('msgs');
+  const wrap = document.createElement('div');
+  wrap.className = `msg ${role}`;
+  const bub = document.createElement('div');
+  bub.className = 'bubble';
+  bub.textContent = text;
+
+  events.forEach(ev => {
+    const card = document.createElement('div');
+    card.className = 'ev-card';
+    const artists = (ev.artistas || []).slice(0, 3).join(' · ') + ((ev.artistas||[]).length > 3 ? ` +${ev.artistas.length-3} más` : '');
+    const hora = ev.hora && ev.hora !== '23:59' ? `🕐 ${ev.hora}hs` : '🌙 Noche';
+    const precio = ev.gratis ? '🟢 Gratis' : ev.precio !== 'No especificado' ? `💶 ${ev.precio}` : '💶 Ver en RA';
+    card.innerHTML = `
+      <div class="ev-title">🎵 ${ev.titulo}</div>
+      ${artists ? `<div class="ev-artists">👤 ${artists}</div>` : ''}
+      <div class="ev-meta">
+        ${ev.venue ? `<span>📍 ${ev.venue}</span>` : ''}
+        <span>${hora}</span>
+        ${ev.asistentes ? `<span>👥 ${ev.asistentes} van</span>` : ''}
+      </div>
+      <div class="ev-price">${precio}</div>
+      <a class="ev-link" href="${ev.url}" target="_blank">🔗 Ver en Resident Advisor →</a>
+    `;
+    bub.appendChild(card);
+  });
+
+  wrap.appendChild(bub);
+
+  if (opts.length) {
+    const optDiv = document.createElement('div');
+    optDiv.className = 'opts';
+    opts.forEach(o => {
+      const btn = document.createElement('button');
+      btn.className = 'opt'; btn.textContent = o;
+      btn.onclick = () => { optDiv.remove(); handleSend(o); };
+      optDiv.appendChild(btn);
+    });
+    wrap.appendChild(optDiv);
+  }
+
+  const t = document.createElement('div');
+  t.className = 'time'; t.textContent = now();
+  wrap.appendChild(t);
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('msgs');
+  const w = document.createElement('div');
+  w.className = 'msg bot'; w.id = 'typing';
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  b.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  w.appendChild(b); msgs.appendChild(w);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function hideTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
+
+function getOpts(reply) {
+  const low = reply.toLowerCase();
+  if (low.includes('ciudad') || (low.includes('buenos aires') && history.length <= 4))
+    return ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid', 'New York', 'Paris'];
+  if (low.includes('viernes') && low.includes('sábado'))
+    return ['Viernes', 'Sábado', 'Todo el finde'];
+  if (low.includes('tarde') || low.includes('noche') || low.includes('horario'))
+    return ['Tarde (18hs)', 'Noche (22hs)', 'Madrugada (00hs)', 'Me da igual'];
+  if (low.includes('cubierto') || low.includes('aire libre'))
+    return ['Cubierto (club)', 'Aire libre', 'Me da igual'];
+  if (low.includes('gratis') && (low.includes('pago') || low.includes('entrada')))
+    return ['Solo gratis', 'Pago también', 'Me da igual'];
+  return [];
+}
+
+async function handleSend(texto) {
+  if (!texto.trim() || busy) return;
+  busy = true;
+  document.getElementById('sendbtn').disabled = true;
+  document.getElementById('inp').value = '';
+
+  addMsg('user', texto);
+  history.push({ role: 'user', content: texto });
+  showTyping();
+
+  try {
+    const res = await fetch(`${RAILWAY}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history })
+    });
+    const data = await res.json();
+    hideTyping();
+
+    const reply   = data.reply || '';
+    const eventos = data.eventos || [];
+    const total   = data.total_ra || 0;
+    const filtros = data.filtros;
+
+    history.push({ role: 'assistant', content: reply });
+
+    if (filtros && eventos.length > 0) {
+      const lugar = filtros.lugar && filtros.lugar !== 'da igual' ? ` · ${filtros.lugar}` : '';
+      addMsg('bot',
+        `Encontré ${total} eventos en ${filtros.ciudad}${lugar} 🎉\nAcá van los mejores:`,
+        ['🔄 Buscar de nuevo'], eventos
+      );
+    } else if (filtros && eventos.length === 0) {
+      addMsg('bot',
+        `Busqué en RA pero no encontré nada con esos filtros 😕\nRA tiene ${total} eventos en total para esas fechas. ¿Probamos sin filtro de hora?`,
+        ['🔄 Buscar de nuevo', 'Sin filtro de hora']
+      );
+    } else {
+      const opts = getOpts(reply);
+      addMsg('bot', reply, opts);
+    }
+  } catch(e) {
+    hideTyping();
+    addMsg('bot', 'Ups, algo falló conectando con el servidor. Intentá de nuevo 🙏', ['🔄 Reiniciar']);
+  }
+
+  busy = false;
+  document.getElementById('sendbtn').disabled = false;
+  document.getElementById('inp').focus();
+}
+
+function send() { handleSend(document.getElementById('inp').value.trim()); }
+document.getElementById('inp').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); send(); }
+});
+
+// Arranque
+(async () => {
+  showTyping();
+  try {
+    const res = await fetch(`${RAILWAY}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: 'hola!' }] })
+    });
+    const data = await res.json();
+    hideTyping();
+    history.push({ role: 'user', content: 'hola!' });
+    history.push({ role: 'assistant', content: data.reply });
+    addMsg('bot', data.reply,
+      ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid']
+    );
+  } catch {
+    hideTyping();
+    addMsg('bot', '¡Hola! Soy tu bot de planes 🎉\n¿En qué ciudad vas a estar este finde?',
+      ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid']
+    );
+  }
+})();
+</script>
+</body>
+</html>
