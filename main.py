@@ -26,8 +26,8 @@ AREAS_RA = {
 
 # Query por fecha/ciudad
 RA_QUERY_FECHA = """
-query GET_DEFAULT_EVENTS_LISTING($filters: FilterInputDtoInput, $pageSize: Int) {
-  eventListings(filters: $filters, pageSize: $pageSize, page: 1,
+query GET_DEFAULT_EVENTS_LISTING($filters: FilterInputDtoInput, $pageSize: Int, $page: Int) {
+  eventListings(filters: $filters, pageSize: $pageSize, page: $page,
     sort: { listingDate: { priority: 1, order: ASCENDING } }) {
     data {
       id listingDate
@@ -285,22 +285,46 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
     if not area:
         return [], 0
 
-    payload = {
-        "operationName": "GET_DEFAULT_EVENTS_LISTING",
-        "variables": {
-            "filters": {
-                "areas": {"eq": area},
-                "listingDate": {"gte": f"{desde}T00:00:00.000Z", "lte": f"{hasta}T23:59:59.000Z"}
-            },
-            "pageSize": 100
-        },
-        "query": RA_QUERY_FECHA
-    }
+    # Paginamos para traer TODOS los eventos de RA
+    listings = []
+    total    = 0
+    page     = 1
+    page_size = 100
 
     try:
-        data     = ra_request(payload)
-        listings = data.get("data", {}).get("eventListings", {}).get("data", [])
-        total    = data.get("data", {}).get("eventListings", {}).get("totalResults", 0)
+        while True:
+            payload = {
+                "operationName": "GET_DEFAULT_EVENTS_LISTING",
+                "variables": {
+                    "filters": {
+                        "areas": {"eq": area},
+                        "listingDate": {"gte": f"{desde}T00:00:00.000Z", "lte": f"{hasta}T23:59:59.000Z"}
+                    },
+                    "pageSize": page_size,
+                    "page": page
+                },
+                "query": RA_QUERY_FECHA
+            }
+            # Necesitamos page en la query
+            payload["variables"]["page"] = page
+            data  = ra_request(payload)
+            page_listings = data.get("data", {}).get("eventListings", {}).get("data", [])
+            total = data.get("data", {}).get("eventListings", {}).get("totalResults", 0)
+            listings.extend(page_listings)
+
+            # Si ya tenemos todos o no hay más, paramos
+            if len(listings) >= total or len(page_listings) < page_size:
+                break
+            page += 1
+            # Máximo 3 páginas (300 eventos) para no sobrecargar
+            if page > 3:
+                break
+
+    except Exception as e:
+        print(f"[RA FECHA ERROR] {e}")
+        return [], 0
+
+    try:
 
         eventos = []
         for item in listings:
@@ -322,11 +346,12 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
 
             eventos.append(ev_fmt)
 
-        eventos.sort(key=lambda x: x.get("asistentes", 0), reverse=True)
+        # Ordenar por fecha primero, luego popularidad dentro de cada día
+        eventos.sort(key=lambda x: (x.get("fecha", ""), -x.get("asistentes", 0)))
         return eventos[:max_ev], total
 
     except Exception as e:
-        print(f"[RA FECHA ERROR] {e}")
+        print(f"[RA FECHA ERROR 2] {e}")
         return [], 0
 
 def buscar_por_busqueda(query, ciudad=None, max_ev=5):
