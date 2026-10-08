@@ -289,18 +289,18 @@
   /* CALENDARIO */
   #calbtn {
     width: 52px; height: 52px; border-radius: 10px; flex-shrink: 0; padding: 0; overflow: hidden;
-    background: #f4f1ec; border: 1px solid var(--border2); cursor: pointer;
-    display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s;
-    font-family: inherit;
+    background: transparent; border: 1.5px solid #e8e8e8; cursor: pointer;
+    display: flex; flex-direction: column; transition: transform .15s, border-color .15s;
+    font-family: inherit; color: #e8e8e8;
   }
-  #calbtn:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(233,104,46,.35); }
+  #calbtn:hover { transform: translateY(-2px); border-color: #fff; color: #fff; }
   #calbtn .cal-dow-top {
-    background: var(--orange); color: #fff; font-size: 11px; font-weight: 800;
-    letter-spacing: 1px; padding: 3px 0 2px; width: 100%; text-align: center;
+    border-bottom: 1.5px solid currentColor; font-size: 10px; font-weight: 700;
+    letter-spacing: 1.2px; padding: 3px 0 2px; width: 100%; text-align: center;
   }
   #calbtn .cal-num {
     flex: 1; display: flex; align-items: center; justify-content: center;
-    color: #111; font-size: 21px; font-weight: 800; letter-spacing: -1px; line-height: 1;
+    font-size: 20px; font-weight: 700; letter-spacing: -1px; line-height: 1;
   }
   .opt.opt-cal { border-color: var(--orange); color: var(--orange); }
   .opt.opt-cal:hover { color: #fff; }
