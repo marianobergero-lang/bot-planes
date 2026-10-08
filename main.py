@@ -160,7 +160,7 @@ DATOS:
 - Ciudad: CIUDADES_DISPONIBLES. Corregí errores de tipeo vos (lonbon→london, rio→rio de janeiro, bsas→buenos aires, nueva york→new york). En el JSON usá el nombre tal cual de la lista. Si la ciudad no está en la lista, igual mandá el nombre y el sistema avisará.
 - Cuándo (campo "cuando"): "hoy", "mañana", un día de la semana ("lunes"... "domingo", el más cercano), "el otro jueves" (semana siguiente), "esta semana", "finde" (viernes a domingo), o fecha exacta "YYYY-MM-DD". Para "en dos semanas", "en 10 días", "el 25", "jueves 25", etc. calculá la fecha con la fecha de HOY y mandá YYYY-MM-DD. Si el mensaje trae fechas entre paréntesis del calendario, como "(2026-10-13/2026-10-15)" o "(2026-10-25)", poné EXACTAMENTE eso en "cuando". Si el día de la semana no coincide con el número (ej: "jueves 25" y el 25 es domingo), preguntá cuál quiso decir.
 - Franja (opcional, según a qué hora EMPIEZA): "tarde" (14-20hs, incluye "de día"), "sunset" (18-21hs), "noche" (21-03hs, incluye madrugada), "afters" (05-09hs), o null.
-- Precio (opcional): gratis → "gratis": true; barato → "precio_max": 15; normal → "precio_max": 30; si no dijo → null.
+- Precio (opcional, precio_max SIEMPRE en euros, el sistema convierte la moneda local de cada ciudad): gratis → "gratis": true; barato → "precio_max": 15; normal → "precio_max": 30; si dice un monto en otra moneda, convertilo aproximado a euros; si no dijo → null.
 - Género (opcional, en minúscula): techno, hard techno, house, tech house, deep house, afro house, progressive house, melodic, minimal, electro, disco, trance, drum & bass, hip-hop, ambient, garage, jazz. Resident Advisor es sobre todo electrónica: si pide reggaeton, cumbia, rock o pop, avisá que puede haber pocos resultados y buscá igual.
 - "Lo más top": si pide lo más top, lo que más está pegando o lo más popular, buscá normal (los resultados ya vienen ordenados por cuánta gente va).
 - NO hay filtro de aire libre/cubierto todavía. Si lo pide, decí en una línea que viene pronto y buscá igual sin ese filtro.
@@ -361,34 +361,74 @@ def precio_categoria(cost_str):
             pass
     return int(min(valores)) if valores else None
 
+# Moneda local por ciudad (RA da el precio en moneda local y sin símbolo)
+# Cotizaciones aproximadas a euros: solo para clasificar barato/normal/caro
+MONEDAS = {
+    "EUR": ("€", 1.0),      "GBP": ("£", 1.17),      "USD": ("US$", 0.92),
+    "BRL": ("R$", 0.17),    "ARS": ("AR$", 0.0008),  "MXN": ("MX$", 0.05),
+    "COP": ("COL$", 0.00022), "CLP": ("CLP$", 0.00097), "CAD": ("CA$", 0.67),
+    "JPY": ("¥", 0.0061),   "AUD": ("AU$", 0.60),    "KRW": ("₩", 0.00066),
+    "CZK": ("Kč", 0.040),   "HUF": ("Ft", 0.0025),   "SEK": ("kr", 0.087),
+    "CHF": ("CHF", 1.05),
+}
+MONEDA_POR_CIUDAD = {
+    "london": "GBP", "new york": "USD", "los angeles": "USD", "chicago": "USD", "miami": "USD",
+    "rio de janeiro": "BRL", "sao paulo": "BRL", "são paulo": "BRL", "buenos aires": "ARS",
+    "mexico city": "MXN", "bogota": "COP", "bogotá": "COP", "santiago": "CLP",
+    "toronto": "CAD", "montreal": "CAD", "tokyo": "JPY", "melbourne": "AUD", "sydney": "AUD",
+    "seoul": "KRW", "prague": "CZK", "budapest": "HUF", "stockholm": "SEK",
+    "zurich": "CHF", "geneva": "CHF",
+}
+MONEDA_POR_AREA = {AREAS_RA[c]: m for c, m in MONEDA_POR_CIUDAD.items() if c in AREAS_RA}
+
+def moneda_evento(ev, cost):
+    """Devuelve el código de moneda del evento: símbolo explícito > área > nombre de ciudad > EUR"""
+    if "£" in cost: return "GBP"
+    if "€" in cost: return "EUR"
+    area = ((ev.get("venue") or {}).get("area") or {})
+    try:
+        m = MONEDA_POR_AREA.get(int(area.get("id") or 0))
+    except (TypeError, ValueError):
+        m = None
+    if not m:
+        nombre = (area.get("name") or "").lower()
+        m = next((v for k, v in MONEDA_POR_CIUDAD.items() if k in nombre), None)
+    if m:
+        return m
+    return "USD" if "$" in cost else "EUR"
+
 def formatear_evento(ev, venue_data=None):
     venue = ev.get("venue") or {}
     cost  = (ev.get("cost") or "").strip()
     hora  = (ev.get("startTime") or "")[11:16]
     artistas = [a.get("name", "") for a in ev.get("artists", [])]
-    precio_num = precio_categoria(cost)
+    precio_local = precio_categoria(cost)
 
-    # Símbolo de moneda
-    tiene_simbolo = any(s in cost for s in ['£', '$', '€'])
-    sym = '' if tiene_simbolo else '€'
+    moneda = moneda_evento(ev, cost)
+    sym, a_eur = MONEDAS.get(moneda, ("€", 1.0))
+    # precio_num queda SIEMPRE en euros (lo usan los filtros de precio)
+    precio_num = None if precio_local is None else round(precio_local * a_eur)
+    if precio_local is not None and precio_local > 0 and precio_num == 0:
+        precio_num = 1
+    precio_txt = f"{sym}{precio_local:,}".replace(",", ".") if precio_local else ""
+    if sym.isalpha():  # Kč, Ft, kr, CHF van con espacio
+        precio_txt = f"{precio_local:,} {sym}".replace(",", ".") if precio_local else ""
 
-    if precio_num == 0:
-        precio_label = "Gratis"
-        es_gratis = True
-    elif precio_num is not None and precio_num < 15:
-        precio_label = f"{sym}{precio_num} · Barato"
-        es_gratis = False
-    elif precio_num is not None and precio_num <= 30:
-        precio_label = f"{sym}{precio_num} · Normal"
-        es_gratis = False
-    elif precio_num is not None:
-        precio_label = f"{sym}{precio_num} · Caro"
-        es_gratis = False
+    es_gratis = precio_local == 0
+    if es_gratis:
+        precio_cat, precio_label = "gratis", "Gratis"
+    elif precio_num is None:
+        precio_cat, precio_label = "nd", "Ver precio en RA"
+    elif precio_num < 15:
+        precio_cat, precio_label = "barato", f"Barato · {precio_txt}"
+    elif precio_num <= 30:
+        precio_cat, precio_label = "normal", f"Normal · {precio_txt}"
     else:
-        precio_label = "Ver precio en RA"
-        es_gratis = False
+        precio_cat, precio_label = "caro", f"Caro · {precio_txt}"
 
     return {
+        "moneda":       moneda,
+        "precio_cat":   precio_cat,
         "titulo":       ev.get("title", ""),
         "fecha":        (ev.get("date") or "")[:10],
         "hora":         hora,

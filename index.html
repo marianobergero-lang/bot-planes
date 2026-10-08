@@ -410,15 +410,11 @@ function formatFecha(fechaStr) {
 }
 
 function badgeInfo(ev) {
-  if (ev.gratis) return { cls: 'badge-gratis', txt: 'GRATIS' };
-  const p = ev.precio_num;
-  const raw = ev.precio || '';
-  const hasSym = /[£$€]/.test(raw);
-  const sym = hasSym ? '' : '€';
-  if (p === null || p === undefined) return { cls: 'badge-nd', txt: 'VER PRECIO' };
-  if (p < 15)  return { cls: 'badge-barato', txt: `${sym}${p}` };
-  if (p <= 30) return { cls: 'badge-normal', txt: `${sym}${p}` };
-  return { cls: 'badge-caro', txt: `${sym}${p}` };
+  // El backend ya manda categoría (en euros) + precio en moneda local: "Barato · R$50"
+  const cat = ev.precio_cat || (ev.gratis ? 'gratis' : 'nd');
+  const cls = { gratis: 'badge-gratis', barato: 'badge-barato', normal: 'badge-normal', caro: 'badge-caro' }[cat] || 'badge-nd';
+  const txt = cat === 'nd' ? 'VER PRECIO' : (ev.precio_label || 'GRATIS').toUpperCase();
+  return { cls, txt };
 }
 
 function initCalIcon() {
