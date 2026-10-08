@@ -10,6 +10,7 @@ app = Flask(__name__)
 CORS(app)
 
 GROQ_API_KEY    = os.environ.get("GROQ_API_KEY", "")
+TM_API_KEY      = os.environ.get("TICKETMASTER_API_KEY", "")
 RA_GRAPHQL_URL  = "https://ra.co/graphql"
 
 AREAS_RA = {
@@ -893,6 +894,52 @@ def schema():
         return jsonify(ra_request({"query": q, "variables": {"name": type_name}}))
     except Exception as e:
         return jsonify({"error": str(e)})
+
+@app.route("/debug-tm")
+def debug_tm():
+    """Prueba de Ticketmaster Discovery API. Uso: /debug-tm?ciudad=Barcelona&pais=ES&dias=7"""
+    if not TM_API_KEY:
+        return jsonify({"error": "Falta la variable TICKETMASTER_API_KEY en Railway"})
+    ciudad = request.args.get("ciudad", "Barcelona")
+    pais   = request.args.get("pais", "")
+    dias   = int(request.args.get("dias", 7))
+    desde  = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    hasta  = (datetime.utcnow() + timedelta(days=dias)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    params = {"apikey": TM_API_KEY, "city": ciudad, "startDateTime": desde, "endDateTime": hasta,
+              "size": 50, "sort": "date,asc", "locale": "*"}
+    if pais:
+        params["countryCode"] = pais
+    try:
+        r = requests.get("https://app.ticketmaster.com/discovery/v2/events.json", params=params, timeout=20)
+        data = r.json()
+    except Exception as e:
+        return jsonify({"error": str(e)})
+    if r.status_code != 200:
+        return jsonify({"status": r.status_code, "respuesta": str(data)[:500]})
+    eventos = (data.get("_embedded") or {}).get("events") or []
+    categorias = {}
+    muestra = []
+    for ev in eventos:
+        cls = (ev.get("classifications") or [{}])[0]
+        seg = (cls.get("segment") or {}).get("name", "?")
+        gen = (cls.get("genre") or {}).get("name", "?")
+        categorias[f"{seg} / {gen}"] = categorias.get(f"{seg} / {gen}", 0) + 1
+        if len(muestra) < 8:
+            pr = (ev.get("priceRanges") or [{}])[0]
+            venue = ((ev.get("_embedded") or {}).get("venues") or [{}])[0]
+            muestra.append({
+                "nombre": ev.get("name"),
+                "fecha": (ev.get("dates") or {}).get("start", {}).get("localDate"),
+                "hora": (ev.get("dates") or {}).get("start", {}).get("localTime"),
+                "venue": venue.get("name"),
+                "categoria": f"{seg} / {gen}",
+                "precio": f"{pr.get('min')}-{pr.get('max')} {pr.get('currency')}" if pr else None,
+            })
+    return jsonify({
+        "ciudad": ciudad, "total": (data.get("page") or {}).get("totalElements"),
+        "categorias": dict(sorted(categorias.items(), key=lambda x: -x[1])),
+        "muestra": muestra,
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
