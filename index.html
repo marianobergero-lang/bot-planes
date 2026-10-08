@@ -494,7 +494,10 @@ function showTyping() {
 function hideTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
 
 function getOpts(reply) {
-  const low = reply.toLowerCase();
+  // Mirar solo la última pregunta del bot (lo que empieza con el último "¿"),
+  // así "buscamos en la franja de tarde... ¿precio?" muestra opciones de precio y no de horario
+  const idx = reply.lastIndexOf('¿');
+  const low = (idx >= 0 ? reply.slice(idx) : reply).toLowerCase();
   if (low.includes('ciudad') || low.includes('dónde') || low.includes('donde'))
     return ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid'];
   if (low.includes('viernes') && (low.includes('sábado') || low.includes('sabado')))
