@@ -163,6 +163,7 @@ DATOS:
 - Franja (opcional, según a qué hora EMPIEZA): "tarde" (14-20hs, incluye "de día"), "sunset" (18-21hs), "noche" (21-03hs, incluye madrugada), "afters" (05-09hs), o null.
 - Precio (opcional, precio_max SIEMPRE en euros, el sistema convierte la moneda local de cada ciudad): gratis → "gratis": true; barato → "precio_max": 15; normal → "precio_max": 30; si dice un monto en otra moneda, convertilo aproximado a euros; si no dijo → null.
 - Género (opcional, en minúscula): techno, hard techno, house, tech house, deep house, afro house, progressive house, melodic, minimal, electro, disco, trance, drum & bass, hip-hop, ambient, garage, jazz. Resident Advisor es sobre todo electrónica: si pide reggaeton, cumbia, rock o pop, avisá que puede haber pocos resultados y buscá igual.
+- Categoría (campo "categoria"): "clubs" (fiestas, clubs, electrónica, DJs; es el valor por defecto), "conciertos" (bandas, recitales, shows de música en vivo de rock, pop, latino, etc.), "teatro" (teatro, musicales, comedia, danza, shows), "deportes" (fútbol, básquet, partidos). Si no queda claro, usá "clubs".
 - "Lo más top": si pide lo más top, lo que más está pegando o lo más popular, buscá normal (los resultados ya vienen ordenados por cuánta gente va).
 - NO hay filtro de aire libre/cubierto todavía. Si lo pide, decí en una línea que viene pronto y buscá igual sin ese filtro.
 
@@ -178,7 +179,7 @@ FORMATO DE TUS MENSAJES:
 
 Cuando tengas los datos, escribí este bloque al final:
 ###FILTROS###
-{"tipo": "fecha", "ciudad": "barcelona", "cuando": "sabado", "franja": null, "precio_max": null, "gratis": false, "genero": null, "max": 8}
+{"tipo": "fecha", "categoria": "clubs", "ciudad": "barcelona", "cuando": "sabado", "franja": null, "precio_max": null, "gratis": false, "genero": null, "max": 8}
 ###FIN###
 
 Artista:
@@ -488,6 +489,46 @@ def normalizar_franja(franja):
     if any(x in f for x in ["tarde", "dia", "día", "day"]):       return "tarde"
     return None
 
+def pasa_filtros(ev_fmt, hora_min=None, hora_max=None, gratis=False, precio_max=None, genero=None):
+    """Filtros comunes a todas las fuentes (RA, Ticketmaster...)"""
+    hora = ev_fmt.get("hora")
+    if hora_min and hora_max:  # franja por hora de INICIO
+        if not hora:
+            return False
+        if hora_min <= hora_max:
+            dentro = hora_min <= hora <= hora_max
+        else:  # cruza medianoche (noche 21:00 → 03:00)
+            dentro = hora >= hora_min or hora <= hora_max
+        if not dentro:
+            return False
+    elif hora_min and hora and hora >= "08:00" and hora < hora_min:
+        return False
+    if gratis and not ev_fmt.get("gratis"):
+        return False
+    if precio_max is not None and ev_fmt.get("precio_num") is not None and ev_fmt["precio_num"] > precio_max:
+        return False
+    if genero:
+        g = genero.lower()
+        if not any(g in x.lower() or x.lower() in g for x in ev_fmt.get("generos") or []):
+            return False
+    return True
+
+def repartir_por_dia(eventos, max_ev):
+    """Los más populares de cada día, repartidos para que un rango no se llene con el primer día"""
+    hoy = datetime.now().strftime("%Y-%m-%d")
+    por_dia = {}
+    for e in sorted(eventos, key=lambda x: -(x.get("asistentes") or 0)):
+        if e.get("fecha", "") >= hoy:
+            por_dia.setdefault(e.get("fecha", ""), []).append(e)
+    elegidos, ronda = [], 0
+    while len(elegidos) < max_ev and any(len(v) > ronda for v in por_dia.values()):
+        for dia in sorted(por_dia):
+            if ronda < len(por_dia[dia]) and len(elegidos) < max_ev:
+                elegidos.append(por_dia[dia][ronda])
+        ronda += 1
+    elegidos.sort(key=lambda x: (x.get("fecha", ""), x.get("hora") or "99", -(x.get("asistentes") or 0)))
+    return elegidos
+
 def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None, hora_max=None, genero=None, franja=None):
     f = normalizar_franja(franja)
     if f:
@@ -544,46 +585,10 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
             if not ev: continue
 
             ev_fmt = formatear_evento(ev)
-            hora = ev_fmt["hora"]
+            if pasa_filtros(ev_fmt, hora_min, hora_max, gratis, precio_max):
+                eventos.append(ev_fmt)
 
-            # Filtro por hora de INICIO (franja)
-            if hora_min and hora_max:
-                if not hora:
-                    continue
-                if hora_min <= hora_max:
-                    dentro = hora_min <= hora <= hora_max
-                else:  # franja que cruza medianoche (ej: noche 21:00 → 03:00)
-                    dentro = hora >= hora_min or hora <= hora_max
-                if not dentro:
-                    continue
-            elif hora_min and hora and hora >= "08:00" and hora < hora_min:
-                continue
-            # Filtro gratis
-            if gratis and not ev_fmt["gratis"]:
-                continue
-            # Filtro precio máximo
-            if precio_max is not None and ev_fmt["precio_num"] is not None and ev_fmt["precio_num"] > precio_max:
-                continue
-
-            eventos.append(ev_fmt)
-
-        # Filtrar eventos pasados
-        hoy = datetime.now().strftime("%Y-%m-%d")
-        eventos = [e for e in eventos if e.get("fecha", "") >= hoy]
-
-        # Repartir los lugares entre los días (los más populares de cada día),
-        # así un rango de varios días no se llena solo con el primero
-        por_dia = {}
-        for e in sorted(eventos, key=lambda x: -x.get("asistentes", 0)):
-            por_dia.setdefault(e.get("fecha", ""), []).append(e)
-        elegidos, ronda = [], 0
-        while len(elegidos) < max_ev and any(len(v) > ronda for v in por_dia.values()):
-            for dia in sorted(por_dia):
-                if ronda < len(por_dia[dia]) and len(elegidos) < max_ev:
-                    elegidos.append(por_dia[dia][ronda])
-            ronda += 1
-        elegidos.sort(key=lambda x: (x.get("fecha", ""), -x.get("asistentes", 0)))
-        return elegidos, total
+        return repartir_por_dia(eventos, max_ev), total
 
     except Exception as e:
         print(f"[RA FECHA ERROR 2] {e}")
@@ -695,7 +700,14 @@ def chat():
             n_dias = (datetime.strptime(hasta, "%Y-%m-%d") - datetime.strptime(desde, "%Y-%m-%d")).days + 1
             if n_dias > 1:  # rango: hasta 4 eventos por día (tope 20)
                 filtros["max"] = max(filtros.get("max", 8), min(4 * n_dias, 20))
-            eventos_out, total_ra = buscar_por_fecha(
+            categoria = (filtros.get("categoria") or "clubs").lower()
+            if categoria in TM_SEGMENTOS:
+                eventos_out, total_ra = buscar_ticketmaster(
+                    ciudad_corregida, desde, hasta, categoria, filtros.get("max", 8),
+                    filtros.get("hora_min"), filtros.get("hora_max"), filtros.get("franja"),
+                    filtros.get("gratis", False), filtros.get("precio_max"), filtros.get("genero"))
+            else:
+              eventos_out, total_ra = buscar_por_fecha(
                 ciudad     = ciudad_corregida,
                 desde      = desde,
                 hasta      = hasta,
@@ -852,11 +864,19 @@ def eventos():
     hora_max  = request.args.get("hora_max")
     franja    = request.args.get("franja")
     gratis    = request.args.get("gratis") == "true"
-    precio_max = int(request.args.get("precio_max", 9999))
+    precio_max = int(request.args.get("precio_max")) if request.args.get("precio_max") else None
     max_ev    = int(request.args.get("max", 8))
+    categoria = request.args.get("categoria", "clubs")
+    genero    = request.args.get("genero")
 
     if not desde or not hasta:
         desde, hasta = finde_proximo()
+
+    if categoria != "clubs":
+        evs, total = buscar_ticketmaster(ciudad, desde, hasta, categoria, max_ev, hora_min, hora_max,
+                                         franja, gratis, precio_max, genero)
+        return jsonify({"ciudad": ciudad, "categoria": categoria, "desde": desde, "hasta": hasta,
+                        "total_ra": total, "total": len(evs), "eventos": evs})
 
     if ciudad not in AREAS_RA:
         return jsonify({"error": f"Ciudad '{ciudad}' no encontrada"}), 400
@@ -904,6 +924,107 @@ def tm_buscar(ciudad, pais, desde, hasta, segmento=None, size=100):
     if segmento: params["classificationName"] = segmento
     r = requests.get(TM_URL, params=params, timeout=20)
     return r.status_code, r.json()
+
+# Ciudad (clave de AREAS_RA) → (nombre en Ticketmaster, código de país)
+TM_CIUDADES = {
+    "london": ("London", "GB"), "berlin": ("Berlin", "DE"), "amsterdam": ("Amsterdam", "NL"),
+    "barcelona": ("Barcelona", "ES"), "madrid": ("Madrid", "ES"), "ibiza": ("Ibiza", "ES"),
+    "mallorca": ("Palma", "ES"), "valencia": ("Valencia", "ES"), "paris": ("Paris", "FR"),
+    "rome": ("Roma", "IT"), "milan": ("Milano", "IT"), "munich": ("München", "DE"),
+    "lisbon": ("Lisboa", "PT"), "porto": ("Porto", "PT"), "turin": ("Torino", "IT"),
+    "hamburg": ("Hamburg", "DE"), "vienna": ("Wien", "AT"), "brussels": ("Brussels", "BE"),
+    "prague": ("Praha", "CZ"), "budapest": ("Budapest", "HU"), "stockholm": ("Stockholm", "SE"),
+    "new york": ("New York", "US"), "los angeles": ("Los Angeles", "US"), "chicago": ("Chicago", "US"),
+    "miami": ("Miami", "US"), "toronto": ("Toronto", "CA"), "montreal": ("Montreal", "CA"),
+    "mexico city": ("Ciudad de México", "MX"), "melbourne": ("Melbourne", "AU"), "sydney": ("Sydney", "AU"),
+    "buenos aires": ("Buenos Aires", "AR"), "sao paulo": ("São Paulo", "BR"), "rio de janeiro": ("Rio de Janeiro", "BR"),
+    "santiago": ("Santiago", "CL"), "bogota": ("Bogotá", "CO"),
+}
+# Categoría de la app → segmento de Ticketmaster
+TM_SEGMENTOS = {"conciertos": "Music", "teatro": "Arts & Theatre", "deportes": "Sports", "otros": "Miscellaneous"}
+
+def formatear_tm(ev):
+    """Evento de Ticketmaster → mismo formato que formatear_evento (RA)"""
+    st = (ev.get("dates") or {}).get("start", {})
+    venue = ((ev.get("_embedded") or {}).get("venues") or [{}])[0]
+    attractions = (ev.get("_embedded") or {}).get("attractions") or []
+    cls = (ev.get("classifications") or [{}])[0]
+    generos = [x for x in [(cls.get("genre") or {}).get("name"), (cls.get("subGenre") or {}).get("name")]
+               if x and x not in ("Undefined", "Other")]
+    pr = (ev.get("priceRanges") or [None])[0]
+    moneda = (pr or {}).get("currency") or "EUR"
+    sym, a_eur = MONEDAS.get(moneda, (moneda + " ", 1.0))
+    precio_local = (pr or {}).get("min")
+    precio_num = None if precio_local is None else round(precio_local * a_eur)
+    if precio_local is None:
+        precio_cat, precio_label = "nd", "Ver precio"
+    elif precio_local == 0:
+        precio_cat, precio_label = "gratis", "Gratis"
+    else:
+        txt = f"{sym}{int(round(precio_local)):,}".replace(",", ".")
+        precio_cat = "barato" if precio_num < 15 else "normal" if precio_num <= 30 else "caro"
+        precio_label = f"{precio_cat.capitalize()} · desde {txt}"
+    imgs = sorted(ev.get("images") or [], key=lambda i: -(i.get("width") or 0))
+    img = next((i.get("url") for i in imgs if (i.get("ratio") == "16_9" and (i.get("width") or 0) <= 1100)), None)
+    return {
+        "titulo":       ev.get("name", ""),
+        "fecha":        st.get("localDate", ""),
+        "hora":         (st.get("localTime") or "")[:5],
+        "hora_fin":     "",
+        "venue":        venue.get("name", ""),
+        "direccion":    (venue.get("address") or {}).get("line1", ""),
+        "ciudad_venue": (venue.get("city") or {}).get("name", ""),
+        "artistas":     [a.get("name", "") for a in attractions][:6],
+        "generos":      generos,
+        "moneda":       moneda,
+        "precio_cat":   precio_cat,
+        "precio":       f"{precio_local}" if precio_local is not None else "No especificado",
+        "precio_label": precio_label,
+        "precio_num":   precio_num,
+        "gratis":       precio_local == 0,
+        "asistentes":   0,
+        "destacado":    (ev.get("info") or ev.get("pleaseNote") or "")[:200],
+        "url":          ev.get("url", ""),
+        "imagen":       img,
+        "fuente":       "Ticketmaster",
+        "categoria":    (cls.get("segment") or {}).get("name", ""),
+    }
+
+def buscar_ticketmaster(ciudad, desde, hasta, categoria="conciertos", max_ev=8, hora_min=None, hora_max=None,
+                        franja=None, gratis=False, precio_max=None, genero=None):
+    """Busca en Ticketmaster Discovery API. Devuelve (eventos, total)"""
+    if not TM_API_KEY:
+        return [], 0
+    tm = TM_CIUDADES.get((ciudad or "").lower().strip())
+    if not tm:
+        return [], 0
+    f = normalizar_franja(franja)
+    if f:
+        hora_min, hora_max = FRANJAS[f]
+    # Ticketmaster trabaja en UTC: ampliamos un día a cada lado y después filtramos por fecha local
+    d0 = (datetime.strptime(desde, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z")
+    d1 = (datetime.strptime(hasta, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%dT23:59:59Z")
+    try:
+        code, data = tm_buscar(tm[0], tm[1], d0, d1, TM_SEGMENTOS.get(categoria), size=150)
+    except Exception as e:
+        print(f"[TM ERROR] {e}")
+        return [], 0
+    if code != 200:
+        print(f"[TM ERROR] status={code} {str(data)[:300]}")
+        return [], 0
+    vistos, eventos = set(), []
+    for ev in (data.get("_embedded") or {}).get("events") or []:
+        ev_fmt = formatear_tm(ev)
+        if not (desde <= ev_fmt["fecha"] <= hasta):
+            continue
+        clave = (ev_fmt["titulo"].lower(), ev_fmt["fecha"])  # turnos repetidos del mismo evento
+        if clave in vistos:
+            continue
+        vistos.add(clave)
+        if pasa_filtros(ev_fmt, hora_min, hora_max, gratis, precio_max, genero):
+            eventos.append(ev_fmt)
+    total = len(eventos)
+    return repartir_por_dia(eventos, max_ev), total
 
 @app.route("/debug-tm")
 def debug_tm():

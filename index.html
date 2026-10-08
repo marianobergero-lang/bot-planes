@@ -525,7 +525,7 @@ function addMsg(role, text, opts = [], events = []) {
       ${ev.destacado ? `<div class="ev-destacado">${ev.destacado.slice(0,130)}${ev.destacado.length>130?'…':''}</div>` : ''}
       <div class="ev-footer">
         <div class="ev-asistentes">${ev.asistentes ? `${ev.asistentes} van` : ''}</div>
-        <a class="ev-link" href="${ev.url}" target="_blank">Ver en RA →</a>
+        <a class="ev-link" href="${ev.url}" target="_blank" rel="noopener">${ev.fuente === 'Ticketmaster' ? 'Entradas en Ticketmaster →' : 'Ver en RA →'}</a>
       </div>
     `;
     grid.appendChild(card);
