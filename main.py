@@ -517,7 +517,7 @@ def repartir_por_dia(eventos, max_ev):
     """Los más populares de cada día, repartidos para que un rango no se llene con el primer día"""
     hoy = datetime.now().strftime("%Y-%m-%d")
     por_dia = {}
-    for e in sorted(eventos, key=lambda x: -(x.get("asistentes") or 0)):
+    for e in sorted(eventos, key=lambda x: (-(x.get("asistentes") or 0), x.get("relevancia", 0))):
         if e.get("fecha", "") >= hoy:
             por_dia.setdefault(e.get("fecha", ""), []).append(e)
     elegidos, ronda = [], 0
@@ -917,9 +917,9 @@ def schema():
 
 TM_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
 
-def tm_buscar(ciudad, pais, desde, hasta, segmento=None, size=100):
+def tm_buscar(ciudad, pais, desde, hasta, segmento=None, size=100, sort="date,asc"):
     params = {"apikey": TM_API_KEY, "city": ciudad, "startDateTime": desde, "endDateTime": hasta,
-              "size": size, "sort": "date,asc", "locale": "*"}
+              "size": size, "sort": sort, "locale": "*"}
     if pais: params["countryCode"] = pais
     if segmento: params["classificationName"] = segmento
     r = requests.get(TM_URL, params=params, timeout=20)
@@ -949,8 +949,10 @@ def formatear_tm(ev):
     venue = ((ev.get("_embedded") or {}).get("venues") or [{}])[0]
     attractions = (ev.get("_embedded") or {}).get("attractions") or []
     cls = (ev.get("classifications") or [{}])[0]
-    generos = [x for x in [(cls.get("genre") or {}).get("name"), (cls.get("subGenre") or {}).get("name")]
-               if x and x not in ("Undefined", "Other")]
+    generos = []
+    for x in [(cls.get("genre") or {}).get("name"), (cls.get("subGenre") or {}).get("name")]:
+        if x and x not in ("Undefined", "Other", "Music") and x not in generos:
+            generos.append(x)
     pr = (ev.get("priceRanges") or [None])[0]
     moneda = (pr or {}).get("currency") or "EUR"
     sym, a_eur = MONEDAS.get(moneda, (moneda + " ", 1.0))
@@ -1005,7 +1007,7 @@ def buscar_ticketmaster(ciudad, desde, hasta, categoria="conciertos", max_ev=8, 
     d0 = (datetime.strptime(desde, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z")
     d1 = (datetime.strptime(hasta, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%dT23:59:59Z")
     try:
-        code, data = tm_buscar(tm[0], tm[1], d0, d1, TM_SEGMENTOS.get(categoria), size=150)
+        code, data = tm_buscar(tm[0], tm[1], d0, d1, TM_SEGMENTOS.get(categoria), size=200, sort="relevance,desc")
     except Exception as e:
         print(f"[TM ERROR] {e}")
         return [], 0
@@ -1013,8 +1015,9 @@ def buscar_ticketmaster(ciudad, desde, hasta, categoria="conciertos", max_ev=8, 
         print(f"[TM ERROR] status={code} {str(data)[:300]}")
         return [], 0
     vistos, eventos = set(), []
-    for ev in (data.get("_embedded") or {}).get("events") or []:
+    for i, ev in enumerate((data.get("_embedded") or {}).get("events") or []):
         ev_fmt = formatear_tm(ev)
+        ev_fmt["relevancia"] = i  # orden de relevancia de Ticketmaster (0 = más relevante)
         if not (desde <= ev_fmt["fecha"] <= hasta):
             continue
         clave = (ev_fmt["titulo"].lower(), ev_fmt["fecha"])  # turnos repetidos del mismo evento
@@ -1023,8 +1026,7 @@ def buscar_ticketmaster(ciudad, desde, hasta, categoria="conciertos", max_ev=8, 
         vistos.add(clave)
         if pasa_filtros(ev_fmt, hora_min, hora_max, gratis, precio_max, genero):
             eventos.append(ev_fmt)
-    total = len(eventos)
-    return repartir_por_dia(eventos, max_ev), total
+    return repartir_por_dia(eventos, max_ev), len(eventos)
 
 @app.route("/debug-tm")
 def debug_tm():
