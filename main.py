@@ -69,6 +69,7 @@ query GET_DEFAULT_EVENTS_LISTING($filters: FilterInputDtoInput, $pageSize: Int, 
         id title date startTime endTime contentUrl cost attending
         venue { name address area { name id } }
         artists { name }
+        genres { name }
         pick { blurb }
       }
     }
@@ -100,6 +101,7 @@ query GET_ARTIST_UPCOMING($slug: String!, $limit: Int, $areaId: Int) {
       id title date startTime endTime contentUrl cost attending
       venue { name address area { name id } }
       artists { name }
+      genres { name }
       pick { blurb }
     }
   }
@@ -178,6 +180,7 @@ Cuando tengas suficiente info, escribí este bloque al final:
   "hora_max": null,
   "lugar": "cubierto",
   "precio_max": 30,
+  "genero": null,
   "gratis": false,
   "max": 8
 }
@@ -230,7 +233,7 @@ IMPORTANTE:
 - Si el usuario dice "el sábado a la noche en Berlin en un club", procesá todo de una.
 - Para artistas, convertí el nombre a slug: "Nina Kraviz" → "nina-kraviz", "Amelie Lens" → "amelie-lens"
 - Sé breve, máximo 2-3 líneas. Conversacional y con onda.
-- Géneros que conocés: techno, house, progressive, minimal, drum&bass, reggaeton, cumbia, jazz, indie, pop, rock, electrónica en general.
+- Géneros que podés filtrar (campo "genero" del JSON de tipo fecha, en minúscula): techno, hard techno, house, tech house, deep house, afro house, progressive house, melodic, minimal, electro, disco, trance, drum & bass, hip-hop, ambient, garage, jazz. Si el usuario no menciona género, poné "genero": null. Resident Advisor es sobre todo electrónica: para reggaeton, cumbia, rock o pop avisá que puede haber pocos resultados.
 - Si el usuario menciona un género, guardalo para sugerirle eventos afines.
 - Siempre escribí "venue/disco" cuando te refieras a un lugar.
 - El usuario puede llegar con mensajes predeterminados de la pantalla de inicio. Interpretálos así:
@@ -239,7 +242,7 @@ IMPORTANTE:
   * "Quiero algo de día o tarde, open air o sunset" → preguntá ciudad, luego buscá con hora_min="14:00" y hora_max="20:59"
   * "Quiero buscar las próximas fechas de un DJ o artista" → preguntá el nombre del artista
   * "Quiero saber qué hay en una disco o venue en particular" → preguntá el nombre del venue/disco y ciudad
-  * "Quiero buscar eventos por género musical" → preguntá qué género y ciudad
+  * "Quiero buscar eventos por género musical" → preguntá qué género y ciudad, después cuándo; mandá tipo "fecha" con el campo "genero"
 - IMPORTANTE: el filtro de "aire libre" o "cubierto" todavía no está disponible. Si el usuario lo pide, avisale: "Por ahora no puedo filtrar por aire libre/cubierto automáticamente — esa función viene pronto! Mientras tanto busco por fecha y ciudad y vos elegís el que más te gusta." Luego continuá con la búsqueda normal sin ese filtro y NO lo incluyas en el JSON de filtros."""
 
 def corregir_ciudad(ciudad_input):
@@ -373,6 +376,7 @@ def formatear_evento(ev, venue_data=None):
         "direccion":    venue.get("address", ""),
         "ciudad_venue": (venue.get("area") or {}).get("name", ""),
         "artistas":     artistas,
+        "generos":      [g.get("name", "") for g in (ev.get("genres") or []) if g],
         "precio":       cost or "No especificado",
         "precio_label": precio_label,
         "precio_num":   precio_num,
@@ -383,7 +387,30 @@ def formatear_evento(ev, venue_data=None):
         "fuente":       "Resident Advisor",
     }
 
-def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None, hora_max=None):
+# Géneros: RA filtra con genre: {any: [...]} (verificado con /debug-genre: "techno" → 32 de 120 eventos en BCN)
+GENEROS_ALIAS = {
+    "tecno": "techno", "techno": "techno", "hard techno": "hard techno",
+    "house": "house", "tech house": "tech house", "deep house": "deep house",
+    "afro house": "afro house", "progressive": "progressive house", "progresivo": "progressive house",
+    "progressive house": "progressive house", "melodic": "melodic house & techno",
+    "minimal": "minimal", "electro": "electro", "disco": "disco", "trance": "trance",
+    "drum&bass": "drum & bass", "drum and bass": "drum & bass", "dnb": "drum & bass", "d&b": "drum & bass",
+    "hip hop": "hip-hop", "hiphop": "hip-hop", "rap": "hip-hop", "bass": "bass", "dubstep": "dubstep",
+    "ambient": "ambient", "experimental": "experimental", "breaks": "breakbeat", "garage": "garage",
+    "jungle": "jungle", "jazz": "jazz", "funk": "funk", "soul": "soul", "pop": "pop", "rock": "rock",
+    "indie": "indie", "reggaeton": "reggaeton", "latin": "latin", "cumbia": "latin",
+}
+
+def variantes_genero(genero):
+    """Devuelve variantes del nombre del género para el filtro any de RA"""
+    g = (genero or "").lower().strip()
+    if not g or g in ["todos", "cualquiera", "da igual", "me da igual"]:
+        return None
+    base = GENEROS_ALIAS.get(g, g)
+    vs = {base, base.replace(" ", "-"), base.replace("&", "and"), base.replace(" & ", "-and-"), base.replace(" ", "")}
+    return sorted(vs)
+
+def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None, hora_max=None, genero=None):
     area = AREAS_RA.get(ciudad.lower().strip())
     if not area:
         return [], 0
@@ -401,6 +428,7 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
                 "variables": {
                     "filters": {
                         "areas": {"eq": area},
+                        **({"genre": {"any": variantes_genero(genero)}} if variantes_genero(genero) else {}),
                         "listingDate": {"gte": f"{desde}T00:00:00.000Z", "lte": f"{hasta}T23:59:59.000Z"}
                     },
                     "pageSize": page_size,
@@ -565,6 +593,7 @@ def chat():
                 hora_max   = filtros.get("hora_max"),
                 gratis     = filtros.get("gratis", False),
                 precio_max = filtros.get("precio_max"),
+                genero     = filtros.get("genero"),
             )
 
         elif tipo == "busqueda":
@@ -752,42 +781,6 @@ def schema():
         return jsonify(ra_request({"query": q, "variables": {"name": type_name}}))
     except Exception as e:
         return jsonify({"error": str(e)})
-
-@app.route("/debug-genre")
-def debug_genre():
-    """Prueba cómo filtrar por género en RA. Uso: /debug-genre?g=techno&ciudad=barcelona"""
-    g      = request.args.get("g", "techno")
-    area   = AREAS_RA.get(request.args.get("ciudad", "barcelona"), 20)
-    desde, hasta = finde_proximo()
-    out = {}
-    # 1) ¿Event tiene campo genres?
-    try:
-        t = ra_request({"query": '{ __type(name: "Event") { fields { name } } }'})
-        campos = [f["name"] for f in ((t.get("data") or {}).get("__type") or {}).get("fields") or []]
-        out["event_genre_fields"] = [c for c in campos if "genre" in c.lower()]
-        t2 = ra_request({"query": '{ __type(name: "StringFilterInputDtoInput") { inputFields { name } } }'})
-        out["string_filter_ops"] = [f["name"] for f in ((t2.get("data") or {}).get("__type") or {}).get("inputFields") or []]
-    except Exception as e:
-        out["schema_error"] = str(e)
-    # 2) Probar el filtro genre con distintas variantes de valor
-    q = """query Q($filters: FilterInputDtoInput) { eventListings(filters: $filters, pageSize: 5, page: 1) {
-        data { event { title genres { id name } } } totalResults } }"""
-    base = {"areas": {"eq": area}, "listingDate": {"gte": f"{desde}T00:00:00.000Z", "lte": f"{hasta}T23:59:59.000Z"}}
-    pruebas = {"sin_filtro": None, "eq": {"eq": g}, "eq_lower": {"eq": g.lower()}, "any": {"any": [g]}}
-    for nombre, filtro in pruebas.items():
-        f = dict(base)
-        if filtro: f["genre"] = filtro
-        try:
-            r = ra_request({"query": q, "variables": {"filters": f}})
-            el = (r.get("data") or {}).get("eventListings") or {}
-            out[nombre] = {
-                "total": el.get("totalResults"),
-                "ejemplos": [(d.get("event") or {}) for d in (el.get("data") or [])][:3],
-                "errors": str(r.get("errors"))[:300] if r.get("errors") else None,
-            }
-        except Exception as e:
-            out[nombre] = {"error": str(e)[:300]}
-    return jsonify(out)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

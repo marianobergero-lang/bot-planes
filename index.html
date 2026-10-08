@@ -449,6 +449,7 @@ function addMsg(role, text, opts = [], events = []) {
         <span class="ev-hora">🕐 ${horaStr}</span>
         ${ev.venue ? `<span>📍 ${ev.venue}</span>` : ''}
         ${ev.ciudad_venue ? `<span>🌆 ${ev.ciudad_venue}</span>` : ''}
+        ${(ev.generos||[]).length ? `<span>🎵 ${ev.generos.slice(0,2).join(' · ')}</span>` : ''}
       </div>
       ${ev.destacado ? `<div class="ev-destacado">${ev.destacado.slice(0,130)}${ev.destacado.length>130?'…':''}</div>` : ''}
       <div class="ev-footer">
@@ -507,7 +508,7 @@ function getOpts(reply) {
   if (low.includes('gratis') || low.includes('precio') || low.includes('entrada'))
     return ['Gratis', 'Barato (<15€)', 'Normal (15-30€)', 'Me da igual'];
   if (low.includes('género') || low.includes('genero') || low.includes('música'))
-    return ['Techno', 'House', 'Progressive', 'Reggaeton', 'Indie / Alternativo', 'Otro'];
+    return ['Techno', 'House', 'Tech House', 'Progressive', 'Melodic', 'Drum & Bass', 'Otro'];
   return [];
 }
 
@@ -541,7 +542,7 @@ async function handleSend(texto) {
       const tipo = filtros.tipo || 'fecha';
       let intro = '';
       if (tipo === 'fecha') {
-        intro = `Hay ${total} eventos en ${filtros.ciudad} — acá están los ${eventos.length} que mejor matchean:\n\n💡 Precios orientativos, verificá en RA antes de comprar.`;
+        intro = `Hay ${total} eventos${filtros.genero ? ' de ' + filtros.genero : ''} en ${filtros.ciudad} — acá están los ${eventos.length} que mejor matchean:\n\n💡 Precios orientativos, verificá en RA antes de comprar.`;
       } else if (tipo === 'artista') {
         intro = reply || `Próximas fechas de ${(filtros.artista||'').replace(/-/g,' ')}:`;
       } else if (tipo === 'venue') {
