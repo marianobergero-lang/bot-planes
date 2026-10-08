@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 CORS(app)
 
-SCRAPER_API_KEY = "00aa3ccf3ef48efc379726eacdccf27f"
 GROQ_API_KEY    = os.environ.get("GROQ_API_KEY", "")
 RA_GRAPHQL_URL  = "https://ra.co/graphql"
 
@@ -731,6 +730,18 @@ def find_area():
         venue = event.get("venue") or {}
         area  = venue.get("area") or {}
         return jsonify({"evento": event.get("title"), "venue": venue.get("name"), "ciudad": area.get("name"), "area_id": area.get("id")})
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+@app.route("/schema")
+def schema():
+    """Inspecciona un tipo del schema GraphQL de RA. Uso: /schema?type=FilterInputDtoInput"""
+    type_name = request.args.get("type", "FilterInputDtoInput")
+    q = """query($name: String!) { __type(name: $name) { name kind
+        inputFields { name type { name kind ofType { name kind } } }
+        fields { name args { name type { name kind ofType { name } } } type { name kind ofType { name } } } } }"""
+    try:
+        return jsonify(ra_request({"query": q, "variables": {"name": type_name}}))
     except Exception as e:
         return jsonify({"error": str(e)})
 
