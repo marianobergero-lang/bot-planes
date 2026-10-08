@@ -152,7 +152,7 @@ Podés buscar eventos de tres formas:
 
 FLUJO para FECHA+CIUDAD — necesitás exactamente estos 4 datos:
 - Ciudad: solo ciudades del listado (london, berlin, barcelona, madrid, amsterdam, paris, ibiza, rome, lisbon, vienna, prague, budapest, stockholm, brussels, hamburg, new york, los angeles, chicago, miami, buenos aires, sao paulo, mexico city, bogota, santiago, toronto, montreal, tokyo, melbourne, sydney, seoul). Si el usuario escribe algo parecido (lonbon→london, barcleona→barcelona) corregí vos sin preguntar.
-- Cuándo (campo "cuando"): cualquier día sirve, no solo el finde. Usá: "hoy", "mañana", un día de la semana ("lunes" ... "domingo", siempre el más cercano), "el otro jueves" (el de la semana siguiente), "esta semana", "finde" (viernes a domingo), o una fecha exacta "YYYY-MM-DD" (si dice "el 25" o "jueves 25", convertilo a YYYY-MM-DD usando la fecha de HOY). Si el día de la semana no coincide con el número (ej: "jueves 25" pero el 25 es domingo), avisale y preguntá cuál quiso decir antes de buscar. Si el usuario ya dijo el día, NO lo vuelvas a preguntar. Si no dijo nada, preguntá UNA vez.
+- Cuándo (campo "cuando"): cualquier día sirve, no solo el finde. Usá: "hoy", "mañana", un día de la semana ("lunes" ... "domingo", siempre el más cercano), "el otro jueves" (el de la semana siguiente), "esta semana", "finde" (viernes a domingo), o una fecha exacta "YYYY-MM-DD" (si dice "el 25" o "jueves 25", convertilo a YYYY-MM-DD usando la fecha de HOY). Si el mensaje trae fechas entre paréntesis del calendario, como "(2026-10-13/2026-10-15)" o "(2026-10-25)", poné EXACTAMENTE eso en "cuando" sin preguntar nada sobre el día. Si el día de la semana no coincide con el número (ej: "jueves 25" pero el 25 es domingo), avisale y preguntá cuál quiso decir antes de buscar. Si el usuario ya dijo el día, NO lo vuelvas a preguntar. Si no dijo nada, preguntá UNA vez.
 - Franja (según a qué hora EMPIEZA el evento), campo "franja" del JSON: "tarde" (empieza 14-20hs, incluye "de día"), "sunset" (18-21hs, atardecer/open air al caer el sol), "noche" (21-03hs, incluye madrugada), "afters" (05-09hs), o null si le da igual. Si no lo menciona preguntá UNA VEZ ofreciendo esas 4 opciones.
 - Precio: gratis, barato<15€, normal 15-30€, caro>30€, da igual. Si no lo menciona preguntá UNA VEZ.
 
@@ -559,9 +559,19 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
         hoy = datetime.now().strftime("%Y-%m-%d")
         eventos = [e for e in eventos if e.get("fecha", "") >= hoy]
 
-        # Ordenar por fecha primero, luego popularidad dentro de cada día
-        eventos.sort(key=lambda x: (x.get("fecha", ""), -x.get("asistentes", 0)))
-        return eventos[:max_ev], total
+        # Repartir los lugares entre los días (los más populares de cada día),
+        # así un rango de varios días no se llena solo con el primero
+        por_dia = {}
+        for e in sorted(eventos, key=lambda x: -x.get("asistentes", 0)):
+            por_dia.setdefault(e.get("fecha", ""), []).append(e)
+        elegidos, ronda = [], 0
+        while len(elegidos) < max_ev and any(len(v) > ronda for v in por_dia.values()):
+            for dia in sorted(por_dia):
+                if ronda < len(por_dia[dia]) and len(elegidos) < max_ev:
+                    elegidos.append(por_dia[dia][ronda])
+            ronda += 1
+        elegidos.sort(key=lambda x: (x.get("fecha", ""), -x.get("asistentes", 0)))
+        return elegidos, total
 
     except Exception as e:
         print(f"[RA FECHA ERROR 2] {e}")
@@ -662,6 +672,9 @@ def chat():
 
         if tipo == "fecha":
             desde, hasta = calc_fechas(filtros.get("cuando", "todo"))
+            n_dias = (datetime.strptime(hasta, "%Y-%m-%d") - datetime.strptime(desde, "%Y-%m-%d")).days + 1
+            if n_dias > 1:  # rango: hasta 4 eventos por día (tope 20)
+                filtros["max"] = max(filtros.get("max", 8), min(4 * n_dias, 20))
             eventos_out, total_ra = buscar_por_fecha(
                 ciudad     = ciudad_corregida,
                 desde      = desde,

@@ -266,6 +266,66 @@
   ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
+  /* DÍAS EN RESULTADOS */
+  .day-header {
+    margin-top: 16px; font-size: 13px; font-weight: 700; color: var(--yellow);
+    letter-spacing: 0.4px; text-transform: uppercase;
+    border-bottom: 1px solid var(--border); padding-bottom: 6px;
+  }
+  .day-header:first-child { margin-top: 4px; }
+
+  /* CALENDARIO */
+  #calbtn {
+    width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0;
+    background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  #calbtn:hover { border-color: var(--orange); color: var(--orange); }
+  .opt.opt-cal { border-color: var(--orange); color: var(--orange); }
+  .opt.opt-cal:hover { color: #fff; }
+
+  .cal {
+    background: var(--card); border: 1px solid var(--border2); border-radius: 14px;
+    border-bottom-left-radius: 3px; padding: 14px; width: 100%; max-width: 340px;
+    display: flex; flex-direction: column; gap: 10px; user-select: none;
+  }
+  .cal-top { display: flex; align-items: center; justify-content: space-between; }
+  .cal-title { font-weight: 700; font-size: 15px; letter-spacing: -0.3px; text-transform: capitalize; }
+  .cal-nav {
+    background: transparent; border: 1px solid var(--border2); color: var(--muted);
+    width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 16px;
+  }
+  .cal-nav:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); }
+  .cal-nav:disabled { opacity: .25; cursor: default; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px 0; }
+  .cal-dow { font-size: 11px; color: var(--dim); text-align: center; padding: 4px 0; font-weight: 600; }
+  .cal-day {
+    aspect-ratio: 1; border: none; background: transparent; color: var(--text);
+    font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
+    border-radius: 8px; position: relative;
+  }
+  .cal-day:hover:not(:disabled) { background: var(--border); }
+  .cal-day:disabled { color: #333; cursor: default; }
+  .cal-day.today { box-shadow: inset 0 0 0 1px var(--neon); color: var(--neon); }
+  .cal-day.in-range { background: #3a1a08; border-radius: 0; color: #f0c090; }
+  .cal-day.sel { background: var(--orange); color: #fff; font-weight: 700; }
+  .cal-day.sel.start.has-end { border-radius: 8px 0 0 8px; }
+  .cal-day.sel.end { border-radius: 0 8px 8px 0; }
+  .cal-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cal-quick .opt { padding: 5px 11px; font-size: 13px; }
+  .cal-note { font-size: 12px; color: var(--dim); min-height: 16px; }
+  .cal-actions { display: flex; gap: 8px; }
+  .cal-ok {
+    flex: 1; background: var(--orange); color: #fff; border: none; border-radius: 10px;
+    padding: 11px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .cal-ok:disabled { opacity: .35; cursor: default; }
+  .cal-cancel {
+    background: transparent; border: 1px solid var(--border2); color: var(--muted);
+    border-radius: 10px; padding: 11px 14px; font-family: inherit; font-size: 14px; cursor: pointer;
+  }
+
   @media (max-width: 520px) {
     .welcome-grid { grid-template-columns: repeat(2,1fr); }
     .extra-opts.visible { grid-template-columns: repeat(2,1fr); }
@@ -298,6 +358,9 @@
 <div class="chat">
   <div id="msgs"></div>
   <div class="input-area">
+    <button id="calbtn" onclick="openCalendar()" aria-label="Elegir fechas" title="Elegir fechas">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    </button>
     <input id="inp" placeholder="...o contame qué tenés en mente y armamos tu plan 🎯" type="text">
     <button id="sendbtn" onclick="send()" aria-label="Enviar">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
@@ -428,7 +491,16 @@ function addMsg(role, text, opts = [], events = []) {
   bub.className = 'bubble';
   bub.textContent = text;
 
+  const multiDia = new Set(events.map(e => e.fecha)).size > 1;
+  let diaActual = null;
   events.forEach(ev => {
+    if (multiDia && ev.fecha !== diaActual) {
+      diaActual = ev.fecha;
+      const h = document.createElement('div');
+      h.className = 'day-header';
+      h.textContent = formatFecha(ev.fecha);
+      bub.appendChild(h);
+    }
     const card = document.createElement('div');
     card.className = 'ev-card';
     const artists = (ev.artistas||[]).slice(0,4).join(' · ') + ((ev.artistas||[]).length>4?` +${ev.artistas.length-4}`:'');
@@ -468,7 +540,12 @@ function addMsg(role, text, opts = [], events = []) {
     opts.forEach(o => {
       const btn = document.createElement('button');
       btn.className = 'opt'; btn.textContent = o;
-      btn.onclick = () => { optDiv.remove(); handleSend(o); };
+      if (o === OPT_CALENDARIO) btn.classList.add('opt-cal');
+      btn.onclick = () => {
+        optDiv.remove();
+        if (o === OPT_CALENDARIO) openCalendar();
+        else handleSend(o);
+      };
       optDiv.appendChild(btn);
     });
     wrap.appendChild(optDiv);
@@ -494,6 +571,133 @@ function showTyping() {
 }
 function hideTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
 
+// ── CALENDARIO ─────────────────────────────────────────────────────────────
+const OPT_CALENDARIO = '📅 Elegir fechas';
+const MAX_DIAS = 7;
+const MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function hoy0() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function diffDias(a, b) { return Math.round((b - a) / 86400000); }
+
+function openCalendar() {
+  if (busy) return;
+  const prev = document.getElementById('cal-msg');
+  if (prev) prev.remove();
+  removeWelcome();
+
+  const state = { start: null, end: null, mes: new Date(hoy0().getFullYear(), hoy0().getMonth(), 1), note: '' };
+  const msgs = document.getElementById('msgs');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot'; wrap.id = 'cal-msg';
+  const cal = document.createElement('div');
+  cal.className = 'cal';
+  wrap.appendChild(cal);
+  msgs.appendChild(wrap);
+
+  function setRango(a, b) { state.start = a; state.end = b; state.note = ''; render(); }
+
+  function pick(d) {
+    const { start, end } = state;
+    state.note = '';
+    if (!start || end) { state.start = d; state.end = null; }
+    else if (d.getTime() === start.getTime()) { state.end = null; }
+    else if (d < start) { state.start = d; }
+    else if (diffDias(start, d) >= MAX_DIAS) {
+      state.end = addDays(start, MAX_DIAS - 1);
+      state.note = `Máximo ${MAX_DIAS} días por búsqueda`;
+    } else { state.end = d; }
+    render();
+  }
+
+  function etiqueta() {
+    const { start, end } = state;
+    if (!start) return 'Elegí uno o más días';
+    if (!end) return `Buscar el ${formatFecha(isoDate(start)).toLowerCase()}`;
+    return `Buscar del ${formatFecha(isoDate(start)).toLowerCase()} al ${formatFecha(isoDate(end)).toLowerCase()}`;
+  }
+
+  function confirmar() {
+    const { start, end } = state;
+    if (!start) return;
+    const a = isoDate(start);
+    const txt = end
+      ? `Del ${formatFecha(a)} al ${formatFecha(isoDate(end))} (${a}/${isoDate(end)})`
+      : `El ${formatFecha(a)} (${a})`;
+    wrap.remove();
+    handleSend(txt);
+  }
+
+  function render() {
+    const hoy = hoy0();
+    const y = state.mes.getFullYear(), m = state.mes.getMonth();
+    const primero = new Date(y, m, 1);
+    const offset = (primero.getDay() + 6) % 7; // lunes primero
+    const diasMes = new Date(y, m + 1, 0).getDate();
+    const esMesActual = y === hoy.getFullYear() && m === hoy.getMonth();
+    const { start, end } = state;
+
+    let celdas = ['L','M','X','J','V','S','D'].map(d => `<div class="cal-dow">${d}</div>`).join('');
+    for (let i = 0; i < offset; i++) celdas += '<div></div>';
+    for (let n = 1; n <= diasMes; n++) {
+      const d = new Date(y, m, n);
+      const cls = ['cal-day'];
+      if (d.getTime() === hoy.getTime()) cls.push('today');
+      const t = d.getTime();
+      if (start && t === start.getTime()) cls.push('sel', 'start', end ? 'has-end' : '');
+      if (end && t === end.getTime()) cls.push('sel', 'end');
+      if (start && end && t > start.getTime() && t < end.getTime()) cls.push('in-range');
+      celdas += `<button class="${cls.join(' ')}" data-iso="${isoDate(d)}" ${d < hoy ? 'disabled' : ''}>${n}</button>`;
+    }
+
+    cal.innerHTML = `
+      <div class="cal-quick">
+        <button class="opt" data-q="hoy">Hoy</button>
+        <button class="opt" data-q="manana">Mañana</button>
+        <button class="opt" data-q="finde">Este finde</button>
+        <button class="opt" data-q="finde2">Próximo finde</button>
+      </div>
+      <div class="cal-top">
+        <button class="cal-nav" data-nav="-1" ${esMesActual ? 'disabled' : ''}>‹</button>
+        <div class="cal-title">${MESES_LARGOS[m]} ${y}</div>
+        <button class="cal-nav" data-nav="1">›</button>
+      </div>
+      <div class="cal-grid">${celdas}</div>
+      <div class="cal-note">${state.note || (start && !end ? 'Tocá otro día para elegir un rango' : '')}</div>
+      <div class="cal-actions">
+        <button class="cal-cancel">Cancelar</button>
+        <button class="cal-ok" ${start ? '' : 'disabled'}>${etiqueta()}</button>
+      </div>`;
+
+    cal.querySelectorAll('.cal-day:not(:disabled)').forEach(b =>
+      b.onclick = () => { const [yy, mm, dd] = b.dataset.iso.split('-').map(Number); pick(new Date(yy, mm - 1, dd)); });
+    cal.querySelectorAll('.cal-nav').forEach(b =>
+      b.onclick = () => { state.mes = new Date(y, m + Number(b.dataset.nav), 1); render(); });
+    cal.querySelectorAll('[data-q]').forEach(b => b.onclick = () => {
+      const q = b.dataset.q, wd = hoy.getDay(); // 0=dom
+      if (q === 'hoy') setRango(hoy, null);
+      if (q === 'manana') setRango(addDays(hoy, 1), null);
+      if (q === 'finde' || q === 'finde2') {
+        // viernes de esta semana (si hoy es sáb/dom, el viernes que ya pasó)
+        const vieEsta = wd === 0 ? addDays(hoy, -2) : addDays(hoy, 5 - wd);
+        let a, b;
+        if (q === 'finde') { a = vieEsta < hoy ? hoy : vieEsta; b = addDays(vieEsta, 2); }
+        else { a = addDays(vieEsta, 7); b = addDays(vieEsta, 9); }
+        state.mes = new Date(a.getFullYear(), a.getMonth(), 1);
+        setRango(a, b.getTime() === a.getTime() ? null : b);
+      }
+    });
+    cal.querySelector('.cal-ok').onclick = confirmar;
+    cal.querySelector('.cal-cancel').onclick = () => wrap.remove();
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  render();
+}
+
 function getOpts(reply) {
   // Mirar solo la última pregunta del bot (lo que empieza con el último "¿"),
   // así "buscamos en la franja de tarde... ¿precio?" muestra opciones de precio y no de horario
@@ -502,7 +706,7 @@ function getOpts(reply) {
   if (low.includes('ciudad') || low.includes('dónde') || low.includes('donde'))
     return ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid'];
   if ((low.includes('viernes') && (low.includes('sábado') || low.includes('sabado'))) || low.includes('qué día') || low.includes('que dia') || low.includes('cuándo') || low.includes('cuando'))
-    return ['Hoy', 'Mañana', 'Viernes', 'Sábado', 'Domingo', 'Todo el finde'];
+    return [OPT_CALENDARIO, 'Hoy', 'Mañana', 'Viernes', 'Sábado', 'Domingo', 'Todo el finde'];
   if (low.includes('tarde') || low.includes('noche') || low.includes('horario') || low.includes('franja') || low.includes('sunset') || low.includes('after'))
     return ['🌤️ Tarde (14-20hs)', '🌅 Sunset (18-21hs)', '🌙 Noche (21-03hs)', '☀️ Afters (05-09hs)', 'Me da igual'];
   if (low.includes('gratis') || low.includes('precio') || low.includes('entrada'))
