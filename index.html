@@ -540,13 +540,15 @@ async function handleSend(texto) {
       if (tipo === 'fecha') {
         intro = `Hay ${total} eventos en ${filtros.ciudad} — acá están los ${eventos.length} que mejor matchean:\n\n💡 Precios orientativos, verificá en RA antes de comprar.`;
       } else if (tipo === 'artista') {
-        intro = `Próximas fechas de ${(filtros.artista||'').replace(/-/g,' ')}:`;
+        intro = reply || `Próximas fechas de ${(filtros.artista||'').replace(/-/g,' ')}:`;
       } else if (tipo === 'venue') {
         intro = `Esto hay en ${filtros.venue || 'ese venue/disco'}:`;
       } else {
         intro = filtros.query ? `Resultados para "${filtros.query}":` : 'Acá van los resultados:';
       }
       addMsg('bot', intro, ['🔄 Nueva búsqueda'], eventos);
+    } else if (filtros && eventos.length === 0 && reply && filtros.tipo !== 'fecha') {
+      addMsg('bot', reply, ['🔄 Nueva búsqueda']);
     } else if (filtros && eventos.length === 0) {
       addMsg('bot',
         `No encontré nada con esos filtros.${total ? `\nEn total hay ${total} eventos — probá sin filtros.` : ''}`,

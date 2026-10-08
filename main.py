@@ -89,6 +89,23 @@ query GET_ARTIST_EVENTS($slug: String!) {
 }
 """
 
+# Próximos eventos de un artista (confirmado vía /schema?type=Artist: artist.events(type, limit, areaId))
+RA_QUERY_ARTISTA_PROXIMOS = """
+query GET_ARTIST_UPCOMING($slug: String!, $limit: Int, $areaId: Int) {
+  artist(slug: $slug) {
+    id
+    name
+    upcomingEventsCount
+    events(type: LATEST, limit: $limit, areaId: $areaId) {
+      id title date startTime endTime contentUrl cost attending
+      venue { name address area { name id } }
+      artists { name }
+      pick { blurb }
+    }
+  }
+}
+"""
+
 # Query busqueda general
 RA_QUERY_ARTIST_SEARCH = """
 query SEARCH_ARTISTS($query: String!) {
@@ -589,72 +606,54 @@ def chat():
 
                 slugs = slugs_a_probar
 
-                # Verificar artista y obtener su ID
+                # Ciudad opcional: si viene una ciudad válida, filtramos por área de RA
+                area_id = None
+                ciudad_art = (filtros.get("ciudad") or "").lower().strip()
+                if ciudad_art and ciudad_art not in ["todas", "all", "cualquiera"]:
+                    area_id = AREAS_RA.get(ciudad_corregida)
+
+                # Probar slugs hasta encontrar el artista y traer sus próximos eventos
                 artist_info = None
                 nombre_real = artista_raw.title()
-
                 for slug in slugs:
                     print(f"[ARTISTA] Probando slug: '{slug}'")
-                    payload_check = {
-                        "operationName": "GET_ARTIST_EVENTS",
-                        "variables": {"slug": slug},
-                        "query": RA_QUERY_ARTISTA
-                    }
-                    data_check = ra_request_direct(payload_check)
-                    print(f"[ARTISTA RESP] {str(data_check)[:300]}")
-                    candidate = data_check.get("data", {}).get("artist")
-                    if candidate and candidate.get("id") and not data_check.get("errors"):
+                    data_art = ra_request_direct({
+                        "operationName": "GET_ARTIST_UPCOMING",
+                        "variables": {"slug": slug, "limit": 50, "areaId": area_id},
+                        "query": RA_QUERY_ARTISTA_PROXIMOS,
+                    })
+                    if data_art.get("errors"):
+                        print(f"[ARTISTA ERRORS] {str(data_art.get('errors'))[:300]}")
+                    candidate = (data_art.get("data") or {}).get("artist")
+                    if candidate and candidate.get("id"):
                         artist_info = candidate
-                        nombre_real = candidate.get("name", artista_raw)
-                        print(f"[ARTISTA] Encontrado: {nombre_real} (id={candidate.get('id')})")
+                        nombre_real = candidate.get("name") or nombre_real
+                        print(f"[ARTISTA] Encontrado: {nombre_real} (id={candidate.get('id')}, próximos={candidate.get('upcomingEventsCount')})")
                         break
 
                 if artist_info:
-                    # Buscar eventos con filtro por artista usando eventListings global
-                    artist_id = artist_info.get("id")
-                    hoy_str   = datetime.now().strftime("%Y-%m-%d")
-                    hasta_90  = (datetime.now() + timedelta(days=90)).strftime("%Y-%m-%d")
-
-                    payload_ev = {
-                        "operationName": "GET_DEFAULT_EVENTS_LISTING",
-                        "variables": {
-                            "filters": {
-                                "artists": {"eq": int(artist_id)},
-                                "listingDate": {
-                                    "gte": f"{hoy_str}T00:00:00.000Z",
-                                    "lte": f"{hasta_90}T23:59:59.000Z",
-                                }
-                            },
-                            "pageSize": max_ev_artista,
-                            "page": 1
-                        },
-                        "query": RA_QUERY_FECHA
-                    }
-                    data_ev = ra_request_direct(payload_ev)
-                    listings = data_ev.get("data", {}).get("eventListings", {}).get("data", [])
-                    total_found = data_ev.get("data", {}).get("eventListings", {}).get("totalResults", 0)
-                    print(f"[ARTISTA] Eventos encontrados: {total_found}")
-
                     eventos_out = []
-                    for item in listings:
-                        ev = item.get("event")
-                        if not ev: continue
+                    for ev in (artist_info.get("events") or []):
+                        if not ev:
+                            continue
                         ev_fmt = formatear_evento(ev)
-                        eventos_out.append(ev_fmt)
+                        if ev_fmt.get("fecha", "") >= hoy_str:
+                            eventos_out.append(ev_fmt)
+                    eventos_out.sort(key=lambda x: x.get("fecha", ""))
 
-                    eventos_out.sort(key=lambda x: x.get("fecha",""))
                     if eventos_out:
-                        total_ra = total_found
+                        total_ra    = artist_info.get("upcomingEventsCount") or len(eventos_out)
                         eventos_out = eventos_out[:max_ev_artista]
                         clean = f"Próximas fechas de {nombre_real}:"
                     else:
+                        donde = f" en {ciudad_corregida.title()}" if area_id else ""
                         return jsonify({
-                            "reply": f"No encontré próximas fechas de {nombre_real} en RA por el momento.",
+                            "reply": f"No encontré próximas fechas de {nombre_real}{donde} en RA por el momento.",
                             "filtros": filtros, "eventos": [], "total_ra": 0
                         })
                 else:
                     return jsonify({
-                        "reply": f"No encontré a '{artista_raw}' en RA.\n\nProbá buscarlo en ra.co/dj/{slug_guion} — si abre su perfil, decime el nombre exacto y busco sus fechas.",
+                        "reply": f"No encontré a '{artista_raw}' en RA. ¿Me pasás el nombre completo como figura en RA? (ej: 'Hernan Cattaneo')",
                         "filtros": filtros, "eventos": [], "total_ra": 0
                     })
             except Exception as e:
@@ -738,6 +737,7 @@ def schema():
     """Inspecciona un tipo del schema GraphQL de RA. Uso: /schema?type=FilterInputDtoInput"""
     type_name = request.args.get("type", "FilterInputDtoInput")
     q = """query($name: String!) { __type(name: $name) { name kind
+        enumValues { name }
         inputFields { name type { name kind ofType { name kind } } }
         fields { name args { name type { name kind ofType { name } } } type { name kind ofType { name } } } } }"""
     try:
