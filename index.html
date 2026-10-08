@@ -500,7 +500,7 @@ function getOpts(reply) {
   if (low.includes('viernes') && (low.includes('sábado') || low.includes('sabado')))
     return ['Viernes', 'Sábado', 'Todo el finde'];
   if (low.includes('tarde') || low.includes('noche') || low.includes('horario'))
-    return ['Tarde (18hs)', 'Noche (22hs)', 'Madrugada (00hs)', 'Me da igual'];
+    return ['De día', 'Tarde (14-21hs)', 'Noche (21hs+)', 'Madrugada', 'Me da igual'];
   if (low.includes('gratis') || low.includes('precio') || low.includes('entrada'))
     return ['Gratis', 'Barato (<15€)', 'Normal (15-30€)', 'Me da igual'];
   if (low.includes('género') || low.includes('genero') || low.includes('música'))

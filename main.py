@@ -151,7 +151,7 @@ Podés buscar eventos de tres formas:
 FLUJO para FECHA+CIUDAD — necesitás exactamente estos 4 datos:
 - Ciudad: solo ciudades del listado (london, berlin, barcelona, madrid, amsterdam, paris, ibiza, rome, lisbon, vienna, prague, budapest, stockholm, brussels, hamburg, new york, los angeles, chicago, miami, buenos aires, sao paulo, mexico city, bogota, santiago, toronto, montreal, tokyo, melbourne, sydney, seoul). Si el usuario escribe algo parecido (lonbon→london, barcleona→barcelona) corregí vos sin preguntar.
 - Cuándo: "este finde"/"finde"/"fin de semana" = "todo". "viernes" = "viernes". "sábado"/"sabado" = "sabado". "domingo"/"dom" = "domingo". Si es vago preguntá.
-- Horario: tarde=18:00, noche=22:00, madrugada=00:00. Si no lo menciona preguntá UNA VEZ.
+- Horario (franja de INICIO del evento): de día = hora_min "10:00" y hora_max "17:59"; tarde = hora_min "14:00" y hora_max "20:59"; noche = hora_min "21:00" sin hora_max; madrugada = hora_min "00:00" y hora_max "06:00"; me da igual = sin hora_min ni hora_max. Si no lo menciona preguntá UNA VEZ.
 - Precio: gratis, barato<15€, normal 15-30€, caro>30€, da igual. Si no lo menciona preguntá UNA VEZ.
 
 IMPORTANTE: NO preguntes por "lugar cubierto/aire libre" — esa función no está disponible todavía.
@@ -175,6 +175,7 @@ Cuando tengas suficiente info, escribí este bloque al final:
   "ciudad": "barcelona",
   "cuando": "sabado",
   "hora_min": "22:00",
+  "hora_max": null,
   "lugar": "cubierto",
   "precio_max": 30,
   "gratis": false,
@@ -235,7 +236,7 @@ IMPORTANTE:
 - El usuario puede llegar con mensajes predeterminados de la pantalla de inicio. Interpretálos así:
   * "Quiero planes para este finde" → preguntá ciudad directamente
   * "Busco algo gratis o barato este finde" → preguntá ciudad, luego buscá con gratis=true o precio_max=15
-  * "Quiero algo de día o tarde, open air o sunset" → preguntá ciudad, luego buscá con hora_min="14:00" y hora máx 20hs
+  * "Quiero algo de día o tarde, open air o sunset" → preguntá ciudad, luego buscá con hora_min="14:00" y hora_max="20:59"
   * "Quiero buscar las próximas fechas de un DJ o artista" → preguntá el nombre del artista
   * "Quiero saber qué hay en una disco o venue en particular" → preguntá el nombre del venue/disco y ciudad
   * "Quiero buscar eventos por género musical" → preguntá qué género y ciudad
@@ -382,7 +383,7 @@ def formatear_evento(ev, venue_data=None):
         "fuente":       "Resident Advisor",
     }
 
-def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None):
+def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None, hora_max=None):
     area = AREAS_RA.get(ciudad.lower().strip())
     if not area:
         return [], 0
@@ -437,7 +438,12 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
             hora = ev_fmt["hora"]
 
             # Filtro hora
-            if hora_min and hora and hora >= "08:00" and hora < hora_min:
+            if hora_max:
+                # Franja cerrada (día/tarde/madrugada): la hora de inicio tiene que caer dentro
+                if not hora or not ((hora_min or "00:00") <= hora <= hora_max):
+                    continue
+            elif hora_min and hora and hora >= "08:00" and hora < hora_min:
+                # Noche: los eventos que arrancan después de medianoche también valen
                 continue
             # Filtro gratis
             if gratis and not ev_fmt["gratis"]:
@@ -556,6 +562,7 @@ def chat():
                 hasta      = hasta,
                 max_ev     = filtros.get("max", 8),
                 hora_min   = filtros.get("hora_min"),
+                hora_max   = filtros.get("hora_max"),
                 gratis     = filtros.get("gratis", False),
                 precio_max = filtros.get("precio_max"),
             )
@@ -701,6 +708,7 @@ def eventos():
     desde     = request.args.get("desde")
     hasta     = request.args.get("hasta")
     hora_min  = request.args.get("hora_min")
+    hora_max  = request.args.get("hora_max")
     gratis    = request.args.get("gratis") == "true"
     precio_max = int(request.args.get("precio_max", 9999))
     max_ev    = int(request.args.get("max", 8))
@@ -711,7 +719,7 @@ def eventos():
     if ciudad not in AREAS_RA:
         return jsonify({"error": f"Ciudad '{ciudad}' no encontrada"}), 400
 
-    evs, total = buscar_por_fecha(ciudad, desde, hasta, max_ev, hora_min, gratis, precio_max)
+    evs, total = buscar_por_fecha(ciudad, desde, hasta, max_ev, hora_min, gratis, precio_max, hora_max)
     return jsonify({"ciudad": ciudad, "desde": desde, "hasta": hasta, "total_ra": total, "total": len(evs), "eventos": evs})
 
 @app.route("/find-area")
@@ -744,6 +752,42 @@ def schema():
         return jsonify(ra_request({"query": q, "variables": {"name": type_name}}))
     except Exception as e:
         return jsonify({"error": str(e)})
+
+@app.route("/debug-genre")
+def debug_genre():
+    """Prueba cómo filtrar por género en RA. Uso: /debug-genre?g=techno&ciudad=barcelona"""
+    g      = request.args.get("g", "techno")
+    area   = AREAS_RA.get(request.args.get("ciudad", "barcelona"), 20)
+    desde, hasta = finde_proximo()
+    out = {}
+    # 1) ¿Event tiene campo genres?
+    try:
+        t = ra_request({"query": '{ __type(name: "Event") { fields { name } } }'})
+        campos = [f["name"] for f in ((t.get("data") or {}).get("__type") or {}).get("fields") or []]
+        out["event_genre_fields"] = [c for c in campos if "genre" in c.lower()]
+        t2 = ra_request({"query": '{ __type(name: "StringFilterInputDtoInput") { inputFields { name } } }'})
+        out["string_filter_ops"] = [f["name"] for f in ((t2.get("data") or {}).get("__type") or {}).get("inputFields") or []]
+    except Exception as e:
+        out["schema_error"] = str(e)
+    # 2) Probar el filtro genre con distintas variantes de valor
+    q = """query Q($filters: FilterInputDtoInput) { eventListings(filters: $filters, pageSize: 5, page: 1) {
+        data { event { title genres { id name } } } totalResults } }"""
+    base = {"areas": {"eq": area}, "listingDate": {"gte": f"{desde}T00:00:00.000Z", "lte": f"{hasta}T23:59:59.000Z"}}
+    pruebas = {"sin_filtro": None, "eq": {"eq": g}, "eq_lower": {"eq": g.lower()}, "any": {"any": [g]}}
+    for nombre, filtro in pruebas.items():
+        f = dict(base)
+        if filtro: f["genre"] = filtro
+        try:
+            r = ra_request({"query": q, "variables": {"filters": f}})
+            el = (r.get("data") or {}).get("eventListings") or {}
+            out[nombre] = {
+                "total": el.get("totalResults"),
+                "ejemplos": [(d.get("event") or {}) for d in (el.get("data") or [])][:3],
+                "errors": str(r.get("errors"))[:300] if r.get("errors") else None,
+            }
+        except Exception as e:
+            out[nombre] = {"error": str(e)[:300]}
+    return jsonify(out)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
