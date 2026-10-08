@@ -895,51 +895,58 @@ def schema():
     except Exception as e:
         return jsonify({"error": str(e)})
 
+TM_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
+
+def tm_buscar(ciudad, pais, desde, hasta, segmento=None, size=100):
+    params = {"apikey": TM_API_KEY, "city": ciudad, "startDateTime": desde, "endDateTime": hasta,
+              "size": size, "sort": "date,asc", "locale": "*"}
+    if pais: params["countryCode"] = pais
+    if segmento: params["classificationName"] = segmento
+    r = requests.get(TM_URL, params=params, timeout=20)
+    return r.status_code, r.json()
+
 @app.route("/debug-tm")
 def debug_tm():
-    """Prueba de Ticketmaster Discovery API. Uso: /debug-tm?ciudad=Barcelona&pais=ES&dias=7"""
+    """Cobertura de Ticketmaster por categoría. Uso: /debug-tm?ciudad=Barcelona&pais=ES&dias=14"""
     if not TM_API_KEY:
         return jsonify({"error": "Falta la variable TICKETMASTER_API_KEY en Railway"})
     ciudad = request.args.get("ciudad", "Barcelona")
     pais   = request.args.get("pais", "")
-    dias   = int(request.args.get("dias", 7))
+    dias   = int(request.args.get("dias", 14))
     desde  = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     hasta  = (datetime.utcnow() + timedelta(days=dias)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    params = {"apikey": TM_API_KEY, "city": ciudad, "startDateTime": desde, "endDateTime": hasta,
-              "size": 50, "sort": "date,asc", "locale": "*"}
-    if pais:
-        params["countryCode"] = pais
-    try:
-        r = requests.get("https://app.ticketmaster.com/discovery/v2/events.json", params=params, timeout=20)
-        data = r.json()
-    except Exception as e:
-        return jsonify({"error": str(e)})
-    if r.status_code != 200:
-        return jsonify({"status": r.status_code, "respuesta": str(data)[:500]})
-    eventos = (data.get("_embedded") or {}).get("events") or []
-    categorias = {}
-    muestra = []
-    for ev in eventos:
-        cls = (ev.get("classifications") or [{}])[0]
-        seg = (cls.get("segment") or {}).get("name", "?")
-        gen = (cls.get("genre") or {}).get("name", "?")
-        categorias[f"{seg} / {gen}"] = categorias.get(f"{seg} / {gen}", 0) + 1
-        if len(muestra) < 8:
+    out = {"ciudad": ciudad, "dias": dias, "por_categoria": {}}
+    for seg in ["Music", "Sports", "Arts & Theatre", "Miscellaneous"]:
+        try:
+            code, data = tm_buscar(ciudad, pais, desde, hasta, seg)
+        except Exception as e:
+            out["por_categoria"][seg] = {"error": str(e)[:200]}; continue
+        if code != 200:
+            out["por_categoria"][seg] = {"status": code, "respuesta": str(data)[:300]}; continue
+        eventos = (data.get("_embedded") or {}).get("events") or []
+        vistos, unicos, generos = set(), [], {}
+        for ev in eventos:
+            nombre = ev.get("name", "")
+            if nombre in vistos:  # turnos repetidos del mismo evento
+                continue
+            vistos.add(nombre)
+            cls = (ev.get("classifications") or [{}])[0]
+            gen = (cls.get("genre") or {}).get("name", "?")
+            generos[gen] = generos.get(gen, 0) + 1
             pr = (ev.get("priceRanges") or [{}])[0]
             venue = ((ev.get("_embedded") or {}).get("venues") or [{}])[0]
-            muestra.append({
-                "nombre": ev.get("name"),
-                "fecha": (ev.get("dates") or {}).get("start", {}).get("localDate"),
-                "hora": (ev.get("dates") or {}).get("start", {}).get("localTime"),
-                "venue": venue.get("name"),
-                "categoria": f"{seg} / {gen}",
-                "precio": f"{pr.get('min')}-{pr.get('max')} {pr.get('currency')}" if pr else None,
-            })
-    return jsonify({
-        "ciudad": ciudad, "total": (data.get("page") or {}).get("totalElements"),
-        "categorias": dict(sorted(categorias.items(), key=lambda x: -x[1])),
-        "muestra": muestra,
-    })
+            st = (ev.get("dates") or {}).get("start", {})
+            unicos.append({"nombre": nombre, "fecha": st.get("localDate"), "hora": (st.get("localTime") or "")[:5],
+                           "venue": venue.get("name"), "genero": gen,
+                           "precio": f"{pr.get('min')}-{pr.get('max')} {pr.get('currency')}" if pr else None})
+        out["por_categoria"][seg] = {
+            "total_ticketmaster": (data.get("page") or {}).get("totalElements"),
+            "eventos_distintos_en_muestra": len(unicos),
+            "con_precio": sum(1 for u in unicos if u["precio"]),
+            "generos": dict(sorted(generos.items(), key=lambda x: -x[1])),
+            "ejemplos": unicos[:5],
+        }
+    return jsonify(out)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
