@@ -61,7 +61,7 @@
   .stepwise-logo { font-size: 12px; font-weight: 700; color: var(--orange); }
 
   /* CHAT */
-  .chat { width: 100%; max-width: 740px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .chat { width: 100%; max-width: 1080px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
   #msgs {
     flex: 1; overflow-y: auto;
@@ -74,6 +74,7 @@
   .welcome {
     display: flex; flex-direction: column;
     gap: 22px; animation: fadein .3s ease;
+    min-height: 100%; max-width: 820px; width: 100%; margin: 0 auto;
   }
 
   .welcome-title {
@@ -83,7 +84,7 @@
     line-height: 1.05;
     color: var(--text);
   }
-  .welcome-title .ia { color: var(--orange); }
+  .welcome-title .part { color: var(--orange); }
 
   .welcome-sub {
     font-size: 16px; color: var(--muted);
@@ -119,8 +120,12 @@
   .welcome-btn:hover { border-color: var(--orange); background: #1e1208; transform: translateY(-2px); }
   .welcome-btn:nth-child(2):hover { border-color: var(--neon); background: #081808; }
   .welcome-btn:nth-child(3):hover { border-color: var(--yellow); background: #181400; }
-  .welcome-btn:nth-child(4):hover { border-color: var(--orange); background: #1e1208; }
-  .welcome-btn:nth-child(5):hover { border-color: var(--neon); background: #081808; }
+  .welcome-btn:nth-child(5):hover { border-color: var(--yellow); background: #181400; }
+  .welcome-btn:nth-child(6):hover { border-color: var(--orange); background: #1e1208; }
+  .welcome-btn:nth-child(7):hover { border-color: var(--neon); background: #081808; }
+  .welcome-btn:nth-child(8):hover { border-color: var(--yellow); background: #181400; }
+  .welcome-btn:nth-child(9):hover { border-color: var(--orange); background: #1e1208; }
+  .welcome-btn:nth-child(4):hover { border-color: var(--neon); background: #081808; }
 
   .ver-mas-btn {
     background: transparent;
@@ -142,13 +147,14 @@
   .extra-opts { display: none; grid-template-columns: repeat(3,1fr); gap: 10px; }
   .extra-opts.visible { display: grid; animation: fadein .2s ease; }
 
-  .welcome-divider {
-    font-size: 13px; color: var(--dim);
-    display: flex; align-items: center; gap: 12px;
+  .welcome-hint {
+    margin-top: auto; padding-top: 10px;
+    font-size: clamp(18px, 2.6vw, 22px); font-weight: 600; letter-spacing: -0.4px;
+    color: var(--text); display: flex; flex-direction: column; align-items: center; gap: 6px;
+    text-align: center;
   }
-  .welcome-divider::before, .welcome-divider::after {
-    content: ''; flex: 1; height: 1px; background: var(--border);
-  }
+  .welcome-hint .arrow { color: var(--orange); font-size: 22px; animation: nudge 1.6s ease-in-out infinite; }
+  @keyframes nudge { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
 
   /* MENSAJES */
   .msg { display: flex; flex-direction: column; gap: 6px; animation: fadein .2s ease; }
@@ -243,7 +249,7 @@
   .input-area {
     padding: 14px 22px 22px; border-top: 1px solid var(--border);
     background: var(--bg); display: flex; gap: 10px; align-items: center;
-    width: 100%; max-width: 740px; flex-shrink: 0;
+    width: 100%; max-width: 1080px; flex-shrink: 0;
   }
   #inp {
     flex: 1; background: var(--surface); border: 1px solid var(--border);
@@ -266,9 +272,15 @@
   ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
+  /* RESULTADOS */
+  .bubble.has-events { max-width: 100%; width: 100%; }
+  .ev-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; white-space: normal; }
+  .ev-grid .ev-card { margin-top: 0; }
+  @media (min-width: 860px) { .ev-grid { grid-template-columns: 1fr 1fr; } }
+
   /* DÍAS EN RESULTADOS */
   .day-header {
-    margin-top: 16px; font-size: 13px; font-weight: 700; color: var(--yellow);
+    grid-column: 1 / -1; margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--yellow);
     letter-spacing: 0.4px; text-transform: uppercase;
     border-bottom: 1px solid var(--border); padding-bottom: 6px;
   }
@@ -276,12 +288,20 @@
 
   /* CALENDARIO */
   #calbtn {
-    width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0;
-    background: var(--surface); border: 1px solid var(--border); color: var(--muted);
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all .15s;
+    width: 52px; height: 52px; border-radius: 10px; flex-shrink: 0; padding: 0; overflow: hidden;
+    background: #f4f1ec; border: 1px solid var(--border2); cursor: pointer;
+    display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s;
+    font-family: inherit;
   }
-  #calbtn:hover { border-color: var(--orange); color: var(--orange); }
+  #calbtn:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(233,104,46,.35); }
+  #calbtn .cal-dow-top {
+    background: var(--orange); color: #fff; font-size: 11px; font-weight: 800;
+    letter-spacing: 1px; padding: 3px 0 2px; width: 100%; text-align: center;
+  }
+  #calbtn .cal-num {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    color: #111; font-size: 21px; font-weight: 800; letter-spacing: -1px; line-height: 1;
+  }
   .opt.opt-cal { border-color: var(--orange); color: var(--orange); }
   .opt.opt-cal:hover { color: #fff; }
 
@@ -327,8 +347,12 @@
   }
 
   @media (max-width: 520px) {
-    .welcome-grid { grid-template-columns: repeat(2,1fr); }
-    .extra-opts.visible { grid-template-columns: repeat(2,1fr); }
+    .welcome { gap: 16px; }
+    .welcome-grid { grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .welcome-btn { padding: 12px 9px; font-size: 12.5px; gap: 6px; }
+    .welcome-btn .icon { font-size: 20px; }
+    .welcome-sub { font-size: 14px; }
+    #inp { font-size: 14px; padding: 13px 12px; }
     .welcome-title { font-size: 36px; }
   }
 </style>
@@ -359,7 +383,8 @@
   <div id="msgs"></div>
   <div class="input-area">
     <button id="calbtn" onclick="openCalendar()" aria-label="Elegir fechas" title="Elegir fechas">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <span class="cal-dow-top" id="calbtn-dow">SAT</span>
+      <span class="cal-num" id="calbtn-num">10</span>
     </button>
     <input id="inp" placeholder="...o contame qué tenés en mente y armamos tu plan 🎯" type="text">
     <button id="sendbtn" onclick="send()" aria-label="Enviar">
@@ -396,6 +421,13 @@ function badgeInfo(ev) {
   return { cls: 'badge-caro', txt: `${sym}${p}` };
 }
 
+function initCalIcon() {
+  const d = new Date();
+  document.getElementById('calbtn-dow').textContent = ['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()];
+  document.getElementById('calbtn-num').textContent = d.getDate();
+}
+initCalIcon();
+
 // ── BIENVENIDA ─────────────────────────────────────────────────────────────
 function showWelcome() {
   const msgs = document.getElementById('msgs');
@@ -405,59 +437,26 @@ function showWelcome() {
 
   welcome.innerHTML = `
     <div>
-      <div class="welcome-title">Let's <span class="ia">PartIA</span></div>
+      <div class="welcome-title">Let's <span class="part">Part</span>IA</div>
       <div class="welcome-sub" style="margin-top:12px">Tu asistente de planes para salir.<br>Eventos reales de Resident Advisor.</div>
     </div>
 
     <div class="welcome-grid">
-      <button class="welcome-btn" onclick="quickSearch('planes-finde')">
-        <span class="icon">🗓️</span>Planes este finde
-      </button>
-      <button class="welcome-btn" onclick="quickSearch('gratis-barato')">
-        <span class="icon">💸</span>Gratis o barato
-      </button>
-      <button class="welcome-btn" onclick="quickSearch('tarde-dia')">
-        <span class="icon">🌅</span>Algo de día / tarde
-      </button>
-      <button class="welcome-btn" onclick="quickSearch('buscar-dj')">
-        <span class="icon">🎧</span>Fechas de un DJ
-      </button>
-      <button class="welcome-btn" onclick="quickSearch('buscar-disco')">
-        <span class="icon">🏠</span>Ir a una disco
-      </button>
-      <button class="ver-mas-btn" onclick="toggleExtra()">
-        ＋ Ver más opciones
-      </button>
+      <button class="welcome-btn" onclick="quickSearch('planes-finde')"><span class="icon">🗓️</span>Planes este finde</button>
+      <button class="welcome-btn" onclick="quickSearch('top-hoy')"><span class="icon">🔥</span>Lo más top hoy</button>
+      <button class="welcome-btn" onclick="quickSearch('elegir-fecha')"><span class="icon">📅</span>Elegí tu fecha</button>
+      <button class="welcome-btn" onclick="quickSearch('gratis-barato')"><span class="icon">💸</span>Gratis o barato</button>
+      <button class="welcome-btn" onclick="quickSearch('tarde-dia')"><span class="icon">🌅</span>Algo de día / sunset</button>
+      <button class="welcome-btn" onclick="quickSearch('por-genero')"><span class="icon">🎵</span>Por género musical</button>
+      <button class="welcome-btn" onclick="quickSearch('buscar-dj')"><span class="icon">🎧</span>Fechas de un DJ</button>
+      <button class="welcome-btn" onclick="quickSearch('buscar-disco')"><span class="icon">🪩</span>Ir a una disco</button>
+      <button class="welcome-btn" onclick="quickSearch('festivales')"><span class="icon">🎪</span>Festivales</button>
     </div>
 
-    <div class="extra-opts" id="extra-opts">
-      <button class="welcome-btn" onclick="quickSearch('por-genero')">
-        <span class="icon">🎵</span>Por género musical
-      </button>
-      <button class="welcome-btn" onclick="quickSearch('explorar-ciudad')">
-        <span class="icon">🌍</span>Explorar una ciudad
-      </button>
-      <button class="welcome-btn" onclick="quickSearch('festivales')">
-        <span class="icon">🎪</span>Festivales y eventos grandes
-      </button>
-    </div>
-
-    <div class="welcome-divider">o simplemente escribí lo que tenés en mente</div>
+    <div class="welcome-hint">o simplemente escribí lo que tenés en mente<span class="arrow">↓</span></div>
   `;
 
   msgs.appendChild(welcome);
-}
-
-function toggleExtra() {
-  const extra = document.getElementById('extra-opts');
-  const btn = document.querySelector('.ver-mas-btn');
-  if (extra.classList.contains('visible')) {
-    extra.classList.remove('visible');
-    btn.textContent = '＋ Ver más opciones';
-  } else {
-    extra.classList.add('visible');
-    btn.textContent = '－ Ver menos';
-  }
 }
 
 const QUICK_MESSAGES = {
@@ -467,12 +466,13 @@ const QUICK_MESSAGES = {
   'buscar-dj':        'Quiero buscar las próximas fechas de un DJ o artista',
   'buscar-disco':     'Quiero saber qué hay en una disco o venue en particular',
   'por-genero':       'Quiero buscar eventos por género musical',
-  'explorar-ciudad':  'Quiero explorar qué hay en una ciudad',
-  'festivales':       'Busco festivales o eventos grandes',
+  'top-hoy':          'Quiero ver lo más top de hoy',
+  'festivales':       'Quiero ver festivales',
 };
 
 function quickSearch(tipo) {
   removeWelcome();
+  if (tipo === 'elegir-fecha') { openCalendar(); return; }
   handleSend(QUICK_MESSAGES[tipo]);
 }
 
@@ -489,7 +489,10 @@ function addMsg(role, text, opts = [], events = []) {
   wrap.className = `msg ${role}`;
   const bub = document.createElement('div');
   bub.className = 'bubble';
-  bub.textContent = text;
+  bub.textContent = (text || '').replace(/\*\*/g, '').replace(/^#+\s*/gm, '');
+  if (events.length) bub.classList.add('has-events');
+  const grid = document.createElement('div');
+  grid.className = 'ev-grid';
 
   const multiDia = new Set(events.map(e => e.fecha)).size > 1;
   let diaActual = null;
@@ -499,7 +502,7 @@ function addMsg(role, text, opts = [], events = []) {
       const h = document.createElement('div');
       h.className = 'day-header';
       h.textContent = formatFecha(ev.fecha);
-      bub.appendChild(h);
+      grid.appendChild(h);
     }
     const card = document.createElement('div');
     card.className = 'ev-card';
@@ -529,8 +532,9 @@ function addMsg(role, text, opts = [], events = []) {
         <a class="ev-link" href="${ev.url}" target="_blank">Ver en RA →</a>
       </div>
     `;
-    bub.appendChild(card);
+    grid.appendChild(card);
   });
+  if (events.length) bub.appendChild(grid);
 
   wrap.appendChild(bub);
 
@@ -746,7 +750,12 @@ async function handleSend(texto) {
       const tipo = filtros.tipo || 'fecha';
       let intro = '';
       if (tipo === 'fecha') {
-        intro = `Hay ${total} eventos${filtros.genero ? ' de ' + filtros.genero : ''} en ${filtros.ciudad} — acá están los ${eventos.length} que mejor matchean:\n\n💡 Precios orientativos, verificá en RA antes de comprar.`;
+        const ciudadTxt = (filtros.ciudad || '').replace(/\b\w/g, c => c.toUpperCase());
+        const generoTxt = filtros.genero ? ` de ${filtros.genero}` : '';
+        intro = total > eventos.length
+          ? `¡Encontré ${total} eventos${generoTxt} en ${ciudadTxt}! 🔥 Te dejo los ${eventos.length} que más gente convocan.`
+          : `¡Mirá lo que encontré${generoTxt} en ${ciudadTxt}! 🔥`;
+        intro += `\n💡 Los precios son orientativos, chequealos en RA antes de comprar.`;
       } else if (tipo === 'artista') {
         intro = reply || `Próximas fechas de ${(filtros.artista||'').replace(/-/g,' ')}:`;
       } else if (tipo === 'venue') {
@@ -754,20 +763,30 @@ async function handleSend(texto) {
       } else {
         intro = filtros.query ? `Resultados para "${filtros.query}":` : 'Acá van los resultados:';
       }
-      addMsg('bot', intro, ['🔄 Nueva búsqueda'], eventos);
+      addMsg('bot', intro, ['🔄 Nueva búsqueda', OPT_CALENDARIO], eventos);
     } else if (filtros && eventos.length === 0 && reply && filtros.tipo !== 'fecha') {
       addMsg('bot', reply, ['🔄 Nueva búsqueda']);
     } else if (filtros && eventos.length === 0) {
+      const opcionesSinRes = [];
+      if (filtros.franja || filtros.hora_min) opcionesSinRes.push('Sin filtro de horario');
+      if (filtros.gratis || filtros.precio_max) opcionesSinRes.push('Sin filtro de precio');
+      if (filtros.genero) opcionesSinRes.push('Cualquier género');
+      opcionesSinRes.push(OPT_CALENDARIO, '🔄 Nueva búsqueda');
+      const pistas = [filtros.franja || filtros.hora_min ? 'el horario' : null,
+                      filtros.gratis || filtros.precio_max ? 'el precio' : null,
+                      filtros.genero ? 'el género' : null].filter(Boolean);
+      const sugerencia = pistas.length ? `¿Probamos aflojando ${pistas.join(' o ')}?` : '¿Probamos con otra fecha?';
       addMsg('bot',
-        `No encontré nada con esos filtros.${total ? `\nEn total hay ${total} eventos — probá sin filtros.` : ''}`,
-        ['🔄 Nueva búsqueda', 'Sin filtro de hora', 'Sin filtro de precio']
+        `No encontré exactamente lo que buscás 😕 ${sugerencia}` +
+        (total ? `\nEsos días hay ${total} eventos en total en ${filtros.ciudad || 'la ciudad'}, así que seguro hay algo para vos.` : ''),
+        opcionesSinRes
       );
     } else {
       addMsg('bot', reply, getOpts(reply));
     }
   } catch(e) {
     hideTyping();
-    addMsg('bot', 'Algo falló. Intentá de nuevo.', ['🔄 Reiniciar']);
+    addMsg('bot', 'Uy, se me cortó algo 😅 ¿Lo intentamos de nuevo?', ['🔄 Reiniciar']);
   }
 
   busy = false;
