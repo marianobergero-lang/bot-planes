@@ -503,8 +503,8 @@ function getOpts(reply) {
     return ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid'];
   if (low.includes('viernes') && (low.includes('sábado') || low.includes('sabado')))
     return ['Viernes', 'Sábado', 'Todo el finde'];
-  if (low.includes('tarde') || low.includes('noche') || low.includes('horario'))
-    return ['De día', 'Tarde (14-21hs)', 'Noche (21hs+)', 'Madrugada', 'Me da igual'];
+  if (low.includes('tarde') || low.includes('noche') || low.includes('horario') || low.includes('franja') || low.includes('sunset') || low.includes('after'))
+    return ['🌤️ Tarde (14-20hs)', '🌅 Sunset (18-21hs)', '🌙 Noche (21-03hs)', '☀️ Afters (05-09hs)', 'Me da igual'];
   if (low.includes('gratis') || low.includes('precio') || low.includes('entrada'))
     return ['Gratis', 'Barato (<15€)', 'Normal (15-30€)', 'Me da igual'];
   if (low.includes('género') || low.includes('genero') || low.includes('música'))

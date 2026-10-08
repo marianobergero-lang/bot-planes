@@ -153,7 +153,7 @@ Podés buscar eventos de tres formas:
 FLUJO para FECHA+CIUDAD — necesitás exactamente estos 4 datos:
 - Ciudad: solo ciudades del listado (london, berlin, barcelona, madrid, amsterdam, paris, ibiza, rome, lisbon, vienna, prague, budapest, stockholm, brussels, hamburg, new york, los angeles, chicago, miami, buenos aires, sao paulo, mexico city, bogota, santiago, toronto, montreal, tokyo, melbourne, sydney, seoul). Si el usuario escribe algo parecido (lonbon→london, barcleona→barcelona) corregí vos sin preguntar.
 - Cuándo: "este finde"/"finde"/"fin de semana" = "todo". "viernes" = "viernes". "sábado"/"sabado" = "sabado". "domingo"/"dom" = "domingo". Si es vago preguntá.
-- Horario (franja de INICIO del evento): de día = hora_min "10:00" y hora_max "17:59"; tarde = hora_min "14:00" y hora_max "20:59"; noche = hora_min "21:00" sin hora_max; madrugada = hora_min "00:00" y hora_max "06:00"; me da igual = sin hora_min ni hora_max. Si no lo menciona preguntá UNA VEZ.
+- Franja (según a qué hora EMPIEZA el evento), campo "franja" del JSON: "tarde" (empieza 14-20hs, incluye "de día"), "sunset" (18-21hs, atardecer/open air al caer el sol), "noche" (21-03hs, incluye madrugada), "afters" (05-09hs), o null si le da igual. Si no lo menciona preguntá UNA VEZ ofreciendo esas 4 opciones.
 - Precio: gratis, barato<15€, normal 15-30€, caro>30€, da igual. Si no lo menciona preguntá UNA VEZ.
 
 IMPORTANTE: NO preguntes por "lugar cubierto/aire libre" — esa función no está disponible todavía.
@@ -176,8 +176,7 @@ Cuando tengas suficiente info, escribí este bloque al final:
   "tipo": "fecha",
   "ciudad": "barcelona",
   "cuando": "sabado",
-  "hora_min": "22:00",
-  "hora_max": null,
+  "franja": "noche",
   "lugar": "cubierto",
   "precio_max": 30,
   "genero": null,
@@ -239,7 +238,7 @@ IMPORTANTE:
 - El usuario puede llegar con mensajes predeterminados de la pantalla de inicio. Interpretálos así:
   * "Quiero planes para este finde" → preguntá ciudad directamente
   * "Busco algo gratis o barato este finde" → preguntá ciudad, luego buscá con gratis=true o precio_max=15
-  * "Quiero algo de día o tarde, open air o sunset" → preguntá ciudad, luego buscá con hora_min="14:00" y hora_max="20:59"
+  * "Quiero algo de día o tarde, open air o sunset" → preguntá ciudad, preguntá si prefiere tarde o sunset y buscá con esa franja
   * "Quiero buscar las próximas fechas de un DJ o artista" → preguntá el nombre del artista
   * "Quiero saber qué hay en una disco o venue en particular" → preguntá el nombre del venue/disco y ciudad
   * "Quiero buscar eventos por género musical" → preguntá qué género y ciudad, después cuándo; mandá tipo "fecha" con el campo "genero"
@@ -410,7 +409,26 @@ def variantes_genero(genero):
     vs = {base, base.replace(" ", "-"), base.replace("&", "and"), base.replace(" & ", "-and-"), base.replace(" ", "")}
     return sorted(vs)
 
-def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None, hora_max=None, genero=None):
+# Franjas por hora de INICIO del evento (se pisan a propósito)
+FRANJAS = {
+    "tarde":  ("14:00", "20:00"),
+    "sunset": ("18:00", "21:00"),
+    "noche":  ("21:00", "03:00"),
+    "afters": ("05:00", "09:00"),
+}
+
+def normalizar_franja(franja):
+    f = (franja or "").lower().strip()
+    if any(x in f for x in ["after"]):            return "afters"
+    if any(x in f for x in ["sunset", "atardecer", "anochecer"]): return "sunset"
+    if any(x in f for x in ["noche", "night", "madrugada"]):      return "noche"
+    if any(x in f for x in ["tarde", "dia", "día", "day"]):       return "tarde"
+    return None
+
+def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None, hora_max=None, genero=None, franja=None):
+    f = normalizar_franja(franja)
+    if f:
+        hora_min, hora_max = FRANJAS[f]
     area = AREAS_RA.get(ciudad.lower().strip())
     if not area:
         return [], 0
@@ -465,13 +483,17 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
             ev_fmt = formatear_evento(ev)
             hora = ev_fmt["hora"]
 
-            # Filtro hora
-            if hora_max:
-                # Franja cerrada (día/tarde/madrugada): la hora de inicio tiene que caer dentro
-                if not hora or not ((hora_min or "00:00") <= hora <= hora_max):
+            # Filtro por hora de INICIO (franja)
+            if hora_min and hora_max:
+                if not hora:
+                    continue
+                if hora_min <= hora_max:
+                    dentro = hora_min <= hora <= hora_max
+                else:  # franja que cruza medianoche (ej: noche 21:00 → 03:00)
+                    dentro = hora >= hora_min or hora <= hora_max
+                if not dentro:
                     continue
             elif hora_min and hora and hora >= "08:00" and hora < hora_min:
-                # Noche: los eventos que arrancan después de medianoche también valen
                 continue
             # Filtro gratis
             if gratis and not ev_fmt["gratis"]:
@@ -591,6 +613,7 @@ def chat():
                 max_ev     = filtros.get("max", 8),
                 hora_min   = filtros.get("hora_min"),
                 hora_max   = filtros.get("hora_max"),
+                franja     = filtros.get("franja"),
                 gratis     = filtros.get("gratis", False),
                 precio_max = filtros.get("precio_max"),
                 genero     = filtros.get("genero"),
@@ -738,6 +761,7 @@ def eventos():
     hasta     = request.args.get("hasta")
     hora_min  = request.args.get("hora_min")
     hora_max  = request.args.get("hora_max")
+    franja    = request.args.get("franja")
     gratis    = request.args.get("gratis") == "true"
     precio_max = int(request.args.get("precio_max", 9999))
     max_ev    = int(request.args.get("max", 8))
@@ -748,7 +772,7 @@ def eventos():
     if ciudad not in AREAS_RA:
         return jsonify({"error": f"Ciudad '{ciudad}' no encontrada"}), 400
 
-    evs, total = buscar_por_fecha(ciudad, desde, hasta, max_ev, hora_min, gratis, precio_max, hora_max)
+    evs, total = buscar_por_fecha(ciudad, desde, hasta, max_ev, hora_min, gratis, precio_max, hora_max, franja=franja)
     return jsonify({"ciudad": ciudad, "desde": desde, "hasta": hasta, "total_ra": total, "total": len(evs), "eventos": evs})
 
 @app.route("/find-area")
