@@ -152,7 +152,7 @@ Podés buscar eventos de tres formas:
 
 FLUJO para FECHA+CIUDAD — necesitás exactamente estos 4 datos:
 - Ciudad: solo ciudades del listado (london, berlin, barcelona, madrid, amsterdam, paris, ibiza, rome, lisbon, vienna, prague, budapest, stockholm, brussels, hamburg, new york, los angeles, chicago, miami, buenos aires, sao paulo, mexico city, bogota, santiago, toronto, montreal, tokyo, melbourne, sydney, seoul). Si el usuario escribe algo parecido (lonbon→london, barcleona→barcelona) corregí vos sin preguntar.
-- Cuándo (campo "cuando"): cualquier día sirve, no solo el finde. Usá: "hoy", "mañana", un día de la semana ("lunes" ... "domingo", siempre el más cercano), "el otro jueves" (el de la semana siguiente), "esta semana", "finde" (viernes a domingo), o una fecha exacta "YYYY-MM-DD". Si el usuario ya dijo el día, NO lo vuelvas a preguntar. Si no dijo nada, preguntá UNA vez.
+- Cuándo (campo "cuando"): cualquier día sirve, no solo el finde. Usá: "hoy", "mañana", un día de la semana ("lunes" ... "domingo", siempre el más cercano), "el otro jueves" (el de la semana siguiente), "esta semana", "finde" (viernes a domingo), o una fecha exacta "YYYY-MM-DD" (si dice "el 25" o "jueves 25", convertilo a YYYY-MM-DD usando la fecha de HOY). Si el día de la semana no coincide con el número (ej: "jueves 25" pero el 25 es domingo), avisale y preguntá cuál quiso decir antes de buscar. Si el usuario ya dijo el día, NO lo vuelvas a preguntar. Si no dijo nada, preguntá UNA vez.
 - Franja (según a qué hora EMPIEZA el evento), campo "franja" del JSON: "tarde" (empieza 14-20hs, incluye "de día"), "sunset" (18-21hs, atardecer/open air al caer el sol), "noche" (21-03hs, incluye madrugada), "afters" (05-09hs), o null si le da igual. Si no lo menciona preguntá UNA VEZ ofreciendo esas 4 opciones.
 - Precio: gratis, barato<15€, normal 15-30€, caro>30€, da igual. Si no lo menciona preguntá UNA VEZ.
 
@@ -323,6 +323,30 @@ def calc_fechas(cuando):
     fechas = re.findall(r"\d{4}-\d{2}-\d{2}", c)
     if fechas:
         return fechas[0], fechas[-1]
+    # "el 25", "jueves 25", "25/10", "25 de octubre": manda el número (próxima vez que llega ese día)
+    m = re.search(r"\b(\d{1,2})(?:\s*(?:/|-|de)\s*(\d{1,2}|[a-z]+))?\b", c)
+    if m and 1 <= int(m.group(1)) <= 31:
+        dia = int(m.group(1))
+        meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
+                 "septiembre","octubre","noviembre","diciembre"]
+        mes_txt = m.group(2)
+        mes = None
+        if mes_txt:
+            if mes_txt.isdigit() and 1 <= int(mes_txt) <= 12:
+                mes = int(mes_txt)
+            else:
+                mes = next((i + 1 for i, n in enumerate(meses) if n.startswith(mes_txt[:3])), None)
+        for salto in range(0, 13):
+            y = hoy.year + (hoy.month - 1 + salto) // 12
+            mm = (hoy.month - 1 + salto) % 12 + 1
+            if mes and mm != mes:
+                continue
+            try:
+                d = datetime(y, mm, dia)
+            except ValueError:
+                continue
+            if d >= hoy:
+                return fmt(d), fmt(d)
     if "pasado mañana" in c or "pasado manana" in c:
         d = hoy + timedelta(days=2); return fmt(d), fmt(d)
     if "mañana" in c or "manana" in c or "tomorrow" in c:
