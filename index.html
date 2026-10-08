@@ -501,8 +501,8 @@ function getOpts(reply) {
   const low = (idx >= 0 ? reply.slice(idx) : reply).toLowerCase();
   if (low.includes('ciudad') || low.includes('dónde') || low.includes('donde'))
     return ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid'];
-  if (low.includes('viernes') && (low.includes('sábado') || low.includes('sabado')))
-    return ['Viernes', 'Sábado', 'Todo el finde'];
+  if ((low.includes('viernes') && (low.includes('sábado') || low.includes('sabado'))) || low.includes('qué día') || low.includes('que dia') || low.includes('cuándo') || low.includes('cuando'))
+    return ['Hoy', 'Mañana', 'Viernes', 'Sábado', 'Domingo', 'Todo el finde'];
   if (low.includes('tarde') || low.includes('noche') || low.includes('horario') || low.includes('franja') || low.includes('sunset') || low.includes('after'))
     return ['🌤️ Tarde (14-20hs)', '🌅 Sunset (18-21hs)', '🌙 Noche (21-03hs)', '☀️ Afters (05-09hs)', 'Me da igual'];
   if (low.includes('gratis') || low.includes('precio') || low.includes('entrada'))

@@ -152,7 +152,7 @@ Podés buscar eventos de tres formas:
 
 FLUJO para FECHA+CIUDAD — necesitás exactamente estos 4 datos:
 - Ciudad: solo ciudades del listado (london, berlin, barcelona, madrid, amsterdam, paris, ibiza, rome, lisbon, vienna, prague, budapest, stockholm, brussels, hamburg, new york, los angeles, chicago, miami, buenos aires, sao paulo, mexico city, bogota, santiago, toronto, montreal, tokyo, melbourne, sydney, seoul). Si el usuario escribe algo parecido (lonbon→london, barcleona→barcelona) corregí vos sin preguntar.
-- Cuándo: "este finde"/"finde"/"fin de semana" = "todo". "viernes" = "viernes". "sábado"/"sabado" = "sabado". "domingo"/"dom" = "domingo". Si es vago preguntá.
+- Cuándo (campo "cuando"): cualquier día sirve, no solo el finde. Usá: "hoy", "mañana", un día de la semana ("lunes" ... "domingo", siempre el más cercano), "el otro jueves" (el de la semana siguiente), "esta semana", "finde" (viernes a domingo), o una fecha exacta "YYYY-MM-DD". Si el usuario ya dijo el día, NO lo vuelvas a preguntar. Si no dijo nada, preguntá UNA vez.
 - Franja (según a qué hora EMPIEZA el evento), campo "franja" del JSON: "tarde" (empieza 14-20hs, incluye "de día"), "sunset" (18-21hs, atardecer/open air al caer el sol), "noche" (21-03hs, incluye madrugada), "afters" (05-09hs), o null si le da igual. Si no lo menciona preguntá UNA VEZ ofreciendo esas 4 opciones.
 - Precio: gratis, barato<15€, normal 15-30€, caro>30€, da igual. Si no lo menciona preguntá UNA VEZ.
 
@@ -286,38 +286,65 @@ def ra_request_direct(payload):
     resp.raise_for_status()
     return resp.json()
 
-def finde_proximo():
-    hoy = datetime.now()
-    dias = (4 - hoy.weekday()) % 7 or 7
-    viernes = hoy + timedelta(days=dias)
-    domingo = viernes + timedelta(days=2)
-    return viernes.strftime("%Y-%m-%d"), domingo.strftime("%Y-%m-%d")
+DIAS_SEMANA = {
+    "lunes": 0, "monday": 0, "martes": 1, "tuesday": 1,
+    "miercoles": 2, "miércoles": 2, "wednesday": 2,
+    "jueves": 3, "thursday": 3, "viernes": 4, "friday": 4,
+    "sabado": 5, "sábado": 5, "saturday": 5, "domingo": 6, "sunday": 6,
+}
 
-def normalizar_cuando(cuando):
-    """Normaliza distintas formas de decir cuándo"""
-    if not cuando:
-        return "todo"
-    c = cuando.lower().strip()
-    if any(x in c for x in ["viernes", "friday", "vie"]):
-        return "viernes"
-    if any(x in c for x in ["sabado", "sábado", "saturday", "sab"]):
-        return "sabado"
-    if any(x in c for x in ["domingo", "sunday", "dom"]):
-        return "domingo"
-    return "todo"  # finde, todo, weekend, este finde, etc.
+def _hoy():
+    return datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+def finde_proximo():
+    """Viernes a domingo de este finde. Si ya estamos en el finde, arranca hoy."""
+    hoy = _hoy()
+    wd = hoy.weekday()
+    if wd >= 4:  # viernes, sábado o domingo: el finde en curso
+        inicio, fin = hoy, hoy + timedelta(days=6 - wd)
+    else:
+        inicio = hoy + timedelta(days=4 - wd)
+        fin = inicio + timedelta(days=2)
+    return inicio.strftime("%Y-%m-%d"), fin.strftime("%Y-%m-%d")
 
 def calc_fechas(cuando):
-    cuando = normalizar_cuando(cuando)
-    hoy = datetime.now()
-    dias = (4 - hoy.weekday()) % 7 or 7
-    vier = hoy + timedelta(days=dias)
-    sab  = vier + timedelta(days=1)
-    dom  = vier + timedelta(days=2)
-    fmt  = lambda d: d.strftime("%Y-%m-%d")
-    if cuando == "viernes": return fmt(vier), fmt(vier)
-    if cuando == "sabado":  return fmt(sab),  fmt(sab)
-    if cuando == "domingo": return fmt(dom),  fmt(dom)
-    return fmt(vier), fmt(dom)  # todo = viernes + sábado + domingo
+    """
+    Convierte "cuando" en (desde, hasta):
+    - fecha exacta "2026-10-15" (o un rango "2026-10-15/2026-10-18")
+    - "hoy", "mañana", "esta semana"
+    - un día de la semana: el más cercano, contando hoy ("jueves" un jueves = hoy)
+    - "el otro jueves" / "jueves que viene" / "siguiente jueves": el de la semana siguiente
+    - cualquier otra cosa (finde, todo, weekend): este finde
+    """
+    fmt = lambda d: d.strftime("%Y-%m-%d")
+    c = (cuando or "").lower().strip()
+    hoy = _hoy()
+
+    fechas = re.findall(r"\d{4}-\d{2}-\d{2}", c)
+    if fechas:
+        return fechas[0], fechas[-1]
+    if "pasado mañana" in c or "pasado manana" in c:
+        d = hoy + timedelta(days=2); return fmt(d), fmt(d)
+    if "mañana" in c or "manana" in c or "tomorrow" in c:
+        d = hoy + timedelta(days=1); return fmt(d), fmt(d)
+    if "hoy" in c or "today" in c or "esta noche" in c or "tonight" in c:
+        return fmt(hoy), fmt(hoy)
+    if "semana" in c and "fin de semana" not in c:
+        return fmt(hoy), fmt(hoy + timedelta(days=6 - hoy.weekday()))
+
+    siguiente = any(x in c for x in ["otro", "que viene", "siguiente", "next"])
+    for nombre, wd in DIAS_SEMANA.items():
+        if re.search(rf"\b{nombre}\b", c):
+            d = hoy + timedelta(days=(wd - hoy.weekday()) % 7)
+            if siguiente:
+                d += timedelta(days=7)
+            return fmt(d), fmt(d)
+
+    desde, hasta = finde_proximo()
+    if siguiente:  # "el finde que viene"
+        desde = fmt(datetime.strptime(desde, "%Y-%m-%d") + timedelta(days=7 if hoy.weekday() < 4 else 0))
+        desde, hasta = (fmt(datetime.strptime(desde, "%Y-%m-%d")), fmt(datetime.strptime(desde, "%Y-%m-%d") + timedelta(days=2)))
+    return desde, hasta
 
 def precio_categoria(cost_str):
     """Convierte string de precio al mínimo — para mostrar 'desde X€'"""
@@ -536,6 +563,11 @@ def buscar_por_busqueda(query, ciudad=None, max_ev=5):
         print(f"[RA SEARCH ERROR] {e}")
         return [], 0
 
+def fecha_de_hoy():
+    nombres = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+    hoy = datetime.now()
+    return f"\n\nHOY es {nombres[hoy.weekday()]} {hoy.strftime('%Y-%m-%d')}."
+
 def call_groq(messages):
     print(f"[GROQ] key: {GROQ_API_KEY[:10]}... msgs: {len(messages)}")
     resp = requests.post(
@@ -543,7 +575,7 @@ def call_groq(messages):
         headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
         json={
             "model": "openai/gpt-oss-120b",
-            "messages": [{"role": "system", "content": SYSTEM_PROMPT}] + messages,
+            "messages": [{"role": "system", "content": SYSTEM_PROMPT + fecha_de_hoy()}] + messages,
             "max_tokens": 800,
             "temperature": 0.7,
         },
