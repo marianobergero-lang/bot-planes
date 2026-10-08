@@ -27,9 +27,18 @@
   .powered b { color: var(--orange); }
   .mock-tag { font-size: 11px; color: var(--yellow); border: 1px solid #3a3400; border-radius: 20px; padding: 3px 10px; }
 
+  .tabs { display: flex; gap: 4px; }
+  .tab { background: none; border: none; color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 20px; cursor: pointer; }
+  .tab:hover { color: var(--text); background: var(--surface); }
+  .tab.on { color: var(--text); background: var(--card); box-shadow: inset 0 0 0 1px var(--border2); }
+  .tab sup { font-size: 9px; color: var(--yellow); margin-left: 3px; font-weight: 500; }
+  .top-right { display: flex; align-items: center; gap: 16px; }
+  .saved { background: none; border: 1px solid var(--border2); color: var(--text); border-radius: 20px; padding: 7px 13px; font-size: 13px; cursor: pointer; }
+
   /* LAYOUT */
-  .app { flex: 1; display: grid; grid-template-columns: 420px 1fr; min-height: 0; }
-  .side { border-right: 1px solid var(--border); padding: 26px 28px 24px; display: flex; flex-direction: column; gap: 26px; overflow-y: auto; }
+  .app { flex: 1; display: grid; grid-template-columns: 500px 1fr; min-height: 0; }
+  .side { border-right: 1px solid var(--border); padding: 20px 26px 18px; display: flex; flex-direction: column; gap: 17px; overflow-y: auto; }
+  .side .search { margin-top: auto; position: sticky; bottom: 0; box-shadow: 0 -12px 18px var(--bg); }
   .main-wrap { display: flex; flex-direction: column; min-height: 0; position: relative; }
   .main { flex: 1; overflow-y: auto; padding: 24px 28px 30px; }
 
@@ -37,27 +46,28 @@
   .city { position: relative; }
   .city select {
     width: 100%; appearance: none; background: var(--surface); color: var(--text);
-    border: 1px solid var(--border2); border-radius: 12px; padding: 14px 40px 14px 44px;
-    font: 700 18px 'Space Grotesk', sans-serif; letter-spacing: -0.4px; cursor: pointer;
+    border: 1px solid var(--border2); border-radius: 12px; padding: 11px 40px 11px 42px;
+    font: 700 16px 'Space Grotesk', sans-serif; letter-spacing: -0.4px; cursor: pointer;
   }
   .city select:focus { outline: none; border-color: var(--orange); }
   .city::before { content: '📍'; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 17px; pointer-events: none; }
   .city::after { content: '▾'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
 
   /* FILTROS */
-  .group h4, .city-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.3px; margin-bottom: 11px; display: block; }
-  .chips { display: flex; flex-wrap: wrap; gap: 9px; }
+  .group h4, .city-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; display: block; }
+  .group h4 em { font-style: normal; text-transform: none; letter-spacing: 0; color: var(--dim); font-weight: 500; margin-left: 4px; }
+  .chips { display: flex; flex-wrap: nowrap; gap: 6px; }
   .chip {
     background: transparent; border: 1px solid var(--border2); color: var(--muted);
-    padding: 10px 16px; border-radius: 22px; font-size: 14.5px; font-weight: 500; cursor: pointer; transition: all .12s;
+    padding: 8px 11px; border-radius: 20px; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all .12s; white-space: nowrap;
   }
   .chip:hover { border-color: var(--muted); color: var(--text); }
   .chip.on { background: var(--orange); border-color: var(--orange); color: #fff; font-weight: 600; }
-  .chip small { opacity: .7; font-weight: 400; margin-left: 3px; }
+  .chip small { opacity: .75; font-weight: 400; margin-left: 4px; font-size: 11px; }
 
   .search {
-    background: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 15px;
-    font-size: 16px; font-weight: 700; cursor: pointer; letter-spacing: -0.2px; transition: background .12s;
+    background: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 14px;
+    font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: -0.2px; transition: background .12s;
   }
   .search:hover { background: var(--orange2); }
 
@@ -112,6 +122,24 @@
   .tickets { font-size: 12.5px; font-weight: 700; color: var(--orange); text-decoration: none; }
   .tickets:hover { color: #ff8a52; }
   .empty { color: var(--muted); font-size: 15px; padding: 40px 0; }
+
+  /* MINI CALENDARIO */
+  .group-cuando { position: relative; }
+  .mini-cal { display: none; position: absolute; left: 0; top: 100%; margin-top: 8px; width: 310px; z-index: 20; background: var(--card); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px 12px; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
+  .mc-ok { margin-top: 8px; width: 100%; background: var(--orange); color: #fff; border: none; border-radius: 8px; padding: 8px; font: 700 13px 'Space Grotesk', sans-serif; cursor: pointer; }
+  .mc-ok:disabled { opacity: .35; cursor: default; }
+  .mini-cal.open { display: block; }
+  .mc-top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; margin-bottom: 6px; text-transform: capitalize; }
+  .mc-top button { background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; width: 26px; height: 26px; cursor: pointer; }
+  .mc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px 0; text-align: center; }
+  .mc-dow { font-size: 10px; color: var(--dim); padding: 3px 0; }
+  .mc-d { background: none; border: none; color: var(--text); font: 500 12.5px 'Space Grotesk', sans-serif; height: 30px; border-radius: 7px; cursor: pointer; }
+  .mc-d:hover:not(:disabled) { background: var(--border); }
+  .mc-d:disabled { color: #3a3a3a; cursor: default; }
+  .mc-d.today { box-shadow: inset 0 0 0 1px var(--muted); }
+  .mc-d.in { background: #3a1a08; border-radius: 0; color: #f0c090; }
+  .mc-d.sel { background: var(--orange); color: #fff; font-weight: 700; }
+  .mc-note { font-size: 11.5px; color: var(--dim); margin-top: 6px; }
 
   /* ATAJOS */
   .hello h2 { font-size: 30px; font-weight: 800; letter-spacing: -1.2px; }
@@ -178,8 +206,16 @@
 
 <header>
   <div class="brand">Let's <span>Part</span>IA<small>Many events · Your event</small></div>
-  <div class="mock-tag">Maqueta · datos de ejemplo</div>
-  <div class="powered">powered by <b>stepwise</b></div>
+  <nav class="tabs">
+    <button class="tab on">🪩 Fiestas y clubs</button>
+    <button class="tab">🎤 Conciertos<sup>pronto</sup></button>
+    <button class="tab">🎭 Teatro y shows<sup>pronto</sup></button>
+    <button class="tab">⚽ Deportes<sup>pronto</sup></button>
+  </nav>
+  <div class="top-right">
+    <button class="saved">❤️ Guardados</button>
+    <div class="powered">powered by <b>stepwise</b></div>
+  </div>
 </header>
 
 <div class="app">
@@ -199,30 +235,32 @@
       <span>Filtros</span><em id="fsummary"></em>
     </button>
 
-    <div class="group">
+    <div class="group group-cuando">
       <h4>Cuándo</h4>
       <div class="chips" data-g="cuando">
         <button class="chip" data-v="hoy">Hoy</button>
         <button class="chip" data-v="manana">Mañana</button>
         <button class="chip on" data-v="finde">Este finde</button>
-        <button class="chip" data-v="cal">📅 Elegir fechas</button>
+        <button class="chip" data-v="cal" id="chip-cal">📅 Elegir fechas</button>
       </div>
+      <div class="mini-cal" id="minical"></div>
     </div>
     <div class="group">
-      <h4>Franja</h4>
+      <h4>Franja <em>· horario de inicio entre</em></h4>
       <div class="chips" data-g="franja">
-        <button class="chip" data-v="tarde">Tarde<small>14–20</small></button>
-        <button class="chip" data-v="sunset">Sunset<small>18–21</small></button>
-        <button class="chip" data-v="noche">Noche<small>21–03</small></button>
-        <button class="chip" data-v="afters">Afters<small>05–09</small></button>
+        <button class="chip" data-v="tarde">Tarde<small>14–20hs</small></button>
+        <button class="chip" data-v="sunset">Sunset<small>18–21hs</small></button>
+        <button class="chip" data-v="noche">Noche<small>21–03hs</small></button>
+        <button class="chip" data-v="afters">Afters<small>05–09hs</small></button>
       </div>
     </div>
     <div class="group">
       <h4>Precio</h4>
       <div class="chips" data-g="precio">
         <button class="chip" data-v="gratis">Gratis</button>
-        <button class="chip" data-v="barato">Barato</button>
-        <button class="chip" data-v="normal">Hasta normal</button>
+        <button class="chip" data-v="bajo">Bajo<small id="p-bajo"></small></button>
+        <button class="chip" data-v="medio">Medio<small id="p-medio"></small></button>
+        <button class="chip" data-v="alto">Alto<small id="p-alto"></small></button>
       </div>
     </div>
     <div class="group">
@@ -246,7 +284,7 @@
       <div class="chat-thread" id="thread"></div>
       <div class="chat-bar">
         <div class="bot-ico">🤖</div>
-        <input id="ask" placeholder="Decime qué querés y te lo busco…" onkeydown="if(event.key==='Enter')preguntar()">
+        <input id="ask" placeholder="¡Hey! Decime acá qué te gustaría y encuentro algo para vos ✨" onkeydown="if(event.key==='Enter')preguntar()">
         <button onclick="preguntar()">↑</button>
       </div>
     </div>
@@ -263,6 +301,20 @@ const EVENTOS = [
   { titulo: 'Domingo de Sol — Open Air', fecha: '2026-10-18', hora: '15:00', fin: '22:00', venue: 'Pier Mauá', artistas: ['Selector X', 'Luna B'], generos: ['House', 'Disco'], cat: 'normal', precio: 'R$120', gente: 48 },
 ];
 
+// Moneda por ciudad: símbolo y cotización aprox a euros (umbrales: bajo < 15€, medio 15–30€, alto > 30€)
+const MONEDA = {
+  'Barcelona': ['€', 1], 'Madrid': ['€', 1], 'Berlin': ['€', 1], 'Amsterdam': ['€', 1], 'Paris': ['€', 1], 'Ibiza': ['€', 1],
+  'London': ['£', 1.17], 'Buenos Aires': ['AR$', 0.0008], 'Rio de Janeiro': ['R$', 0.17], 'New York': ['US$', 0.92],
+};
+function redondo(n) { const p = n < 100 ? 5 : n < 1000 ? 10 : Math.pow(10, String(Math.round(n)).length - 2); return Math.round(n / p) * p; }
+function preciosCiudad() {
+  const [sym, rate] = MONEDA[document.getElementById('city').value] || ['€', 1];
+  const f = n => sym + redondo(n / rate).toLocaleString('es');
+  document.getElementById('p-bajo').textContent  = `hasta ${f(15)}`;
+  document.getElementById('p-medio').textContent = `${f(15)}–${f(30)}`;
+  document.getElementById('p-alto').textContent  = `desde ${f(30)}`;
+}
+
 const DIAS = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
 const MESES = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 const DIAS_LARGO = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -272,16 +324,55 @@ document.querySelectorAll('.chips').forEach(g => {
   g.addEventListener('click', e => {
     const b = e.target.closest('.chip'); if (!b) return;
     const k = g.dataset.g, v = b.dataset.v;
+    if (v === 'cal') { cal.abierto = !cal.abierto; sel.cuando = 'cal'; pintarCal(); pintar(); return; }
+    if (k === 'cuando') { cal.abierto = false; pintarCal(); }
     sel[k] = sel[k] === v && k !== 'cuando' ? null : v;
     pintar();
   });
 });
 
+// Mini calendario (fechas ancladas a la maqueta: hoy = jue 8 oct 2026)
+const HOY = new Date(2026, 9, 8);
+const cal = { abierto: false, a: null, b: null, mes: new Date(2026, 9, 1) };
+const MESES_L = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function pintarCal() {
+  const el = document.getElementById('minical');
+  el.classList.toggle('open', cal.abierto);
+  if (!cal.abierto) return;
+  const y = cal.mes.getFullYear(), m = cal.mes.getMonth();
+  const off = (new Date(y, m, 1).getDay() + 6) % 7, n = new Date(y, m + 1, 0).getDate();
+  let g = ['L','M','X','J','V','S','D'].map(d => `<div class="mc-dow">${d}</div>`).join('') + '<div></div>'.repeat(off);
+  for (let i = 1; i <= n; i++) {
+    const d = new Date(y, m, i), t = d.getTime(), c = ['mc-d'];
+    if (t === HOY.getTime()) c.push('today');
+    if ((cal.a && t === cal.a.getTime()) || (cal.b && t === cal.b.getTime())) c.push('sel');
+    else if (cal.a && cal.b && t > cal.a && t < cal.b) c.push('in');
+    g += `<button class="${c.join(' ')}" ${d < HOY ? 'disabled' : ''} onclick="elegirDia(${y},${m},${i})">${i}</button>`;
+  }
+  el.innerHTML = `<div class="mc-top"><button onclick="cal.mes=new Date(${y},${m - 1},1);pintarCal()">‹</button>${MESES_L[m]} ${y}<button onclick="cal.mes=new Date(${y},${m + 1},1);pintarCal()">›</button></div>
+    <div class="mc-grid">${g}</div><div class="mc-note">${cal.a && !cal.b ? 'Tocá otro día para elegir un rango' : 'Tocá un día, o dos para un rango (hasta 7 días)'}</div>
+    <button class="mc-ok" ${cal.a ? '' : 'disabled'} onclick="cal.abierto=false;pintarCal()">Listo</button>`;
+}
+function elegirDia(y, m, i) {
+  const d = new Date(y, m, i);
+  if (!cal.a || cal.b) { cal.a = d; cal.b = null; }
+  else if (d < cal.a) cal.a = d;
+  else if (d.getTime() !== cal.a.getTime()) cal.b = (d - cal.a) / 864e5 > 6 ? new Date(cal.a.getTime() + 6 * 864e5) : d;
+  if (cal.b) setTimeout(() => { cal.abierto = false; pintarCal(); }, 350);
+  pintarCal(); pintar();
+}
+function textoFechas() {
+  if (!cal.a) return '📅 Elegir fechas';
+  const f = d => `${d.getDate()} ${MESES[d.getMonth()].toLowerCase()}`;
+  return cal.b ? `📅 ${f(cal.a)} → ${f(cal.b)}` : `📅 ${['dom','lun','mar','mié','jue','vie','sáb'][cal.a.getDay()]} ${f(cal.a)}`;
+}
+
 function pintar() {
+  document.getElementById('chip-cal').textContent = textoFechas();
   document.querySelectorAll('.chips').forEach(g => {
     g.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', sel[g.dataset.g] === b.dataset.v));
   });
-  const etiquetas = { hoy: 'Hoy', manana: 'Mañana', finde: 'Este finde', cal: 'Fechas elegidas' };
+  const etiquetas = { hoy: 'Hoy', manana: 'Mañana', finde: 'Este finde', cal: textoFechas().replace('📅 ', '') };
   const partes = [etiquetas[sel.cuando], sel.franja, sel.precio, sel.genero].filter(Boolean);
   document.getElementById('fsummary').textContent = partes.join(' · ');
 }
@@ -296,7 +387,7 @@ function buscar() {
   const ciudad = document.getElementById('city').value;
   const lista = EVENTOS.filter(e =>
     enFranja(e.hora, sel.franja) &&
-    (!sel.precio || (sel.precio === 'gratis' ? e.cat === 'gratis' : sel.precio === 'barato' ? ['gratis','barato'].includes(e.cat) : e.cat !== 'caro')) &&
+    (!sel.precio || ({ gratis: ['gratis'], bajo: ['gratis','barato'], medio: ['normal'], alto: ['caro'] }[sel.precio] || []).includes(e.cat)) &&
     (!sel.genero || e.generos.includes(sel.genero))
   );
   const main = document.getElementById('main');
@@ -401,7 +492,8 @@ function preguntar() {
   }, 400);
 }
 
-document.getElementById('city').addEventListener('change', inicio);
+document.getElementById('city').addEventListener('change', () => { preciosCiudad(); inicio(); });
+preciosCiudad();
 pintar();
 inicio();
 </script>
