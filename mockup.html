@@ -40,7 +40,11 @@
   /* LAYOUT */
   .app { flex: 1; display: grid; grid-template-columns: 500px 1fr; min-height: 0; }
   .side { border-right: 1px solid var(--border); padding: 20px 26px 18px; display: flex; flex-direction: column; gap: 17px; overflow-y: auto; }
-  .side .search { margin-top: auto; position: sticky; bottom: 0; box-shadow: 0 -12px 18px var(--bg); }
+  .side .search { display: none; }
+  .live { margin-top: auto; font-size: 12px; color: var(--dim); display: flex; align-items: center; gap: 8px; }
+  .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 3px var(--orange-soft); }
+  .main.loading { opacity: .35; pointer-events: none; transition: opacity .15s; }
+  .main { transition: opacity .2s; }
   .main-wrap { display: flex; flex-direction: column; min-height: 0; position: relative; }
   .main { flex: 1; overflow-y: auto; padding: 24px 28px 30px; }
 
@@ -188,7 +192,8 @@
     .side { border-right: none; border-bottom: 1px solid var(--border); padding: 16px; gap: 14px; overflow: visible; }
     .side .group, .side .search { display: none; }
     .side.open .group, .side.open .search { display: block; }
-    .side.open .search { display: block; width: 100%; }
+    .side.open .search { display: block !important; width: 100%; }
+    .live { display: none; }
     .filters-toggle {
       display: flex; justify-content: space-between; align-items: center; background: var(--surface);
       border: 1px solid var(--border2); color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
@@ -279,7 +284,8 @@
       </div>
     </div>
 
-    <button class="search" onclick="buscar()">Buscar planes</button>
+    <div class="live"><i></i>Los resultados se actualizan solos al tocar los filtros</div>
+    <button class="search" onclick="buscar()">Ver planes</button>
 
   </aside>
 
@@ -329,10 +335,10 @@ document.querySelectorAll('.chips').forEach(g => {
   g.addEventListener('click', e => {
     const b = e.target.closest('.chip'); if (!b) return;
     const k = g.dataset.g, v = b.dataset.v;
-    if (v === 'cal') { cal.abierto = !cal.abierto; sel.cuando = 'cal'; pintarCal(); pintar(); return; }
+    if (v === 'cal') { cal.abierto = !cal.abierto; sel.cuando = 'cal'; pintarCal(); pintar(); if (cal.a) autoBuscar(); return; }
     if (k === 'cuando') { cal.abierto = false; pintarCal(); }
     sel[k] = sel[k] === v && k !== 'cuando' ? null : v;
-    pintar();
+    pintar(); autoBuscar();
   });
 });
 
@@ -364,7 +370,7 @@ function elegirDia(y, m, i) {
   else if (d < cal.a) cal.a = d;
   else if (d.getTime() !== cal.a.getTime()) cal.b = (d - cal.a) / 864e5 > 6 ? new Date(cal.a.getTime() + 6 * 864e5) : d;
   if (cal.b) setTimeout(() => { cal.abierto = false; pintarCal(); }, 350);
-  pintarCal(); pintar();
+  pintarCal(); pintar(); autoBuscar();
 }
 function textoFechas() {
   if (!cal.a) return '📅 Elegir fechas';
@@ -386,6 +392,14 @@ function enFranja(h, f) {
   if (!f) return true;
   const r = { tarde: ['14:00','20:00'], sunset: ['18:00','21:00'], noche: ['21:00','03:00'], afters: ['05:00','09:00'] }[f];
   return r[0] <= r[1] ? (h >= r[0] && h <= r[1]) : (h >= r[0] || h <= r[1]);
+}
+
+let timerBusqueda = null;
+function autoBuscar() {
+  const main = document.getElementById('main');
+  main.classList.add('loading');
+  clearTimeout(timerBusqueda);
+  timerBusqueda = setTimeout(() => { buscar(); main.classList.remove('loading'); }, 450);
 }
 
 function buscar() {
@@ -497,7 +511,10 @@ function preguntar() {
   }, 400);
 }
 
-document.getElementById('city').addEventListener('change', () => { preciosCiudad(); inicio(); });
+document.getElementById('city').addEventListener('change', () => {
+  preciosCiudad();
+  if (document.querySelector('#main .back')) autoBuscar(); else inicio();
+});
 preciosCiudad();
 pintar();
 inicio();
