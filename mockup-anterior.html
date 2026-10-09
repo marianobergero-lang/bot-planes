@@ -9,11 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0D0C0B; --surface: #141311; --card: #171614; --border: rgba(242,238,232,.08); --border2: rgba(242,238,232,.16);
-    --line: rgba(242,238,232,.07);
-    --orange: #E9682E; --orange2: #d2561d; --orange-soft: rgba(233,104,46,.12);
-    --neon: #E9682E; --yellow: #E9682E;
-    --text: #F2EEE8; --muted: #A39E96; --dim: #6E6A64;
+    --bg: #0a0a0a; --surface: #111111; --card: #161616; --border: #262626; --border2: #383838;
+    --orange: #E9682E; --orange2: #c94f18; --neon: #39FF14; --yellow: #FFE600;
+    --text: #F5F5F5; --muted: #aaaaaa; --dim: #6b6b6b;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -27,13 +25,13 @@
   .brand small { display: block; font-size: 11px; color: var(--dim); font-weight: 500; letter-spacing: 0; }
   .powered { font-size: 11px; color: var(--dim); }
   .powered b { color: var(--orange); }
-  .mock-tag { font-size: 11px; color: var(--muted); border: 1px solid var(--border2); border-radius: 20px; padding: 3px 10px; }
+  .mock-tag { font-size: 11px; color: var(--yellow); border: 1px solid #3a3400; border-radius: 20px; padding: 3px 10px; }
 
   .tabs { display: flex; gap: 4px; }
   .tab { background: none; border: none; color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 20px; cursor: pointer; }
   .tab:hover { color: var(--text); background: var(--surface); }
   .tab.on { color: var(--text); background: var(--card); box-shadow: inset 0 0 0 1px var(--border2); }
-  .tab sup { font-size: 9px; color: var(--dim); margin-left: 3px; font-weight: 500; }
+  .tab sup { font-size: 9px; color: var(--yellow); margin-left: 3px; font-weight: 500; }
   .top-right { display: flex; align-items: center; gap: 16px; }
   .saved { background: none; border: 1px solid var(--border2); color: var(--text); border-radius: 20px; padding: 7px 13px; font-size: 13px; cursor: pointer; }
 
@@ -57,8 +55,6 @@
 
   /* FILTROS */
   .group h4, .city-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; display: block; }
-  .side > .group { padding-top: 15px; border-top: 1px solid var(--line); }
-  .side { gap: 15px !important; }
   .group h4 em { font-style: normal; text-transform: none; letter-spacing: 0; color: var(--dim); font-weight: 500; margin-left: 4px; }
   .chips { display: flex; flex-wrap: nowrap; gap: 6px; }
   .chip {
@@ -91,14 +87,11 @@
   .res-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
   .res-head h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.8px; }
   .res-head h2 span { color: var(--orange); }
-  .res-head { padding-bottom: 14px; border-bottom: 1px solid var(--line); }
   .res-sub { font-size: 13px; color: var(--dim); margin-bottom: 18px; }
   .active { display: flex; gap: 6px; flex-wrap: wrap; }
   .active span { font-size: 12px; color: var(--muted); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
 
-  .day { display: flex; align-items: center; gap: 14px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.6px; margin: 30px 0 14px; }
-  .day::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-  .day b { color: var(--text); font-weight: 700; }
+  .day { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin: 22px 0 10px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
 
   .card {
@@ -117,12 +110,14 @@
   .where b { font-weight: 600; }
   .who { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
-  .tag { font-size: 11px; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; }
+  .tag { font-size: 11.5px; color: var(--muted); background: #222; border-radius: 6px; padding: 3px 8px; }
   .price { font-size: 11.5px; font-weight: 700; letter-spacing: .5px; padding: 3px 8px; border-radius: 6px; margin-left: auto; }
-  .p-gratis { color: var(--orange); background: var(--orange-soft); }
-  .p-barato, .p-normal, .p-caro { color: var(--text); background: rgba(242,238,232,.06); }
+  .p-gratis { color: var(--neon); background: #0a2410; }
+  .p-barato { color: #9be36a; background: #132010; }
+  .p-normal { color: var(--orange); background: #2a1608; }
+  .p-caro   { color: var(--yellow); background: #262000; }
   .p-nd     { color: var(--dim); background: #1e1e1e; }
-  .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 8px; border-top-color: var(--line) !important; border-top: 1px solid var(--border); }
+  .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border); }
   .people { font-size: 11.5px; color: var(--dim); }
   .tickets { font-size: 12.5px; font-weight: 700; color: var(--orange); text-decoration: none; }
   .tickets:hover { color: #ff8a52; }
@@ -142,7 +137,7 @@
   .mc-d:hover:not(:disabled) { background: var(--border); }
   .mc-d:disabled { color: #3a3a3a; cursor: default; }
   .mc-d.today { box-shadow: inset 0 0 0 1px var(--muted); }
-  .mc-d.in { background: var(--orange-soft); border-radius: 0; color: var(--text); }
+  .mc-d.in { background: #3a1a08; border-radius: 0; color: #f0c090; }
   .mc-d.sel { background: var(--orange); color: #fff; font-weight: 700; }
   .mc-note { font-size: 11.5px; color: var(--dim); margin-top: 6px; }
 
@@ -168,7 +163,7 @@
   .chat-dock.open .chat-thread { max-height: 300px; padding: 16px 28px 4px; }
   .msg { max-width: 75%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45; }
   .msg.bot { background: var(--card); border: 1px solid var(--border); border-bottom-left-radius: 3px; align-self: flex-start; }
-  .msg.me  { background: var(--orange-soft); border: 1px solid rgba(233,104,46,.3); color: var(--text); border-bottom-right-radius: 3px; align-self: flex-end; }
+  .msg.me  { background: #1e0e05; border: 1px solid #4a2010; color: #f0c090; border-bottom-right-radius: 3px; align-self: flex-end; }
   .chat-bar { display: flex; gap: 10px; align-items: center; padding: 14px 28px 18px; }
   .chat-bar .bot-ico { width: 40px; height: 40px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
   .chat-bar input {
@@ -409,7 +404,7 @@ function buscar() {
       if (dia) html += '</div>';
       dia = e.fecha;
       const d = new Date(e.fecha + 'T12:00:00');
-      html += `<div class="day"><b>${DIAS_LARGO[d.getDay()]} ${d.getDate()}</b> ${MESES_L[d.getMonth()]}</div><div class="grid">`;
+      html += `<div class="day">${DIAS_LARGO[d.getDay()]} ${d.getDate()}</div><div class="grid">`;
     }
     html += tarjeta(e);
   });
