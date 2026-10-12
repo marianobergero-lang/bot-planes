@@ -876,26 +876,29 @@ def eventos():
     gratis    = request.args.get("gratis") == "true"
     precio_max = int(request.args.get("precio_max")) if request.args.get("precio_max") else None
     precio_min = int(request.args.get("precio_min")) if request.args.get("precio_min") else None
-    max_ev    = min(int(request.args.get("max", 8)), 60)
+    max_ev    = min(int(request.args.get("max", 8)), 300)
     categoria = request.args.get("categoria", "clubs")
     genero    = request.args.get("genero")
 
     if not desde or not hasta:
         desde, hasta = finde_proximo()
 
+    # Traemos TODOS los que pasan los filtros, contamos cuántos hay por día
+    # y después elegimos los más destacados repartidos entre los días
     if categoria != "clubs":
-        evs, total = buscar_ticketmaster(ciudad, desde, hasta, categoria, max_ev, hora_min, hora_max,
-                                         franja, gratis, precio_max, genero, precio_min)
-        return jsonify({"ciudad": ciudad, "categoria": categoria, "desde": desde, "hasta": hasta,
-                        "total_ra": total, "total": len(evs), "eventos": evs})
-
-    if ciudad not in AREAS_RA:
-        return jsonify({"error": f"Ciudad '{ciudad}' no encontrada"}), 400
-
-    evs, total = buscar_por_fecha(ciudad, desde, hasta, max_ev, hora_min, gratis, precio_max, hora_max,
-                                  genero=genero, franja=franja, precio_min=precio_min)
-    return jsonify({"ciudad": ciudad, "categoria": "clubs", "desde": desde, "hasta": hasta,
-                    "total_ra": total, "total": len(evs), "eventos": evs})
+        todos, _ = buscar_ticketmaster(ciudad, desde, hasta, categoria, 100000, hora_min, hora_max,
+                                       franja, gratis, precio_max, genero, precio_min)
+    else:
+        if ciudad not in AREAS_RA:
+            return jsonify({"error": f"Ciudad '{ciudad}' no encontrada"}), 400
+        todos, _ = buscar_por_fecha(ciudad, desde, hasta, 100000, hora_min, gratis, precio_max, hora_max,
+                                    genero=genero, franja=franja, precio_min=precio_min)
+    por_dia = {}
+    for e in todos:
+        por_dia[e.get("fecha", "")] = por_dia.get(e.get("fecha", ""), 0) + 1
+    evs = repartir_por_dia(todos, max_ev)
+    return jsonify({"ciudad": ciudad, "categoria": categoria, "desde": desde, "hasta": hasta,
+                    "total_ra": len(todos), "total": len(evs), "por_dia": por_dia, "eventos": evs})
 
 @app.route("/find-area")
 def find_area():

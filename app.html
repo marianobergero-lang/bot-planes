@@ -116,6 +116,13 @@
   .empty { padding: 40px 0; color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 520px; }
   .empty b { color: var(--text); display: block; font-size: 20px; margin-bottom: 6px; }
 
+  .more {
+    display: block; width: 100%; margin-top: 12px; padding: 12px; border-radius: 10px; cursor: pointer;
+    background: transparent; border: 1px dashed var(--border2); color: var(--muted); font-size: 13.5px; font-weight: 600; transition: all .12s;
+  }
+  .more:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); border-style: solid; }
+  .more:disabled { cursor: default; opacity: .6; }
+
   /* TARJETA */
   .card {
     display: flex; flex-direction: column; gap: 8px; background: var(--card);
@@ -386,7 +393,7 @@ function elegirDia(y, m, i) {
 }
 
 // ── BÚSQUEDA ───────────────────────────────────────────────────────────────
-let timer = null, ctrl = null;
+let timer = null, ctrl = null, ultimaBusqueda = null;
 function autoBuscar() {
   document.getElementById('main').classList.add('loading');
   clearTimeout(timer);
@@ -407,11 +414,12 @@ async function buscar() {
   if (st.precio === 'alto') p.set('precio_min', 31);
   if (ctrl) ctrl.abort();
   ctrl = new AbortController();
+  ultimaBusqueda = new URLSearchParams(p);
   try {
     const r = await fetch(`${API}/eventos?${p}`, { signal: ctrl.signal });
     const data = await r.json();
     if (data.error) throw new Error(data.error);
-    mostrar(data.eventos || [], data.total_ra || 0);
+    mostrar(data.eventos || [], data.total_ra || 0, null, data.por_dia || {});
   } catch (e) {
     if (e.name === 'AbortError') return;
     main.innerHTML = volver() + `<div class="empty"><b>Uy, se me cortó algo 😅</b>No pude traer los eventos. Probá de nuevo en un ratito.</div>`;
@@ -421,7 +429,7 @@ async function buscar() {
 
 function volver() { return '<button class="back" onclick="inicio()">← Volver a los atajos</button>'; }
 
-function mostrar(eventos, total, titulo) {
+function mostrar(eventos, total, titulo, porDia = {}) {
   const main = document.getElementById('main');
   const activos = [st.franja, st.precio, (GENEROS[st.tab] || []).find(g => g[0] === st.genero)?.[1] || st.genero].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join('');
   const n = Math.max(total, eventos.length);
@@ -437,19 +445,36 @@ function mostrar(eventos, total, titulo) {
     main.innerHTML = html; return;
   }
   html += `<div class="res-sub" style="margin-top:10px">${total > eventos.length ? `Te muestro los ${eventos.length} más destacados.` : ''} Ordenados por día.</div>`;
-  let dia = null;
-  eventos.forEach(e => {
-    if (e.fecha !== dia) {
-      if (dia) html += '</div>';
-      dia = e.fecha;
-      const d = deIso(e.fecha);
-      html += `<div class="day"><b>${DIAS_L[d.getDay()]} ${d.getDate()}</b> ${MESES_L[d.getMonth()]}</div><div class="grid">`;
+  const dias = [...new Set(eventos.map(e => e.fecha))];
+  dias.forEach(dia => {
+    const delDia = eventos.filter(e => e.fecha === dia);
+    const d = deIso(dia);
+    html += `<div class="day"><b>${DIAS_L[d.getDay()]} ${d.getDate()}</b> ${MESES_L[d.getMonth()]}</div>`;
+    html += `<div class="grid" id="grid-${dia}">${delDia.map(tarjeta).join('')}</div>`;
+    const hay = porDia[dia] || 0;
+    if (!titulo && hay > delDia.length) {
+      html += `<button class="more" id="more-${dia}" onclick="verDia('${dia}')">Ver los ${hay} ${TAB_TXT[st.tab][1]} del ${DIAS_L[d.getDay()].toLowerCase()} ${d.getDate()} ↓</button>`;
     }
-    html += tarjeta(e);
   });
-  if (dia) html += '</div>';
   main.innerHTML = html;
   main.scrollTop = 0;
+}
+
+async function verDia(dia) {
+  if (!ultimaBusqueda) return;
+  const btn = document.getElementById('more-' + dia);
+  btn.disabled = true; btn.textContent = 'Buscando todos…';
+  const p = new URLSearchParams(ultimaBusqueda);
+  p.set('desde', dia); p.set('hasta', dia); p.set('max', 300);
+  try {
+    const r = await fetch(`${API}/eventos?${p}`);
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    document.getElementById('grid-' + dia).innerHTML = (data.eventos || []).map(tarjeta).join('');
+    btn.remove();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'No pude traerlos, tocá para reintentar';
+  }
 }
 
 function tarjeta(e) {
