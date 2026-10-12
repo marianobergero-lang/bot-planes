@@ -80,8 +80,19 @@ query GET_DEFAULT_EVENTS_LISTING($filters: FilterInputDtoInput, $pageSize: Int, 
 """
 
 # Misma query + imágenes del evento. Si RA rechaza el campo, volvemos a la query base (ver buscar_por_fecha)
-RA_QUERY_FECHA_IMG = RA_QUERY_FECHA.replace("pick { blurb }", "pick { blurb }\n        images { filename type }")
-RA_USAR_IMAGENES = True
+# Campos opcionales de RA (imágenes y coordenadas del venue). Si RA rechaza alguno,
+# se desactiva solo ese y se repite la consulta, así las búsquedas nunca se rompen.
+RA_EXTRAS = {
+    "images":   ("pick { blurb }", "pick { blurb }\n        images { filename type }"),
+    "location": ("venue { name address area { name id } }", "venue { name address area { name id } location { latitude longitude } }"),
+}
+RA_EXTRAS_ACTIVOS = set(RA_EXTRAS)
+
+def query_fecha():
+    q = RA_QUERY_FECHA
+    for k in RA_EXTRAS_ACTIVOS:
+        q = q.replace(*RA_EXTRAS[k])
+    return q
 
 # Query por artista
 RA_QUERY_ARTISTA = """
@@ -403,6 +414,16 @@ def moneda_evento(ev, cost):
         return m
     return "USD" if "$" in cost else "EUR"
 
+def coords_ra(venue):
+    loc = (venue or {}).get("location") or {}
+    try:
+        lat, lng = float(loc.get("latitude")), float(loc.get("longitude"))
+        if lat or lng:
+            return {"lat": lat, "lng": lng}
+    except (TypeError, ValueError):
+        pass
+    return {"lat": None, "lng": None}
+
 def imagen_ra(ev):
     """Flyer del evento en RA (prefiere el frente del flyer)"""
     imgs = [i for i in (ev.get("images") or []) if i and i.get("filename")]
@@ -460,6 +481,7 @@ def formatear_evento(ev, venue_data=None):
         "asistentes":   ev.get("attending", 0),
         "destacado":    (ev.get("pick") or {}).get("blurb", ""),
         "imagen":       imagen_ra(ev),
+        **coords_ra(venue),
         "url":          f"https://ra.co{ev.get('contentUrl', '')}",
         "fuente":       "Resident Advisor",
     }
@@ -574,16 +596,19 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
                     "pageSize": page_size,
                     "page": page
                 },
-                "query": RA_QUERY_FECHA_IMG if RA_USAR_IMAGENES else RA_QUERY_FECHA
+                "query": query_fecha()
             }
             # Necesitamos page en la query
             payload["variables"]["page"] = page
             data  = ra_request(payload)
-            if data.get("errors") and RA_USAR_IMAGENES and "images" in str(data.get("errors")):
-                # RA no acepta el campo de imágenes: lo desactivamos y repetimos sin él
-                print(f"[RA IMAGENES] desactivadas: {str(data.get('errors'))[:200]}")
-                globals()["RA_USAR_IMAGENES"] = False
-                payload["query"] = RA_QUERY_FECHA
+            for _ in range(len(RA_EXTRAS)):
+                err = str(data.get("errors") or "")
+                malos = [k for k in RA_EXTRAS_ACTIVOS if k in err] if err else []
+                if not malos:
+                    break
+                print(f"[RA EXTRAS] desactivo {malos}: {err[:200]}")
+                RA_EXTRAS_ACTIVOS.difference_update(malos)
+                payload["query"] = query_fecha()
                 data = ra_request(payload)
             page_listings = data.get("data", {}).get("eventListings", {}).get("data", [])
             total = data.get("data", {}).get("eventListings", {}).get("totalResults", 0)
@@ -917,6 +942,8 @@ def eventos():
     for e in todos:
         por_dia[e.get("fecha", "")] = por_dia.get(e.get("fecha", ""), 0) + 1
     evs = repartir_por_dia(todos, max_ev)
+    if request.args.get("coords") == "1":
+        completar_coords(evs, ciudad)
     return jsonify({"ciudad": ciudad, "categoria": categoria, "desde": desde, "hasta": hasta,
                     "total_ra": len(todos), "total": len(evs), "por_dia": por_dia, "eventos": evs})
 
@@ -979,6 +1006,12 @@ TM_CIUDADES = {
 # Categoría de la app → segmento de Ticketmaster
 TM_SEGMENTOS = {"conciertos": "Music", "teatro": "Arts & Theatre", "deportes": "Sports", "otros": "Miscellaneous"}
 
+def _num(x):
+    try:
+        return float(x)
+    except (TypeError, ValueError):
+        return None
+
 def formatear_tm(ev):
     """Evento de Ticketmaster → mismo formato que formatear_evento (RA)"""
     st = (ev.get("dates") or {}).get("start", {})
@@ -1024,6 +1057,8 @@ def formatear_tm(ev):
         "destacado":    (ev.get("info") or ev.get("pleaseNote") or "")[:200],
         "url":          ev.get("url", ""),
         "imagen":       img,
+        "lat":          _num((venue.get("location") or {}).get("latitude")),
+        "lng":          _num((venue.get("location") or {}).get("longitude")),
         "fuente":       "Ticketmaster",
         "categoria":    (cls.get("segment") or {}).get("name", ""),
     }
@@ -1106,6 +1141,175 @@ def debug_tm():
             "ejemplos": unicos[:5],
         }
     return jsonify(out)
+
+# ── MAPA, DIRECCIONES Y BARES (OpenStreetMap) ─────────────────────────────
+import math, time
+from concurrent.futures import ThreadPoolExecutor
+
+# Centro aproximado de cada ciudad (lat, lng)
+CENTROS = {
+    "barcelona": (41.3874, 2.1686), "madrid": (40.4168, -3.7038), "ibiza": (38.9067, 1.4206), "valencia": (39.4699, -0.3763),
+    "mallorca": (39.5696, 2.6502), "berlin": (52.5200, 13.4050), "london": (51.5074, -0.1278), "amsterdam": (52.3676, 4.9041),
+    "paris": (48.8566, 2.3522), "lisbon": (38.7223, -9.1393), "porto": (41.1579, -8.6291), "rome": (41.9028, 12.4964),
+    "milan": (45.4642, 9.1900), "munich": (48.1351, 11.5820), "hamburg": (53.5511, 9.9937), "vienna": (48.2082, 16.3738),
+    "brussels": (50.8503, 4.3517), "prague": (50.0755, 14.4378), "budapest": (47.4979, 19.0402), "stockholm": (59.3293, 18.0686),
+    "buenos aires": (-34.6037, -58.3816), "rio de janeiro": (-22.9068, -43.1729), "sao paulo": (-23.5505, -46.6333),
+    "mexico city": (19.4326, -99.1332), "bogota": (4.7110, -74.0721), "santiago": (-33.4489, -70.6693),
+    "new york": (40.7128, -74.0060), "los angeles": (34.0522, -118.2437), "miami": (25.7617, -80.1918), "chicago": (41.8781, -87.6298),
+    "toronto": (43.6532, -79.3832), "montreal": (45.5017, -73.5673), "tokyo": (35.6762, 139.6503), "sydney": (-33.8688, 151.2093),
+    "melbourne": (-37.8136, 144.9631), "turin": (45.0703, 7.6869),
+}
+UA = {"User-Agent": "LetsPartIA/1.0 (stepwiseconsulting.es)"}
+_CACHE = {}
+
+def cache_get(k, ttl):
+    v = _CACHE.get(k)
+    return v[1] if v and time.time() - v[0] < ttl else None
+
+def cache_set(k, v):
+    if len(_CACHE) > 5000:
+        _CACHE.clear()
+    _CACHE[k] = (time.time(), v)
+
+def dist_km(a, b):
+    r = math.radians
+    dlat, dlon = r(b[0] - a[0]), r(b[1] - a[1])
+    h = math.sin(dlat / 2) ** 2 + math.cos(r(a[0])) * math.cos(r(b[0])) * math.sin(dlon / 2) ** 2
+    return 2 * 6371 * math.asin(math.sqrt(h))
+
+def photon(q, centro=None, limit=5):
+    """Busca direcciones/lugares con Photon (OpenStreetMap, gratis, pensado para autocompletar)"""
+    k = ("geo", q.lower().strip(), centro, limit)
+    c = cache_get(k, 86400)
+    if c is not None:
+        return c
+    params = {"q": q, "limit": limit}
+    if centro:
+        params.update({"lat": centro[0], "lon": centro[1]})
+    try:
+        r = requests.get("https://photon.komoot.io/api/", params=params, headers=UA, timeout=10)
+        feats = r.json().get("features") or []
+    except Exception as e:
+        print(f"[GEO ERROR] {e}")
+        return []
+    out = []
+    for f in feats:
+        p = f.get("properties") or {}
+        lng, lat = (f.get("geometry") or {}).get("coordinates", [None, None])
+        calle = " ".join(x for x in [p.get("street"), p.get("housenumber")] if x)
+        nombre = p.get("name") or calle or p.get("city") or q
+        detalle = ", ".join(x for x in [calle if p.get("name") else None, p.get("district") or p.get("locality"), p.get("city"), p.get("country")] if x)
+        out.append({"nombre": nombre, "detalle": detalle, "lat": lat, "lng": lng})
+    cache_set(k, out)
+    return out
+
+@app.route("/geo")
+def geo():
+    """Autocompletar direcciones. Uso: /geo?q=carrer de blai 30&ciudad=barcelona"""
+    q = (request.args.get("q") or "").strip()
+    if len(q) < 3:
+        return jsonify({"resultados": []})
+    ciudad = (request.args.get("ciudad") or "").lower().strip()
+    centro = CENTROS.get(ciudad)
+    texto = q if not ciudad or ciudad in q.lower() else f"{q}, {ciudad}"
+    res = photon(texto, centro)
+    if centro:  # primero lo que está en la ciudad elegida
+        res.sort(key=lambda x: dist_km(centro, (x["lat"], x["lng"])) if x["lat"] is not None else 9999)
+    return jsonify({"resultados": res})
+
+def completar_coords(eventos, ciudad, max_nuevos=20):
+    """Para eventos sin coordenadas, las busca a partir del venue y la dirección (con caché)"""
+    centro = CENTROS.get((ciudad or "").lower())
+    faltan = [e for e in eventos if e.get("lat") is None and (e.get("venue") or e.get("direccion"))]
+    claves = []
+    for e in faltan:
+        q = ", ".join(x for x in [e.get("venue"), e.get("direccion"), e.get("ciudad_venue") or ciudad] if x)
+        claves.append((e, q))
+    nuevos = [q for _, q in claves if cache_get(("geo", q.lower().strip(), centro, 1), 86400 * 30) is None]
+    nuevos = list(dict.fromkeys(nuevos))[:max_nuevos]
+    if nuevos:
+        with ThreadPoolExecutor(max_workers=4) as ex:
+            list(ex.map(lambda q: photon(q, centro, 1), nuevos))
+    for e, q in claves:
+        r = cache_get(("geo", q.lower().strip(), centro, 1), 86400 * 30) or []
+        if r and r[0]["lat"] is not None and (not centro or dist_km(centro, (r[0]["lat"], r[0]["lng"])) < 60):
+            e["lat"], e["lng"] = r[0]["lat"], r[0]["lng"]
+
+# Tipos de bar → cómo reconocerlos en las etiquetas de OpenStreetMap
+RE_VINO = re.compile(r"vin|vino|wine|bodega|celler|vermut|vermout", re.I)
+RE_CERVEZA = re.compile(r"cervec|cerves|beer|brew|craft|pub|taproom|birra", re.I)
+RE_COCTEL = re.compile(r"cocktail|c[oó]ctel|gin\b|speakeasy|mixolog", re.I)
+
+def tipos_bar(t):
+    nombre = t.get("name", "")
+    tipos = []
+    if t.get("cocktails") == "yes" or t.get("drink:cocktail") in ("yes", "served") or RE_COCTEL.search(nombre):
+        tipos.append("cocteles")
+    if t.get("drink:wine") in ("yes", "served") or t.get("bar") == "wine" or RE_VINO.search(nombre):
+        tipos.append("vinos")
+    if t.get("amenity") in ("pub", "biergarten") or t.get("craft_beer") == "yes" or t.get("drink:craft_beer") in ("yes", "served") or RE_CERVEZA.search(nombre):
+        tipos.append("cervezas")
+    if t.get("outdoor_seating") == "yes" or t.get("amenity") == "biergarten":
+        tipos.append("terraza")
+    if t.get("live_music") == "yes":
+        tipos.append("musica")
+    return tipos
+
+ETIQUETA_TIPO = {"cocteles": "Cócteles", "vinos": "Vinos", "cervezas": "Cervezas", "terraza": "Terraza", "musica": "Música en vivo"}
+
+@app.route("/bares")
+def bares():
+    """Bares de OpenStreetMap. Uso: /bares?ciudad=barcelona[&lat=..&lng=..][&radio=1500][&tipo=cocteles]"""
+    ciudad = (request.args.get("ciudad") or "barcelona").lower().strip()
+    lat, lng = request.args.get("lat"), request.args.get("lng")
+    centro = (float(lat), float(lng)) if lat and lng else CENTROS.get(ciudad)
+    if not centro:
+        return jsonify({"error": "Ciudad sin coordenadas", "bares": []}), 400
+    radio = max(300, min(int(request.args.get("radio", 2500)), 5000))
+    tipo = request.args.get("tipo")
+    k = ("bares", round(centro[0], 3), round(centro[1], 3), radio)
+    elementos = cache_get(k, 3600)
+    if elementos is None:
+        q = f"""[out:json][timeout:25];
+        (node["amenity"~"^(bar|pub|biergarten)$"]["name"](around:{radio},{centro[0]},{centro[1]});
+         way["amenity"~"^(bar|pub|biergarten)$"]["name"](around:{radio},{centro[0]},{centro[1]}););
+        out center tags 400;"""
+        try:
+            r = requests.post("https://overpass-api.de/api/interpreter", data={"data": q}, headers=UA, timeout=30)
+            elementos = r.json().get("elements") or []
+            cache_set(k, elementos)
+        except Exception as e:
+            print(f"[OVERPASS ERROR] {e}")
+            return jsonify({"error": "No pude traer los bares ahora", "bares": []}), 502
+    out = []
+    for el in elementos:
+        t = el.get("tags") or {}
+        la = el.get("lat") or (el.get("center") or {}).get("lat")
+        lo = el.get("lon") or (el.get("center") or {}).get("lon")
+        if la is None or not t.get("name"):
+            continue
+        tipos = tipos_bar(t)
+        if tipo and tipo not in tipos:
+            continue
+        calle = " ".join(x for x in [t.get("addr:street"), t.get("addr:housenumber")] if x)
+        out.append({
+            "id": f"osm-{el.get('type')}-{el.get('id')}",
+            "tipo": "bar",
+            "titulo": t["name"],
+            "categoria": {"pub": "Pub", "biergarten": "Cervecería al aire libre"}.get(t.get("amenity"), "Bar"),
+            "tags": [ETIQUETA_TIPO[x] for x in tipos][:3],
+            "direccion": calle,
+            "barrio": t.get("addr:suburb") or t.get("addr:district") or "",
+            "horario": t.get("opening_hours", ""),
+            "web": t.get("website") or t.get("contact:website") or "",
+            "telefono": t.get("phone") or t.get("contact:phone") or "",
+            "lat": la, "lng": lo,
+            "distancia": round(dist_km(centro, (la, lo)), 3),
+            "info": sum(1 for x in [calle, t.get("opening_hours"), t.get("website") or t.get("contact:website")] if x),
+        })
+    # Primero los que tienen más info cargada y están más cerca
+    out.sort(key=lambda b: (b["distancia"] - 0.25 * b["info"]))
+    return jsonify({"ciudad": ciudad, "centro": centro, "radio": radio, "total": len(out), "bares": out[:120]})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
