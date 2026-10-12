@@ -118,9 +118,9 @@
   .when { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
   .when .date { align-self: stretch; }
   .hours { text-align: center; font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.35; font-variant-numeric: tabular-nums; }
-  .hours span { display: block; color: var(--dim); font-weight: 500; font-size: 11px; }
+  .hours span { color: var(--dim); font-weight: 500; font-size: 11px; }
   .body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-  .town { font-size: 10.5px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+  .town { float: right; margin: 1px 0 4px 10px; max-width: 45%; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10.5px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
   .title { font-size: 14.5px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.25; }
   .where { font-size: 12.5px; color: var(--text); opacity: .85; }
   .where b { font-weight: 600; }
@@ -445,11 +445,10 @@ function tarjeta(e) {
     <article class="card">
       <div class="when">
         <div class="date"><div class="dw">${DIAS[d.getDay()]}</div><div class="dn">${d.getDate()}</div><div class="dm">${MESES[d.getMonth()]}</div></div>
-        <div class="hours">${e.hora}${e.fin ? `<span>a ${e.fin}</span>` : ''}</div>
+        <div class="hours"><div><span>de</span> ${e.hora}</div>${e.fin ? `<div><span>a</span> ${e.fin}</div>` : ''}</div>
       </div>
       <div class="body">
-        <div class="town">📍 ${document.getElementById('city').value}</div>
-        <div class="title">${e.titulo}</div>
+        <div class="title"><span class="town">📍 ${document.getElementById('city').value}</span>${e.titulo}</div>
         <div class="where"><b>${e.venue}</b></div>
         ${e.artistas.length ? `<div class="who">${e.artistas.join(', ')}</div>` : ''}
         <div class="tags">
