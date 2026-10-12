@@ -172,6 +172,8 @@
   }
   .tickets.btn:hover { background: var(--orange); border-color: var(--orange); color: #fff; }
 
+  .who-top { font-size: 13px; color: var(--muted); margin-top: -4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
   /* MINI CALENDARIO */
   .group-cuando { position: relative; }
   .mini-cal { display: none; position: absolute; left: 0; top: 100%; margin-top: 8px; width: 310px; z-index: 20; background: var(--card); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px 12px; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
@@ -478,10 +480,10 @@ function tarjeta(e) {
     <article class="card">
       <div class="town">📍 ${document.getElementById('city').value}</div>
       <div class="title">${e.titulo}</div>
+      ${e.artistas.length ? `<div class="who-top">${e.artistas.join(', ')}</div>` : ''}
       <div class="facts">
         <div><span>en:</span> <b>${e.venue}</b></div>
-        <div><span>de</span> ${e.hora}${e.fin ? ` <span>a</span> ${e.fin}` : ''}</div>
-        ${e.artistas.length ? `<div class="who">${e.artistas.join(', ')}</div>` : ''}
+        <div><span>de</span> ${e.hora}${e.fin ? ` <span>a</span> ${e.fin}` : ''}<span> hs</span></div>
       </div>
       <div class="foot2">
         <div class="tags">${e.generos.slice(0, 2).map(g => `<span class="tag">${g}</span>`).join('')}</div>
