@@ -420,7 +420,7 @@ def formatear_evento(ev, venue_data=None):
     if es_gratis:
         precio_cat, precio_label = "gratis", "Gratis"
     elif precio_num is None:
-        precio_cat, precio_label = "nd", "Ver precio en RA"
+        precio_cat, precio_label = "nd", "Precio en web"
     elif precio_num < 15:
         precio_cat, precio_label = "barato", f"Barato · {precio_txt}"
     elif precio_num <= 30:
@@ -959,7 +959,7 @@ def formatear_tm(ev):
     precio_local = (pr or {}).get("min")
     precio_num = None if precio_local is None else round(precio_local * a_eur)
     if precio_local is None:
-        precio_cat, precio_label = "nd", "Ver precio"
+        precio_cat, precio_label = "nd", "Precio en web"
     elif precio_local == 0:
         precio_cat, precio_label = "gratis", "Gratis"
     else:

@@ -413,7 +413,7 @@ function badgeInfo(ev) {
   // El backend ya manda categoría (en euros) + precio en moneda local: "Barato · R$50"
   const cat = ev.precio_cat || (ev.gratis ? 'gratis' : 'nd');
   const cls = { gratis: 'badge-gratis', barato: 'badge-barato', normal: 'badge-normal', caro: 'badge-caro' }[cat] || 'badge-nd';
-  const txt = cat === 'nd' ? 'VER PRECIO' : (ev.precio_label || 'GRATIS').toUpperCase();
+  const txt = cat === 'nd' ? 'PRECIO EN WEB' : (ev.precio_label || 'GRATIS').toUpperCase();
   return { cls, txt };
 }
 

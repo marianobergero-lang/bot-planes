@@ -106,14 +106,19 @@
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
 
   .card {
+    grid-template-columns: 58px 1fr !important;
     display: grid; grid-template-columns: 50px 1fr; gap: 12px; background: var(--card);
     border: 1px solid var(--border); border-radius: 12px; padding: 12px 13px; transition: border-color .12s, transform .12s;
   }
   .card:hover { border-color: #4a4a4a; transform: translateY(-1px); }
   .date { border: 1.5px solid var(--border2); border-radius: 10px; text-align: center; overflow: hidden; align-self: start; }
-  .date .dw { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; color: var(--muted); border-bottom: 1.5px solid var(--border2); padding: 4px 0 3px; }
-  .date .dn { font-size: 19px; font-weight: 700; letter-spacing: -1px; padding: 5px 0 0; line-height: 1.1; }
-  .date .dm { font-size: 9px; font-weight: 600; color: var(--dim); letter-spacing: 1px; padding-bottom: 6px; }
+  .date .dw { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: var(--muted); border-bottom: 1.5px solid var(--border2); padding: 4px 0 3px; }
+  .date .dn { font-size: 26px; font-weight: 700; letter-spacing: -1.2px; padding: 4px 0 0; line-height: 1.05; }
+  .date .dm { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 1.2px; padding-bottom: 7px; }
+  .when { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+  .when .date { align-self: stretch; }
+  .hours { text-align: center; font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.35; font-variant-numeric: tabular-nums; }
+  .hours span { display: block; color: var(--dim); font-weight: 500; font-size: 11px; }
   .body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .town { font-size: 10.5px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
   .title { font-size: 14.5px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.25; }
@@ -122,7 +127,8 @@
   .who { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
   .tag { font-size: 11px; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; }
-  .price { font-size: 11.5px; font-weight: 700; letter-spacing: .5px; padding: 3px 8px; border-radius: 6px; margin-left: auto; }
+  .price { font-size: 11.5px; font-weight: 700; letter-spacing: .5px; padding: 4px 9px; border-radius: 6px; }
+  .tags .people { margin-left: auto; }
   .p-gratis { color: var(--orange); background: var(--orange-soft); }
   .p-barato, .p-normal, .p-caro { color: var(--text); background: rgba(242,238,232,.06); }
   .p-nd     { color: var(--dim); background: #1e1e1e; }
@@ -434,21 +440,24 @@ function buscar() {
 
 function tarjeta(e) {
   const d = new Date(e.fecha + 'T12:00:00');
-  const precio = { gratis: 'GRATIS', nd: 'VER PRECIO' }[e.cat] || `${e.cat.toUpperCase()} · ${e.precio}`;
+  const precio = { gratis: 'GRATIS', nd: 'PRECIO EN WEB' }[e.cat] || `${e.cat.toUpperCase()} · ${e.precio}`;
   return `
     <article class="card">
-      <div class="date"><div class="dw">${DIAS[d.getDay()]}</div><div class="dn">${d.getDate()}</div><div class="dm">${MESES[d.getMonth()]}</div></div>
+      <div class="when">
+        <div class="date"><div class="dw">${DIAS[d.getDay()]}</div><div class="dn">${d.getDate()}</div><div class="dm">${MESES[d.getMonth()]}</div></div>
+        <div class="hours">${e.hora}${e.fin ? `<span>a ${e.fin}</span>` : ''}</div>
+      </div>
       <div class="body">
         <div class="town">📍 ${document.getElementById('city').value}</div>
         <div class="title">${e.titulo}</div>
-        <div class="where"><b>${e.venue}</b> · ${e.hora} → ${e.fin}</div>
+        <div class="where"><b>${e.venue}</b></div>
         ${e.artistas.length ? `<div class="who">${e.artistas.join(', ')}</div>` : ''}
         <div class="tags">
           ${e.generos.map(g => `<span class="tag">${g}</span>`).join('')}
-          <span class="price p-${e.cat}">${precio}</span>
+          <span class="people">${e.gente ? `👥 ${e.gente} interesados` : 'Nuevo'}</span>
         </div>
         <div class="foot">
-          <span class="people">${e.gente ? `${e.gente} interesados` : 'Nuevo en RA'}</span>
+          <span class="price p-${e.cat}">${precio}</span>
           <a class="tickets" href="#" onclick="return false">Entradas →</a>
         </div>
       </div>
