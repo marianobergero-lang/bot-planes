@@ -103,7 +103,7 @@
   .btn:hover { background: var(--orange); color: #fff; }
   .btn.ghost { border-color: var(--border2); color: var(--text); }
   .btn.ghost:hover { background: var(--surface); color: var(--text); }
-  .btn.added { background: var(--orange); color: #fff; border-color: var(--orange); }
+  .btn.added { background: var(--orange-soft); color: var(--orange); border-color: rgba(233,104,46,.55); }
 
   /* Mi noche */
   .noche {
@@ -171,6 +171,8 @@
   .pin.me { background: #4da3ff; box-shadow: 0 0 0 6px rgba(77,163,255,.25); }
   .pin.big { transform: scale(1.4); }
   .leaflet-container { font-family: 'Space Grotesk', sans-serif; background: #1a1916; }
+  .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.6); }
+  .map-count { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 500; background: var(--card); border: 1px solid var(--border2); border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 600; pointer-events: none; }
   .leaflet-tooltip { background: var(--card); color: var(--text); border: 1px solid var(--border2); font-weight: 600; }
   .leaflet-tooltip:before { display: none; }
   .map-off { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; color: var(--dim); font-size: 13px; text-align: center; padding: 20px; }
@@ -196,7 +198,7 @@
     <button class="tab" data-tab="teatro">🎭 Teatro y shows</button>
   </nav>
   <div style="display:flex;gap:12px;align-items:center">
-    <button class="planes-btn" id="planesbtn" onclick="togglePlanes(event)">🗓️ Mis planes <b id="nnum"></b></button>
+    <button class="planes-btn" id="planesbtn" onclick="togglePlanes(event)">♥ Mis planes favoritos <b id="nnum"></b></button>
     <div class="mock">Maqueta · datos de ejemplo</div>
   </div>
 </header>
@@ -230,7 +232,7 @@
     </div>
     <div class="group" data-para="clubs">
       <h4>Distancia</h4>
-      <div class="chips" id="dist-ev"><button class="chip" data-km="1">A pie <small>&lt; 1 km</small></button><button class="chip" data-km="3">Cerca <small>&lt; 3 km</small></button><button class="chip on" data-km="99">Toda la ciudad</button></div>
+      <div class="chips dist" id="dist-ev"><button class="chip" data-km="1.5">A pie <small>&lt; 1,5 km</small></button><button class="chip" data-km="3">Cerca <small>&lt; 3 km</small></button><button class="chip on" data-km="99">Toda la ciudad</button></div>
     </div>
 
     <!-- Filtros de bares -->
@@ -251,7 +253,7 @@
     </div>
     <div class="group" data-para="bares" hidden>
       <h4>Distancia</h4>
-      <div class="chips" id="dist-bar"><button class="chip" data-km="1">A pie <small>&lt; 1 km</small></button><button class="chip" data-km="3">Cerca <small>&lt; 3 km</small></button><button class="chip on" data-km="99">Toda la ciudad</button></div>
+      <div class="chips dist" id="dist-bar"><button class="chip" data-km="1.5">A pie <small>&lt; 1,5 km</small></button><button class="chip" data-km="3">Cerca <small>&lt; 3 km</small></button><button class="chip on" data-km="99">Toda la ciudad</button></div>
     </div>
   </aside>
 
@@ -272,7 +274,7 @@
     </div>
 
     <div class="noche closed" id="noche">
-      <div class="noche-head"><b>🗓️ Mis planes · <span>sábado 17</span></b><em onclick="togglePlanes(event)">✕</em></div>
+      <div class="noche-head"><b>♥ Mis planes favoritos · <span>sábado 17</span></b><em onclick="togglePlanes(event)">✕</em></div>
       <div class="noche-body" id="nbody"></div>
     </div>
   </section>
@@ -299,8 +301,22 @@ const BARES = [
   { id: 'b8', tipo: 'bar', dir: 'Carrer de Verdi, 12 (ejemplo)', titulo: 'Terraza Gràcia', cat: 'Cervezas', barrio: 'Gràcia', pos: [41.4005, 2.1570], rating: 4.3, reviews: 450, abre: '17:00', cierra: '01:30', precio: '€', color: '#2d3a18', emoji: '☀️', tags: ['Cervezas', 'Terraza'] },
 ];
 
+// Extra: eventos y bares de ejemplo repartidos por la ciudad, para ver el mapa con volumen
+(function () {
+  let s = 7; const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  const barrios = ['Eixample', 'Gràcia', 'El Born', 'Raval', 'Poble Sec', 'Poblenou', 'Sants', 'Sant Antoni', 'Barceloneta', 'Gòtic'];
+  const horas = ['22:00', '23:00', '23:30', '00:00', '00:30'];
+  for (let i = 1; i <= 26; i++) EVENTOS.push({ id: 'ex' + i, tipo: 'ev', titulo: `Fiesta de ejemplo ${i}`, who: 'Artistas varios', venue: `Club ejemplo ${i}`, dir: `Calle de ejemplo, ${i * 3}`,
+    barrio: barrios[i % 10], hora: horas[i % 5], fin: '05:00', pos: [41.365 + rnd() * 0.045, 2.130 + rnd() * 0.075], gente: Math.round(40 + rnd() * 600), precio: 'NORMAL · €18', color: '#2a2433', emoji: '🪩' });
+  const cats = [['Cócteles', '🍸'], ['Vinos', '🍷'], ['Cervezas', '🍺'], ['Terraza', '☀️'], ['Música en vivo', '🎷']];
+  for (let i = 1; i <= 26; i++) { const c = cats[i % 5]; BARES.push({ id: 'bx' + i, tipo: 'bar', dir: `Calle de ejemplo, ${i * 5} (ejemplo)`, titulo: `Bar de ejemplo ${i}`, cat: c[0], barrio: barrios[i % 10],
+    pos: [41.368 + rnd() * 0.04, 2.135 + rnd() * 0.07], rating: Math.round((4 + rnd() * 0.8) * 10) / 10, reviews: Math.round(80 + rnd() * 900), abre: '19:00', cierra: '02:00', precio: ['€', '€€', '€€€'][i % 3], color: '#2d2a24', emoji: c[1], tags: [c[0]] }); }
+})();
+
 // ── ESTADO ─────────────────────────────────────────────────────────────────
-const st = { tab: 'clubs', cerca: false, vista: 'lista', previaDe: null, tipoBar: null, kmEv: 99, kmBar: 99 };
+const st = { tab: 'clubs', cerca: false, vista: 'lista', previaDe: null, tipoBar: null, km: 99 };
+const MAX_MAPA = 20;
+let moviendoPorCodigo = false;
 const noche = []; // { item, hora }
 let map = null, capas = [];
 
@@ -321,25 +337,33 @@ function datos() {
   const o = origen();
   let lista = (st.tab === 'bares' ? BARES : EVENTOS).map(x => ({ ...x, d: o ? km(o, x.pos) : null }));
   if (st.tab === 'bares' && st.tipoBar) lista = lista.filter(b => b.tags.includes(st.tipoBar));
-  const lim = st.tab === 'bares' ? st.kmBar : st.kmEv;
-  if (o && lim < 99) lista = lista.filter(x => x.d <= lim);
+  if (o && st.km < 99 && st.vista === 'lista') lista = lista.filter(x => x.d <= st.km);
   const orden = document.getElementById('orden').value;
   lista.sort((a, b) => orden === 'dist' && o ? a.d - b.d : (b.gente || b.reviews) - (a.gente || a.reviews));
   return lista;
 }
 
+let encuadrar = true;
 function render() {
-  const lista = datos();
+  let lista = datos();
+  let totalFiltro = lista.length;
+  if (st.vista === 'mapa' && map) {
+    if (encuadrar) { encuadrarMapa(lista); encuadrar = false; }
+    const b = map.getBounds();
+    lista = lista.filter(x => b.contains(x.pos)).slice(0, MAX_MAPA);
+  }
   const t = document.getElementById('titulo'), s = document.getElementById('sub');
   if (st.tab === 'bares') {
-    t.innerHTML = st.previaDe ? `Previa cerca de <span>${st.previaDe.venue}</span>` : `${lista.length} bares en <span>Barcelona</span>`;
-    s.textContent = st.previaDe ? `Abiertos antes de las ${st.previaDe.hora} · ordenados por distancia al club` : (st.cerca ? 'Ordenados por distancia a vos' : 'Ordenados por valoración');
+    t.innerHTML = `${totalFiltro} bares en <span>Barcelona</span>`;
+    s.textContent = st.vista === 'mapa' ? `En el mapa: ${lista.length} en esta zona${lista.length === MAX_MAPA ? ' (los 20 mejor valorados, acercate para ver más)' : ''}`
+      : st.cerca ? (st.km < 99 ? `A menos de ${String(st.km).replace('.', ',')} km de ${YO_TXT}` : `Distancias desde ${YO_TXT}`) : 'Ordenados por valoración';
   } else {
-    t.innerHTML = `${lista.length} planes en <span>Barcelona</span> · este finde`;
-    s.textContent = st.cerca ? 'Mostrando distancia desde tu ubicación' : 'Ordenados por popularidad';
+    t.innerHTML = `${totalFiltro} planes en <span>Barcelona</span> · este finde`;
+    s.textContent = st.vista === 'mapa' ? `En el mapa: ${lista.length} en esta zona${lista.length === MAX_MAPA ? ' (los 20 más destacados, acercate para ver más)' : ''}`
+      : st.cerca ? (st.km < 99 ? `A menos de ${String(st.km).replace('.', ',')} km de ${YO_TXT}` : `Distancias desde ${YO_TXT}`) : 'Ordenados por popularidad';
   }
   let html = '';
-  if (st.previaDe) html += `<div class="banner"><div>🍸 Bares a pocos minutos de <b>${st.previaDe.venue}</b> para arrancar antes de <b>${st.previaDe.titulo}</b>.</div><button onclick="salirPrevia()">✕ Ver todos</button></div>`;
+  if (!lista.length) html += `<div class="empty" style="color:var(--muted);padding:30px 4px;font-size:14px">${st.vista === 'mapa' ? 'No hay nada en esta zona del mapa. Alejate o movete un poco 🗺️' : 'No hay nada tan cerca. Probá con "Cerca < 3 km" o "Toda la ciudad".'}</div>`;
   html += `<div class="grid">${lista.map(x => x.tipo === 'bar' ? cardBar(x) : cardEv(x)).join('')}</div>`;
   document.getElementById('list').innerHTML = html;
   if (st.vista === 'mapa') pintarMapa(lista);
@@ -349,14 +373,14 @@ function cardEv(e) {
   const enNoche = noche.some(n => n.item.id === e.id);
   return `<article class="card" id="c-${e.id}" onmouseenter="resaltar('${e.id}', true)" onmouseleave="resaltar('${e.id}', false)">
     <div class="pic" style="background:linear-gradient(135deg, ${e.color}, #121110)">${e.emoji}
-      ${e.d != null ? `<span class="dist">${fmtDist(e.d)}</span>` : ''}</div>
+      ${e.d != null ? `<span class="dist">${fmtDist(e.d)} · ${aPie(e.d)}</span>` : ''}</div>
     <div class="inner">
       <div class="title">${e.titulo}</div>
       <div class="who">${e.who}</div>
       <div class="facts"><div><span>en:</span> <b>${e.venue}</b> <button class="dir-btn" onclick="verDireccion('${e.id}')">📍 Ver dirección</button></div><div><span>de</span> ${e.hora} <span>a</span> ${e.fin}<span> hs</span></div></div>
       <div class="foot">
-        <button class="btn ghost" onclick="previa('${e.id}')">🍸 Previa cerca</button>
-        <button class="btn ${enNoche ? 'added' : ''}" onclick="agregar('${e.id}')">${enNoche ? '✓ En mis planes' : '+ Mis planes'}</button>
+        <button class="btn ghost ${enNoche ? 'added' : ''}" onclick="agregar('${e.id}')">${enNoche ? '♥ En mis planes' : '♡ Mis planes'}</button>
+        <button class="btn" onclick="alert('En la versión real abre la compra en RA / Ticketmaster')">Ver tickets →</button>
       </div>
     </div>
   </article>`;
@@ -364,7 +388,7 @@ function cardEv(e) {
 
 function cardBar(b) {
   const enNoche = noche.some(n => n.item.id === b.id);
-  const lejosTxt = b.d != null ? (st.previaDe ? `${fmtDist(b.d)} · ${aPie(b.d)} al club` : fmtDist(b.d)) : '';
+  const lejosTxt = b.d != null ? `${fmtDist(b.d)} · ${aPie(b.d)}` : '';
   return `<article class="card" id="c-${b.id}" onmouseenter="resaltar('${b.id}', true)" onmouseleave="resaltar('${b.id}', false)">
     <div class="pic" style="background:linear-gradient(135deg, ${b.color}, #121110)">${b.emoji}
       <span class="badge">${b.precio}</span>${lejosTxt ? `<span class="dist">${lejosTxt}</span>` : ''}</div>
@@ -377,8 +401,8 @@ function cardBar(b) {
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">${b.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
       <div class="foot">
-        <button class="btn ghost" onclick="alert('En la versión real abre la reserva (TheFork / OpenTable) o Google Maps')">Reservar</button>
-        <button class="btn ${enNoche ? 'added' : ''}" onclick="agregar('${b.id}')">${enNoche ? '✓ En mis planes' : '+ Mis planes'}</button>
+        <button class="btn ghost ${enNoche ? 'added' : ''}" onclick="agregar('${b.id}')">${enNoche ? '♥ En mis planes' : '♡ Mis planes'}</button>
+        <button class="btn" onclick="alert('En la versión real abre la reserva (TheFork / OpenTable)')">Reservar →</button>
       </div>
     </div>
   </article>`;
@@ -393,11 +417,12 @@ function modo(m) {
   if (m === 'mapa') {
     if (!map && window.L) {
       map = L.map('map', { zoomControl: true, attributionControl: true }).setView([41.388, 2.172], 13);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '© OpenStreetMap · © CARTO', subdomains: 'abcd', maxZoom: 19,
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap', maxZoom: 19,
       }).addTo(map);
+      map.on('moveend', () => { if (st.vista === 'mapa' && !moviendoPorCodigo) render(); });
     }
-    if (map) setTimeout(() => { map.invalidateSize(); render(); }, 50);
+    if (map) { encuadrar = true; setTimeout(() => { map.invalidateSize(); render(); }, 60); return; }
   }
   render();
 }
@@ -409,9 +434,8 @@ function pintarMapa(lista) {
   const pts = [];
   if (origen()) {
     const o = origen();
-    const m = L.marker(o, { icon: icono(st.previaDe ? 'ev big' : 'me') }).addTo(map).bindTooltip(st.previaDe ? st.previaDe.venue : 'Vos', { permanent: true, direction: 'top', offset: [0, -10] });
+    const m = L.marker(o, { icon: icono('me') }).addTo(map).bindTooltip('Vos', { permanent: true, direction: 'top', offset: [0, -10] });
     capas.push(m); pts.push(o);
-    if (st.previaDe) { const c = L.circle(o, { radius: 1000, color: '#E9682E', weight: 1, fillOpacity: .05 }).addTo(map); capas.push(c); }
   }
   lista.forEach(x => {
     const m = L.marker(x.pos, { icon: icono(x.tipo === 'bar' ? 'bar' : 'ev') }).addTo(map)
@@ -419,7 +443,13 @@ function pintarMapa(lista) {
       .on('click', () => { const c = document.getElementById('c-' + x.id); c.scrollIntoView({ behavior: 'smooth', block: 'center' }); resaltar(x.id, true); setTimeout(() => resaltar(x.id, false), 1500); });
     marcadores[x.id] = m; capas.push(m); pts.push(x.pos);
   });
-  if (pts.length) map.fitBounds(pts, { padding: [40, 40], maxZoom: 15 });
+}
+function encuadrarMapa(lista) {
+  moviendoPorCodigo = true;
+  if (st.cerca) map.setView(YO, 15);
+  else if (lista.length) map.fitBounds(lista.map(x => x.pos), { padding: [30, 30], maxZoom: 14 });
+  else map.setView([41.388, 2.172], 13);
+  setTimeout(() => { moviendoPorCodigo = false; }, 400);
 }
 function resaltar(id, on) {
   const c = document.getElementById('c-' + id); if (c) c.classList.toggle('hl', on);
@@ -436,12 +466,12 @@ const DIRECCIONES = [
 let YO_TXT = '';
 function abrirCerca(ev) {
   ev.stopPropagation();
-  if (st.cerca) { st.cerca = false; actualizarCerca(); return; }
+  if (st.cerca) { st.cerca = false; st.km = 99; pintarKm(); encuadrar = true; actualizarCerca(); return; }
   document.getElementById('nearpop').classList.toggle('open');
   document.getElementById('diri').focus();
 }
 function fijarUbicacion(pos, txt) {
-  YO[0] = pos[0]; YO[1] = pos[1]; YO_TXT = txt; st.cerca = true;
+  YO[0] = pos[0]; YO[1] = pos[1]; YO_TXT = txt; st.cerca = true; st.km = 1.5; pintarKm(); encuadrar = true;
   document.getElementById('nearpop').classList.remove('open');
   actualizarCerca();
 }
@@ -485,7 +515,7 @@ function verDireccion(id) {
   if (window.L) {
     if (miniMapa) { miniMapa.remove(); miniMapa = null; }
     miniMapa = L.map('modalmap', { zoomControl: false, attributionControl: false }).setView(x.pos, 16);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd' }).addTo(miniMapa);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMapa);
     L.marker(x.pos, { icon: L.divIcon({ className: '', html: `<div class="pin ${x.tipo === 'bar' ? 'bar' : 'ev'} big"></div>`, iconSize: [16, 16], iconAnchor: [8, 8] }) }).addTo(miniMapa);
     setTimeout(() => miniMapa.invalidateSize(), 50);
   }
@@ -522,7 +552,7 @@ function pintarNoche() {
   const n = [...noche].sort((a, b) => orden(a.hora) - orden(b.hora));
   document.getElementById('nnum').textContent = n.length ? `${n.length}` : '';
   const body = document.getElementById('nbody');
-  if (!n.length) { body.innerHTML = `<div class="noche-empty">Todavía no armaste nada. Sumá una fiesta y los bares para la previa con <b>+ Mis planes</b> y te armo el recorrido con horarios y distancias.</div>`; return; }
+  if (!n.length) { body.innerHTML = `<div class="noche-empty">Todavía no armaste nada. Sumá una fiesta y los bares para la previa con <b>♡ Mis planes</b> y te armo el recorrido con horarios y distancias.</div>`; return; }
   let html = '';
   n.forEach((s, i) => {
     if (i > 0) { const d = km(n[i - 1].item.pos, s.item.pos); html += `<div class="walk">🚶 ${aPie(d)} · ${fmtDist(d)}</div>`; }
@@ -549,12 +579,11 @@ document.getElementById('tipo').addEventListener('click', e => {
   document.querySelectorAll('#tipo .chip').forEach(x => x.classList.toggle('on', x.dataset.v === st.tipoBar));
   render();
 });
-['dist-ev', 'dist-bar'].forEach(id => document.getElementById(id).addEventListener('click', e => {
+function pintarKm() { document.querySelectorAll('.dist .chip').forEach(x => x.classList.toggle('on', Number(x.dataset.km) === st.km)); }
+document.querySelectorAll('.dist').forEach(g => g.addEventListener('click', e => {
   const c = e.target.closest('.chip'); if (!c) return;
-  if (!st.cerca && !st.previaDe && c.dataset.km !== '99') { document.getElementById('nearpop').classList.add('open'); }
-  st[id === 'dist-ev' ? 'kmEv' : 'kmBar'] = Number(c.dataset.km);
-  document.querySelectorAll(`#${id} .chip`).forEach(x => x.classList.toggle('on', x === c));
-  render();
+  if (!st.cerca && c.dataset.km !== '99') { e.stopPropagation(); document.getElementById('nearpop').classList.add('open'); return; }
+  st.km = Number(c.dataset.km); pintarKm(); render();
 }));
 document.querySelectorAll('#momento .chip').forEach(c => c.addEventListener('click', () => {
   document.querySelectorAll('#momento .chip').forEach(x => x.classList.toggle('on', x === c));

@@ -177,6 +177,12 @@
   .saved-btn { background: none; border: 1px solid var(--border2); color: var(--text); border-radius: 20px; padding: 7px 13px; font-size: 13px; cursor: pointer; white-space: nowrap; }
   .saved-btn:hover { border-color: var(--orange); }
   .saved-btn b { color: var(--orange); }
+  .saved-btn.pulse { animation: pulse .6s ease; }
+  @keyframes pulse { 0% { transform: scale(1); } 40% { transform: scale(1.1); box-shadow: 0 0 0 6px var(--orange-soft); } 100% { transform: scale(1); } }
+  .fav { justify-self: start; background: transparent; border: 1px solid var(--border2); color: var(--text); border-radius: 8px; padding: 6px 12px; font: 700 12.5px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; transition: all .12s; }
+  .fav:hover { border-color: var(--orange); }
+  .fav.on { background: var(--orange-soft); border-color: rgba(233,104,46,.55); color: var(--orange); }
+  .facts .people { font-size: 12px; color: var(--dim); margin-top: 2px; }
 
   /* CHAT */
   .chat-dock { border-top: 1px solid var(--border); background: var(--bg); flex-shrink: 0; }
@@ -240,7 +246,7 @@
     <button class="tab" data-tab="deportes">⚽ Deportes</button>
   </nav>
   <div style="display:flex;align-items:center;gap:14px">
-    <button class="saved-btn" onclick="verGuardados()">❤️ Guardados <b id="nguardados"></b></button>
+    <button class="saved-btn" id="savedbtn" onclick="verGuardados()">♥ Mis planes favoritos <b id="nguardados"></b></button>
     <div class="powered">powered by <b>stepwise</b></div>
   </div>
 </header>
@@ -523,7 +529,6 @@ function tarjeta(e) {
     <article class="card" data-id="${esc(id)}">
       ${pic}
       <div class="acciones">
-        <button class="ico ${estaGuardado(id) ? 'on' : ''}" title="Guardar" onclick="toggleGuardado(event, '${esc(id)}')">${estaGuardado(id) ? '♥' : '♡'}</button>
         <button class="ico" title="Compartir" onclick="compartir(event, '${esc(id)}')">↗</button>
       </div>
       <div class="inner">
@@ -533,11 +538,12 @@ function tarjeta(e) {
       <div class="facts">
         ${e.venue ? `<div><span>en:</span> <b>${esc(e.venue)}</b></div>` : ''}
         ${hora ? `<div><span>de</span> ${hora}${fin ? ` <span>a</span> ${fin}` : ''}<span> hs</span></div>` : ''}
+        <div class="people">${gente}</div>
       </div>
       <div class="foot">
         <div class="tags">${(e.generos || []).slice(0, 2).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
         <span class="price p-${cat}">${esc(precio)}</span>
-        <span class="people">${gente}</span>
+        <button class="fav ${estaGuardado(id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(id)}')">${estaGuardado(id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
         <a class="tickets" href="${esc(e.url)}" target="_blank" rel="noopener">Ver tickets →</a>
       </div>
       </div>
@@ -563,11 +569,12 @@ function toast(txt) {
 function toggleGuardado(ev, id) {
   ev.stopPropagation();
   const g = leerGuardados();
-  if (g[id]) { delete g[id]; toast('Lo sacaste de tus guardados'); }
-  else { g[id] = EVENTOS[id]; toast('❤️ Guardado'); }
+  if (g[id]) { delete g[id]; toast('Lo sacaste de tus planes'); }
+  else { g[id] = EVENTOS[id]; toast('♥ Sumado a tus planes favoritos'); }
   escribirGuardados(g); contarGuardados();
   const b = ev.currentTarget; const on = !!g[id];
-  b.classList.toggle('on', on); b.textContent = on ? '♥' : '♡';
+  b.classList.toggle('on', on); b.textContent = on ? '♥ En mis planes' : '♡ Mis planes';
+  const sb = document.getElementById('savedbtn'); sb.classList.remove('pulse'); void sb.offsetWidth; if (on) sb.classList.add('pulse');
   if (vista === 'guardados' && !on) verGuardados();
 }
 function verGuardados() {
@@ -575,11 +582,11 @@ function verGuardados() {
   const hoy = iso(hoy0());
   const lista = Object.values(leerGuardados()).filter(e => (e.fecha || '') >= hoy).sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
   if (!lista.length) {
-    document.getElementById('main').innerHTML = volver() + `<div class="res-head"><h2>Tus <span>guardados</span></h2></div>
-      <div class="empty"><b>Todavía no guardaste nada</b>Tocá el ♡ en cualquier evento y lo vas a encontrar acá.</div>`;
+    document.getElementById('main').innerHTML = volver() + `<div class="res-head"><h2>Mis planes <span>favoritos</span></h2></div>
+      <div class="empty"><b>Todavía no sumaste nada</b>Tocá "♡ Mis planes" en cualquier evento y lo vas a encontrar acá, ordenado por día.</div>`;
     return;
   }
-  mostrar(lista, lista.length, `Tus <span>guardados</span>`);
+  mostrar(lista, lista.length, `Mis planes <span>favoritos</span>`);
   vista = 'guardados';
 }
 function textoCompartir(e) {
