@@ -489,7 +489,7 @@ def normalizar_franja(franja):
     if any(x in f for x in ["tarde", "dia", "día", "day"]):       return "tarde"
     return None
 
-def pasa_filtros(ev_fmt, hora_min=None, hora_max=None, gratis=False, precio_max=None, genero=None):
+def pasa_filtros(ev_fmt, hora_min=None, hora_max=None, gratis=False, precio_max=None, genero=None, precio_min=None):
     """Filtros comunes a todas las fuentes (RA, Ticketmaster...)"""
     hora = ev_fmt.get("hora")
     if hora_min and hora_max:  # franja por hora de INICIO
@@ -507,6 +507,10 @@ def pasa_filtros(ev_fmt, hora_min=None, hora_max=None, gratis=False, precio_max=
         return False
     if precio_max is not None and ev_fmt.get("precio_num") is not None and ev_fmt["precio_num"] > precio_max:
         return False
+    if precio_min is not None:  # rango de precio elegido: solo eventos con precio conocido dentro del rango
+        p = ev_fmt.get("precio_num")
+        if p is None or p < precio_min or (precio_max is not None and p > precio_max):
+            return False
     if genero:
         g = genero.lower()
         if not any(g in x.lower() or x.lower() in g for x in ev_fmt.get("generos") or []):
@@ -529,7 +533,7 @@ def repartir_por_dia(eventos, max_ev):
     elegidos.sort(key=lambda x: (x.get("fecha", ""), x.get("hora") or "99", -(x.get("asistentes") or 0)))
     return elegidos
 
-def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None, hora_max=None, genero=None, franja=None):
+def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None, hora_max=None, genero=None, franja=None, precio_min=None):
     f = normalizar_franja(franja)
     if f:
         hora_min, hora_max = FRANJAS[f]
@@ -585,7 +589,7 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
             if not ev: continue
 
             ev_fmt = formatear_evento(ev)
-            if pasa_filtros(ev_fmt, hora_min, hora_max, gratis, precio_max):
+            if pasa_filtros(ev_fmt, hora_min, hora_max, gratis, precio_max, precio_min=precio_min):
                 eventos.append(ev_fmt)
 
         return repartir_por_dia(eventos, max_ev), total
@@ -848,6 +852,12 @@ def chat():
             eventos_out = eventos_out[:filtros.get("max", 8)]
             total_ra = len(eventos_out)
 
+    if filtros and (filtros.get("tipo") or "fecha") == "fecha":
+        try:
+            filtros["desde"], filtros["hasta"] = calc_fechas(filtros.get("cuando", "todo"))
+            filtros["ciudad"] = ciudad_corregida
+        except Exception:
+            pass
     return jsonify({
         "reply":    clean,
         "filtros":  filtros,
@@ -865,7 +875,8 @@ def eventos():
     franja    = request.args.get("franja")
     gratis    = request.args.get("gratis") == "true"
     precio_max = int(request.args.get("precio_max")) if request.args.get("precio_max") else None
-    max_ev    = int(request.args.get("max", 8))
+    precio_min = int(request.args.get("precio_min")) if request.args.get("precio_min") else None
+    max_ev    = min(int(request.args.get("max", 8)), 60)
     categoria = request.args.get("categoria", "clubs")
     genero    = request.args.get("genero")
 
@@ -874,15 +885,17 @@ def eventos():
 
     if categoria != "clubs":
         evs, total = buscar_ticketmaster(ciudad, desde, hasta, categoria, max_ev, hora_min, hora_max,
-                                         franja, gratis, precio_max, genero)
+                                         franja, gratis, precio_max, genero, precio_min)
         return jsonify({"ciudad": ciudad, "categoria": categoria, "desde": desde, "hasta": hasta,
                         "total_ra": total, "total": len(evs), "eventos": evs})
 
     if ciudad not in AREAS_RA:
         return jsonify({"error": f"Ciudad '{ciudad}' no encontrada"}), 400
 
-    evs, total = buscar_por_fecha(ciudad, desde, hasta, max_ev, hora_min, gratis, precio_max, hora_max, franja=franja)
-    return jsonify({"ciudad": ciudad, "desde": desde, "hasta": hasta, "total_ra": total, "total": len(evs), "eventos": evs})
+    evs, total = buscar_por_fecha(ciudad, desde, hasta, max_ev, hora_min, gratis, precio_max, hora_max,
+                                  genero=genero, franja=franja, precio_min=precio_min)
+    return jsonify({"ciudad": ciudad, "categoria": "clubs", "desde": desde, "hasta": hasta,
+                    "total_ra": total, "total": len(evs), "eventos": evs})
 
 @app.route("/find-area")
 def find_area():
@@ -993,7 +1006,7 @@ def formatear_tm(ev):
     }
 
 def buscar_ticketmaster(ciudad, desde, hasta, categoria="conciertos", max_ev=8, hora_min=None, hora_max=None,
-                        franja=None, gratis=False, precio_max=None, genero=None):
+                        franja=None, gratis=False, precio_max=None, genero=None, precio_min=None):
     """Busca en Ticketmaster Discovery API. Devuelve (eventos, total)"""
     if not TM_API_KEY:
         return [], 0
@@ -1024,7 +1037,7 @@ def buscar_ticketmaster(ciudad, desde, hasta, categoria="conciertos", max_ev=8, 
         if clave in vistos:
             continue
         vistos.add(clave)
-        if pasa_filtros(ev_fmt, hora_min, hora_max, gratis, precio_max, genero):
+        if pasa_filtros(ev_fmt, hora_min, hora_max, gratis, precio_max, genero, precio_min):
             eventos.append(ev_fmt)
     return repartir_por_dia(eventos, max_ev), len(eventos)
 
