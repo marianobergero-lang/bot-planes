@@ -79,6 +79,10 @@ query GET_DEFAULT_EVENTS_LISTING($filters: FilterInputDtoInput, $pageSize: Int, 
 }
 """
 
+# Misma query + imágenes del evento. Si RA rechaza el campo, volvemos a la query base (ver buscar_por_fecha)
+RA_QUERY_FECHA_IMG = RA_QUERY_FECHA.replace("pick { blurb }", "pick { blurb }\n        images { filename type }")
+RA_USAR_IMAGENES = True
+
 # Query por artista
 RA_QUERY_ARTISTA = """
 query GET_ARTIST_EVENTS($slug: String!) {
@@ -399,6 +403,15 @@ def moneda_evento(ev, cost):
         return m
     return "USD" if "$" in cost else "EUR"
 
+def imagen_ra(ev):
+    """Flyer del evento en RA (prefiere el frente del flyer)"""
+    imgs = [i for i in (ev.get("images") or []) if i and i.get("filename")]
+    if not imgs:
+        return None
+    frente = next((i for i in imgs if "FRONT" in str(i.get("type", "")).upper()), imgs[0])
+    f = frente["filename"]
+    return f if f.startswith("http") else f"https://images.ra.co/{f.lstrip('/')}"
+
 def formatear_evento(ev, venue_data=None):
     venue = ev.get("venue") or {}
     cost  = (ev.get("cost") or "").strip()
@@ -446,6 +459,7 @@ def formatear_evento(ev, venue_data=None):
         "gratis":       es_gratis,
         "asistentes":   ev.get("attending", 0),
         "destacado":    (ev.get("pick") or {}).get("blurb", ""),
+        "imagen":       imagen_ra(ev),
         "url":          f"https://ra.co{ev.get('contentUrl', '')}",
         "fuente":       "Resident Advisor",
     }
@@ -560,11 +574,17 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
                     "pageSize": page_size,
                     "page": page
                 },
-                "query": RA_QUERY_FECHA
+                "query": RA_QUERY_FECHA_IMG if RA_USAR_IMAGENES else RA_QUERY_FECHA
             }
             # Necesitamos page en la query
             payload["variables"]["page"] = page
             data  = ra_request(payload)
+            if data.get("errors") and RA_USAR_IMAGENES and "images" in str(data.get("errors")):
+                # RA no acepta el campo de imágenes: lo desactivamos y repetimos sin él
+                print(f"[RA IMAGENES] desactivadas: {str(data.get('errors'))[:200]}")
+                globals()["RA_USAR_IMAGENES"] = False
+                payload["query"] = RA_QUERY_FECHA
+                data = ra_request(payload)
             page_listings = data.get("data", {}).get("eventListings", {}).get("data", [])
             total = data.get("data", {}).get("eventListings", {}).get("totalResults", 0)
             listings.extend(page_listings)

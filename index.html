@@ -3,799 +3,746 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Let's PartIA · by Stepwise</title>
+<title>Let's PartIA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg:      #0a0a0a;
-    --surface: #111111;
-    --card:    #181818;
-    --border:  #2a2a2a;
-    --border2: #383838;
-    --orange:  #E9682E;
-    --orange2: #c94f18;
-    --neon:    #39FF14;
-    --yellow:  #FFE600;
-    --text:    #F5F5F5;
-    --muted:   #aaaaaa;
-    --dim:     #666666;
+    --bg: #0D0C0B; --surface: #141311; --card: #171614;
+    --border: rgba(242,238,232,.08); --border2: rgba(242,238,232,.16); --line: rgba(242,238,232,.07);
+    --orange: #E9682E; --orange2: #d2561d; --orange-soft: rgba(233,104,46,.12);
+    --text: #F2EEE8; --muted: #A39E96; --dim: #6E6A64;
   }
-
-  body {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow: hidden;
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: 'Space Grotesk', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+  button { font-family: inherit; }
 
   /* HEADER */
-  header {
-    width: 100%;
-    padding: 14px 24px;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .brand { font-size: 20px; font-weight: 800; letter-spacing: -0.7px; white-space: nowrap; }
+  .brand span { color: var(--orange); }
+  .brand small { display: block; font-size: 11px; color: var(--dim); font-weight: 500; letter-spacing: 0; }
+  .powered { font-size: 11px; color: var(--dim); white-space: nowrap; }
+  .powered b { color: var(--orange); }
+  .tabs { display: flex; gap: 4px; }
+  .tab { background: none; border: none; color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
+  .tab:hover { color: var(--text); background: var(--surface); }
+  .tab.on { color: var(--text); background: var(--card); box-shadow: inset 0 0 0 1px var(--border2); }
+
+  /* LAYOUT */
+  .app { flex: 1; display: grid; grid-template-columns: 500px 1fr; min-height: 0; }
+  .side { border-right: 1px solid var(--border); padding: 20px 26px 18px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+  .main-wrap { display: flex; flex-direction: column; min-height: 0; }
+  .main { flex: 1; overflow-y: auto; padding: 24px 28px 30px; transition: opacity .2s; }
+  .main.loading { opacity: .35; pointer-events: none; }
+
+  /* CIUDAD */
+  .city-label, .group h4 { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; display: block; }
+  .group h4 em { font-style: normal; text-transform: none; letter-spacing: 0; color: var(--dim); font-weight: 500; margin-left: 4px; }
+  .city { position: relative; }
+  .city select {
+    width: 100%; appearance: none; background: var(--surface); color: var(--text);
+    border: 1px solid var(--border2); border-radius: 12px; padding: 11px 40px 11px 42px;
+    font: 700 16px 'Space Grotesk', sans-serif; letter-spacing: -0.4px; cursor: pointer;
   }
-  .header-left { display: flex; align-items: center; gap: 12px; }
-  .logo-mark {
-    width: 36px; height: 36px;
-    background: var(--orange); border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
+  .city select:focus { outline: none; border-color: var(--orange); }
+  .city::before { content: '📍'; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 17px; pointer-events: none; }
+  .city::after { content: '▾'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+
+  /* FILTROS */
+  .side > .group { padding-top: 15px; border-top: 1px solid var(--line); }
+  .group[hidden] { display: none !important; }
+  #chips-genero { flex-wrap: wrap; }
+  .chips { display: flex; flex-wrap: nowrap; gap: 6px; }
+  .chip {
+    background: transparent; border: 1px solid var(--border2); color: var(--muted);
+    padding: 8px 11px; border-radius: 20px; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all .12s; white-space: nowrap;
   }
-  .logo-mark svg { width: 19px; height: 19px; }
-  .app-name { font-size: 18px; font-weight: 800; letter-spacing: -0.6px; }
-  .app-name span { color: var(--orange); }
-  .app-sub { font-size: 11px; color: var(--dim); margin-top: 1px; }
-  .powered { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); }
-  .stepwise-logo { font-size: 12px; font-weight: 700; color: var(--orange); }
+  .chip:hover { border-color: var(--muted); color: var(--text); }
+  .chip.on { background: var(--orange); border-color: var(--orange); color: #fff; font-weight: 600; }
+  .chip small { opacity: .75; font-weight: 400; margin-left: 4px; font-size: 11px; }
+  .live { margin-top: auto; font-size: 12px; color: var(--dim); display: flex; align-items: center; gap: 8px; }
+  .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 3px var(--orange-soft); }
+  .search { display: none; background: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
 
-  /* CHAT */
-  .chat { width: 100%; max-width: 1080px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  /* MINI CALENDARIO */
+  .group-cuando { position: relative; }
+  .mini-cal { display: none; position: absolute; left: 0; top: 100%; margin-top: 8px; width: 310px; z-index: 20; background: var(--card); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px 12px; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
+  .mini-cal.open { display: block; }
+  .mc-top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; margin-bottom: 6px; text-transform: capitalize; }
+  .mc-top button { background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; width: 26px; height: 26px; cursor: pointer; }
+  .mc-top button:disabled { opacity: .3; cursor: default; }
+  .mc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px 0; text-align: center; }
+  .mc-dow { font-size: 10px; color: var(--dim); padding: 3px 0; }
+  .mc-d { background: none; border: none; color: var(--text); font: 500 12.5px 'Space Grotesk', sans-serif; height: 30px; border-radius: 7px; cursor: pointer; }
+  .mc-d:hover:not(:disabled) { background: var(--border); }
+  .mc-d:disabled { color: #3a3a3a; cursor: default; }
+  .mc-d.today { box-shadow: inset 0 0 0 1px var(--muted); }
+  .mc-d.in { background: var(--orange-soft); border-radius: 0; }
+  .mc-d.sel { background: var(--orange); color: #fff; font-weight: 700; }
+  .mc-note { font-size: 11.5px; color: var(--dim); margin-top: 6px; }
+  .mc-ok { margin-top: 8px; width: 100%; background: var(--orange); color: #fff; border: none; border-radius: 8px; padding: 8px; font: 700 13px 'Space Grotesk', sans-serif; cursor: pointer; }
+  .mc-ok:disabled { opacity: .35; cursor: default; }
 
-  #msgs {
-    flex: 1; overflow-y: auto;
-    padding: 24px 22px 10px;
-    display: flex; flex-direction: column; gap: 16px;
-    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  /* INICIO / ATAJOS */
+  .hello h2 { font-size: 30px; font-weight: 800; letter-spacing: -1.2px; }
+  .hello h2 span { color: var(--orange); }
+  .hello p { color: var(--muted); margin: 6px 0 22px; font-size: 15px; }
+  .shortcuts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 760px; }
+  .sc {
+    background: var(--card); border: 1px solid var(--border2); border-radius: 12px; padding: 16px;
+    text-align: left; color: var(--text); font-size: 14.5px; font-weight: 600; cursor: pointer;
+    display: flex; flex-direction: column; gap: 8px; transition: all .12s;
   }
-
-  /* BIENVENIDA */
-  .welcome {
-    display: flex; flex-direction: column;
-    gap: 22px; animation: fadein .3s ease;
-    min-height: 100%; max-width: 820px; width: 100%; margin: 0 auto;
-  }
-
-  .welcome-title {
-    font-size: clamp(36px, 7vw, 58px);
-    font-weight: 800;
-    letter-spacing: -2px;
-    line-height: 1.05;
-    color: var(--text);
-  }
-  .welcome-title .part { color: var(--orange); }
-
-  .welcome-sub {
-    font-size: 16px; color: var(--muted);
-    font-weight: 400; letter-spacing: -0.2px;
-    line-height: 1.5;
-    max-width: 500px;
-  }
-
-  .welcome-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    width: 100%;
-  }
-
-  .welcome-btn {
-    background: var(--card);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    padding: 16px 14px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    text-align: left;
-    display: flex; flex-direction: column; gap: 8px;
-    transition: all .15s;
-    letter-spacing: -0.2px;
-    line-height: 1.3;
-  }
-  .welcome-btn .icon { font-size: 22px; }
-  .welcome-btn:hover { border-color: var(--orange); background: #1e1208; transform: translateY(-2px); }
-  .welcome-btn:nth-child(2):hover { border-color: var(--neon); background: #081808; }
-  .welcome-btn:nth-child(3):hover { border-color: var(--yellow); background: #181400; }
-  .welcome-btn:nth-child(5):hover { border-color: var(--yellow); background: #181400; }
-  .welcome-btn:nth-child(6):hover { border-color: var(--orange); background: #1e1208; }
-  .welcome-btn:nth-child(7):hover { border-color: var(--neon); background: #081808; }
-  .welcome-btn:nth-child(8):hover { border-color: var(--yellow); background: #181400; }
-  .welcome-btn:nth-child(9):hover { border-color: var(--orange); background: #1e1208; }
-  .welcome-btn:nth-child(4):hover { border-color: var(--neon); background: #081808; }
-
-  .ver-mas-btn {
-    background: transparent;
-    border: 1px dashed var(--border2);
-    color: var(--dim);
-    padding: 16px 14px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    font-family: inherit;
-    cursor: pointer;
-    text-align: center;
-    transition: all .15s;
-    letter-spacing: -0.1px;
-  }
-  .ver-mas-btn:hover { border-color: var(--muted); color: var(--muted); }
-
-  /* Opciones extra ocultas */
-  .extra-opts { display: none; grid-template-columns: repeat(3,1fr); gap: 10px; }
-  .extra-opts.visible { display: grid; animation: fadein .2s ease; }
-
-  .welcome-hint {
-    margin-top: auto; padding-top: 10px;
-    font-size: clamp(18px, 2.6vw, 22px); font-weight: 600; letter-spacing: -0.4px;
-    color: var(--text); display: flex; flex-direction: column; align-items: center; gap: 6px;
-    text-align: center;
-  }
-  .welcome-hint .arrow { color: var(--orange); font-size: 22px; animation: nudge 1.6s ease-in-out infinite; }
-  @keyframes nudge { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
-
-  /* MENSAJES */
-  .msg { display: flex; flex-direction: column; gap: 6px; animation: fadein .2s ease; }
-  .msg.bot  { align-items: flex-start; }
-  .msg.user { align-items: flex-end; }
-
-  .bubble {
-    max-width: 84%; padding: 13px 17px; border-radius: 14px;
-    font-size: 15px; line-height: 1.6; white-space: pre-wrap;
-    word-break: break-word; letter-spacing: -0.1px;
-  }
-  .bot .bubble {
-    background: var(--card); border: 1px solid var(--border);
-    border-bottom-left-radius: 3px; color: var(--text);
-  }
-  .user .bubble {
-    background: #1e0e05; border: 1px solid #4a2010;
-    border-bottom-right-radius: 3px; color: #f0c090; font-weight: 500;
-  }
-
-  /* OPCIONES */
-  .opts { display: flex; flex-wrap: wrap; gap: 8px; max-width: 84%; }
-  .opt {
-    background: transparent; border: 1px solid var(--border2);
-    color: var(--muted); padding: 7px 15px; border-radius: 20px;
-    font-size: 14px; font-weight: 500; cursor: pointer;
-    font-family: inherit; transition: all .15s;
-  }
-  .opt:hover { background: var(--orange); border-color: var(--orange); color: #fff; }
-
-  .time { font-size: 11px; color: var(--dim); padding: 0 4px; }
-
-  /* EVENTO CARD */
-  .ev-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 10px; padding: 15px 17px; margin-top: 10px;
-    display: flex; flex-direction: column; gap: 8px; width: 100%;
-    transition: border-color .15s;
-  }
-  .ev-card:hover { border-color: var(--orange); }
-
-  .ev-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-  .ev-title { font-weight: 700; font-size: 15px; color: var(--text); flex: 1; line-height: 1.3; letter-spacing: -0.3px; }
-
-  .ev-badge {
-    font-size: 11px; font-weight: 700; padding: 4px 10px;
-    border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-    letter-spacing: 0.4px; text-transform: uppercase;
-  }
-  .badge-gratis { background: #002a10; color: var(--neon);   border: 1px solid #005020; }
-  .badge-barato { background: #0a2010; color: #90e060;        border: 1px solid #1a4020; }
-  .badge-normal { background: #1e0e00; color: var(--orange);  border: 1px solid #3a2010; }
-  .badge-caro   { background: #1e1200; color: var(--yellow);  border: 1px solid #3a3000; }
-  .badge-nd     { background: var(--card); color: var(--dim); border: 1px solid var(--border); }
-
-  .ev-artists { font-size: 13.5px; color: var(--muted); font-weight: 500; }
-
-  .ev-meta {
-    font-size: 13px; color: var(--dim);
-    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
-  }
-  .ev-date  { font-weight: 700; color: var(--yellow); letter-spacing: 0.2px; }
-  .ev-hora  { font-weight: 600; color: var(--muted); }
-
-  .ev-destacado {
-    font-size: 13px; color: var(--muted); font-style: italic;
-    line-height: 1.5; border-left: 2px solid var(--orange);
-    padding-left: 10px; opacity: .8;
-  }
-
-  .ev-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
-  .ev-asistentes { font-size: 12px; color: var(--dim); }
-  .ev-link {
-    font-size: 12px; font-weight: 700; color: var(--orange);
-    text-decoration: none; letter-spacing: 0.5px; text-transform: uppercase;
-  }
-  .ev-link:hover { color: var(--orange2); }
-
-  /* TYPING */
-  .typing { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
-  .typing span {
-    width: 7px; height: 7px; border-radius: 50%; background: var(--dim);
-    animation: bounce .9s infinite;
-  }
-  .typing span:nth-child(2) { animation-delay: .15s; }
-  .typing span:nth-child(3) { animation-delay: .3s; }
-
-  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
-  @keyframes fadein { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-
-  /* INPUT */
-  .input-area {
-    padding: 14px 22px 22px; border-top: 1px solid var(--border);
-    background: var(--bg); display: flex; gap: 10px; align-items: center;
-    width: 100%; max-width: 1080px; flex-shrink: 0;
-  }
-  #inp {
-    flex: 1; background: var(--surface); border: 1px solid var(--border);
-    color: var(--text); padding: 13px 17px; border-radius: 10px;
-    font-size: 15px; font-family: inherit; outline: none;
-    transition: border-color .15s; letter-spacing: -0.1px;
-  }
-  #inp:focus { border-color: var(--orange); }
-  #inp::placeholder { color: var(--dim); }
-
-  #sendbtn {
-    width: 48px; height: 48px; border-radius: 10px; border: none;
-    background: var(--orange); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: background .15s;
-  }
-  #sendbtn:hover { background: var(--orange2); }
-  #sendbtn:disabled { opacity: .4; cursor: default; }
-
-  ::-webkit-scrollbar { width: 3px; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  .sc:hover { border-color: var(--orange); transform: translateY(-2px); }
+  .sc i { font-style: normal; font-size: 22px; }
+  .sc small { color: var(--dim); font-weight: 400; font-size: 12px; }
+  .back { background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; margin-bottom: 14px; padding: 0; }
+  .back:hover { color: var(--text); }
 
   /* RESULTADOS */
-  .bubble.has-events { max-width: 100%; width: 100%; }
-  .ev-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; white-space: normal; }
-  .ev-grid .ev-card { margin-top: 0; }
-  @media (min-width: 860px) { .ev-grid { grid-template-columns: 1fr 1fr; } }
+  .res-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+  .res-head h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.8px; }
+  .res-head h2 span { color: var(--orange); }
+  .res-sub { font-size: 13px; color: var(--dim); }
+  .active { display: flex; gap: 6px; flex-wrap: wrap; }
+  .active span { font-size: 12px; color: var(--muted); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
+  .day { display: flex; align-items: baseline; gap: 12px; font-size: 15px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.8px; margin: 34px 0 16px; }
+  .day b { font-size: 22px; letter-spacing: .5px; color: var(--text); font-weight: 700; }
+  .day::after { content: ''; flex: 1; height: 1px; background: var(--line); align-self: center; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+  .empty { padding: 40px 0; color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 520px; }
+  .empty b { color: var(--text); display: block; font-size: 20px; margin-bottom: 6px; }
 
-  /* DÍAS EN RESULTADOS */
-  .day-header {
-    grid-column: 1 / -1; margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--yellow);
-    letter-spacing: 0.4px; text-transform: uppercase;
-    border-bottom: 1px solid var(--border); padding-bottom: 6px;
+  .more {
+    display: block; width: 100%; margin-top: 12px; padding: 12px; border-radius: 10px; cursor: pointer;
+    background: transparent; border: 1px dashed var(--border2); color: var(--muted); font-size: 13.5px; font-weight: 600; transition: all .12s;
   }
-  .day-header:first-child { margin-top: 4px; }
+  .more:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); border-style: solid; }
+  .more:disabled { cursor: default; opacity: .6; }
 
-  /* CALENDARIO */
-  #calbtn {
-    width: 52px; height: 52px; border-radius: 10px; flex-shrink: 0; padding: 0; overflow: hidden;
-    background: transparent; border: 1.5px solid #e8e8e8; cursor: pointer;
-    display: flex; flex-direction: column; transition: transform .15s, border-color .15s;
-    font-family: inherit; color: #e8e8e8;
+  /* TARJETA */
+  .card {
+    display: flex; flex-direction: column; gap: 8px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px; transition: border-color .12s, transform .12s;
   }
-  #calbtn:hover { transform: translateY(-2px); border-color: #fff; color: #fff; }
-  #calbtn .cal-dow-top {
-    border-bottom: 1.5px solid currentColor; font-size: 10px; font-weight: 700;
-    letter-spacing: 1.2px; padding: 3px 0 2px; width: 100%; text-align: center;
+  .card:hover { border-color: rgba(242,238,232,.25); transform: translateY(-1px); }
+  .town { align-self: flex-end; font-size: 10.5px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .title { font-size: 16px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.25; margin-top: -4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .who { font-size: 13px; color: var(--muted); margin-top: -4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .facts { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text); opacity: .9; }
+  .facts span { color: var(--dim); }
+  .facts b { font-weight: 600; }
+  .foot {
+    margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr auto; row-gap: 10px; column-gap: 12px; align-items: center;
   }
-  #calbtn .cal-num {
-    flex: 1; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; font-weight: 700; letter-spacing: -1px; line-height: 1;
+  .tags { display: flex; gap: 6px; flex-wrap: nowrap; overflow: hidden; min-height: 24px; }
+  .tag { font-size: 11px; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
+  .price { justify-self: end; font-size: 11.5px; font-weight: 700; letter-spacing: .5px; padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
+  .p-gratis { color: var(--orange); background: var(--orange-soft); }
+  .p-barato, .p-normal, .p-caro { color: var(--text); background: rgba(242,238,232,.06); }
+  .p-nd { color: var(--dim); background: rgba(242,238,232,.04); }
+  .people { font-size: 12px; color: var(--dim); }
+  .tickets {
+    justify-self: end; border: 1px solid rgba(233,104,46,.55); border-radius: 8px; padding: 6px 12px;
+    font-size: 12.5px; font-weight: 700; color: var(--orange); text-decoration: none; transition: all .12s; white-space: nowrap;
   }
-  .opt.opt-cal { border-color: var(--orange); color: var(--orange); }
-  .opt.opt-cal:hover { color: #fff; }
+  .tickets:hover { background: var(--orange); border-color: var(--orange); color: #fff; }
 
-  .cal {
-    background: var(--card); border: 1px solid var(--border2); border-radius: 14px;
-    border-bottom-left-radius: 3px; padding: 14px; width: 100%; max-width: 340px;
-    display: flex; flex-direction: column; gap: 10px; user-select: none;
+  /* FOTO, GUARDAR, COMPARTIR */
+  .card { padding: 0 !important; overflow: hidden; position: relative; }
+  .card .inner { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px 16px; flex: 1; }
+  .pic { height: 140px; background: var(--surface) center/cover no-repeat; position: relative; flex-shrink: 0; }
+  .pic.vacia { background: linear-gradient(135deg, #1d1b18, #121110); display: flex; align-items: center; justify-content: center; font-size: 34px; opacity: .9; }
+  .pic::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, transparent 40%, transparent 70%, rgba(23,22,20,.9) 100%); pointer-events: none; }
+  .acciones { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 2; }
+  .ico {
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,.18); cursor: pointer;
+    background: rgba(13,12,11,.6); backdrop-filter: blur(6px); color: #fff; font-size: 15px;
+    display: flex; align-items: center; justify-content: center; transition: transform .12s, background .12s;
   }
-  .cal-top { display: flex; align-items: center; justify-content: space-between; }
-  .cal-title { font-weight: 700; font-size: 15px; letter-spacing: -0.3px; text-transform: capitalize; }
-  .cal-nav {
-    background: transparent; border: 1px solid var(--border2); color: var(--muted);
-    width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 16px;
+  .ico:hover { transform: scale(1.08); background: rgba(13,12,11,.85); }
+  .ico.on { background: var(--orange); border-color: var(--orange); }
+  .menu-share {
+    position: absolute; top: 48px; right: 10px; z-index: 5; background: var(--card); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 6px; display: flex; flex-direction: column; min-width: 170px; box-shadow: 0 12px 30px rgba(0,0,0,.6);
   }
-  .cal-nav:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); }
-  .cal-nav:disabled { opacity: .25; cursor: default; }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px 0; }
-  .cal-dow { font-size: 11px; color: var(--dim); text-align: center; padding: 4px 0; font-weight: 600; }
-  .cal-day {
-    aspect-ratio: 1; border: none; background: transparent; color: var(--text);
-    font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
-    border-radius: 8px; position: relative;
-  }
-  .cal-day:hover:not(:disabled) { background: var(--border); }
-  .cal-day:disabled { color: #333; cursor: default; }
-  .cal-day.today { box-shadow: inset 0 0 0 1px var(--neon); color: var(--neon); }
-  .cal-day.in-range { background: #3a1a08; border-radius: 0; color: #f0c090; }
-  .cal-day.sel { background: var(--orange); color: #fff; font-weight: 700; }
-  .cal-day.sel.start.has-end { border-radius: 8px 0 0 8px; }
-  .cal-day.sel.end { border-radius: 0 8px 8px 0; }
-  .cal-quick { display: flex; flex-wrap: wrap; gap: 6px; }
-  .cal-quick .opt { padding: 5px 11px; font-size: 13px; }
-  .cal-note { font-size: 12px; color: var(--dim); min-height: 16px; }
-  .cal-actions { display: flex; gap: 8px; }
-  .cal-ok {
-    flex: 1; background: var(--orange); color: #fff; border: none; border-radius: 10px;
-    padding: 11px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
-  }
-  .cal-ok:disabled { opacity: .35; cursor: default; }
-  .cal-cancel {
-    background: transparent; border: 1px solid var(--border2); color: var(--muted);
-    border-radius: 10px; padding: 11px 14px; font-family: inherit; font-size: 14px; cursor: pointer;
-  }
+  .menu-share a, .menu-share button { background: none; border: none; color: var(--text); text-align: left; font-size: 13.5px; padding: 8px 10px; border-radius: 7px; cursor: pointer; text-decoration: none; }
+  .menu-share a:hover, .menu-share button:hover { background: var(--surface); }
+  .toast { position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-weight: 600; font-size: 13.5px; padding: 10px 16px; border-radius: 10px; z-index: 50; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .saved-btn { background: none; border: 1px solid var(--border2); color: var(--text); border-radius: 20px; padding: 7px 13px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .saved-btn:hover { border-color: var(--orange); }
+  .saved-btn b { color: var(--orange); }
 
-  @media (max-width: 520px) {
-    .welcome { gap: 16px; }
-    .welcome-grid { grid-template-columns: repeat(3,1fr); gap: 8px; }
-    .welcome-btn { padding: 12px 9px; font-size: 12.5px; gap: 6px; }
-    .welcome-btn .icon { font-size: 20px; }
-    .welcome-sub { font-size: 14px; }
-    #inp { font-size: 14px; padding: 13px 12px; }
-    .welcome-title { font-size: 36px; }
+  /* CHAT */
+  .chat-dock { border-top: 1px solid var(--border); background: var(--bg); flex-shrink: 0; }
+  .chat-thread { max-height: 0; overflow-y: auto; transition: max-height .25s ease; display: flex; flex-direction: column; gap: 10px; padding: 0 28px; }
+  .chat-dock.open .chat-thread { max-height: 280px; padding: 16px 28px 4px; }
+  .msg { max-width: 75%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; }
+  .msg.bot { background: var(--card); border: 1px solid var(--border); border-bottom-left-radius: 3px; align-self: flex-start; }
+  .msg.me  { background: var(--orange-soft); border: 1px solid rgba(233,104,46,.3); border-bottom-right-radius: 3px; align-self: flex-end; }
+  .msg.typing { color: var(--dim); }
+  .chat-bar { display: flex; gap: 10px; align-items: center; padding: 14px 28px 18px; }
+  .bot-ico { width: 40px; height: 40px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+  .chat-bar input {
+    flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border2); color: var(--text);
+    border-radius: 24px; padding: 13px 18px; font: 15px 'Space Grotesk', sans-serif; outline: none;
+  }
+  .chat-bar input:focus { border-color: var(--orange); }
+  .chat-bar .send { width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--orange); color: #fff; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+  .chat-bar .send:disabled { opacity: .4; cursor: default; }
+
+  /* MOBILE */
+  .filters-toggle { display: none; }
+  @media (max-width: 1100px) {
+    .app { grid-template-columns: 420px 1fr; }
+    .chips { flex-wrap: wrap; }
+  }
+  @media (max-width: 820px) {
+    header { padding: 12px 16px; flex-wrap: wrap; }
+    .powered { display: none; }
+    .pic { height: 160px; }
+    .tabs { order: 3; width: 100%; overflow-x: auto; }
+    .app { grid-template-columns: 1fr; overflow-y: auto; }
+    .side { border-right: none; border-bottom: 1px solid var(--border); padding: 16px; overflow: visible; }
+    .side .group, .side .live { display: none; }
+    .side.open .group { display: block; }
+    .side.open .search { display: block; width: 100%; }
+    .filters-toggle {
+      display: flex; justify-content: space-between; align-items: center; background: var(--surface);
+      border: 1px solid var(--border2); color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .filters-toggle em { font-style: normal; color: var(--orange); font-weight: 500; font-size: 13px; }
+    .main-wrap { min-height: auto; }
+    .main { overflow: visible; padding: 18px 16px 30px; }
+    .grid { grid-template-columns: 1fr; }
+    .chat-dock { position: sticky; bottom: 0; }
+    .chat-bar, .chat-dock.open .chat-thread { padding-left: 16px; padding-right: 16px; }
+    .shortcuts { grid-template-columns: 1fr 1fr; }
+    .hello h2 { font-size: 24px; }
+    .res-head h2 { font-size: 20px; }
+    .msg { max-width: 88%; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-left">
-    <div class="logo-mark">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 18V5l12-2v13"/>
-        <circle cx="6" cy="18" r="3"/>
-        <circle cx="18" cy="16" r="3"/>
-      </svg>
-    </div>
-    <div>
-      <div class="app-name">Let's <span>Part</span>IA</div>
-      <div class="app-sub">Many events · Your event</div>
-    </div>
-  </div>
-  <div class="powered">
-    <span>powered by</span>
-    <div class="stepwise-logo">stepwise</div>
+  <div class="brand">Let's <span>Part</span>IA<small>Many events · Your event</small></div>
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-tab="clubs">🪩 Fiestas y clubs</button>
+    <button class="tab" data-tab="conciertos">🎤 Conciertos</button>
+    <button class="tab" data-tab="teatro">🎭 Teatro y shows</button>
+    <button class="tab" data-tab="deportes">⚽ Deportes</button>
+  </nav>
+  <div style="display:flex;align-items:center;gap:14px">
+    <button class="saved-btn" onclick="verGuardados()">❤️ Guardados <b id="nguardados"></b></button>
+    <div class="powered">powered by <b>stepwise</b></div>
   </div>
 </header>
+<div class="toast" id="toast"></div>
 
-<div class="chat">
-  <div id="msgs"></div>
-  <div class="input-area">
-    <button id="calbtn" onclick="openCalendar()" aria-label="Elegir fechas" title="Elegir fechas">
-      <span class="cal-dow-top" id="calbtn-dow">SAT</span>
-      <span class="cal-num" id="calbtn-num">10</span>
+<div class="app">
+  <aside class="side" id="side">
+    <div>
+      <label class="city-label" for="city">Ciudad</label>
+      <div class="city"><select id="city"></select></div>
+    </div>
+
+    <button class="filters-toggle" onclick="document.getElementById('side').classList.toggle('open')">
+      <span>Filtros</span><em id="fsummary"></em>
     </button>
-    <input id="inp" placeholder="...o contame qué tenés en mente y armamos tu plan 🎯" type="text">
-    <button id="sendbtn" onclick="send()" aria-label="Enviar">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-    </button>
+
+    <div class="group group-cuando">
+      <h4>Cuándo</h4>
+      <div class="chips" data-g="cuando">
+        <button class="chip" data-v="hoy">Hoy</button>
+        <button class="chip" data-v="manana">Mañana</button>
+        <button class="chip on" data-v="finde">Este finde</button>
+        <button class="chip" data-v="cal" id="chip-cal">📅 Elegir fechas</button>
+      </div>
+      <div class="mini-cal" id="minical"></div>
+    </div>
+    <div class="group">
+      <h4>Franja <em>· horario de inicio entre</em></h4>
+      <div class="chips" data-g="franja">
+        <button class="chip" data-v="tarde">Tarde<small>14–20hs</small></button>
+        <button class="chip" data-v="sunset">Sunset<small>18–21hs</small></button>
+        <button class="chip" data-v="noche">Noche<small>21–03hs</small></button>
+        <button class="chip" data-v="afters">Afters<small>05–09hs</small></button>
+      </div>
+    </div>
+    <div class="group">
+      <h4>Precio</h4>
+      <div class="chips" data-g="precio">
+        <button class="chip" data-v="gratis">Gratis</button>
+        <button class="chip" data-v="bajo">Bajo<small id="p-bajo"></small></button>
+        <button class="chip" data-v="medio">Medio<small id="p-medio"></small></button>
+        <button class="chip" data-v="alto">Alto<small id="p-alto"></small></button>
+      </div>
+    </div>
+    <div class="group" id="group-genero">
+      <h4>Género</h4>
+      <div class="chips" data-g="genero" id="chips-genero"></div>
+    </div>
+
+    <div class="live"><i></i>Los resultados se actualizan solos al tocar los filtros</div>
+    <button class="search" onclick="document.getElementById('side').classList.remove('open'); buscar()">Ver planes</button>
+  </aside>
+
+  <div class="main-wrap">
+    <main class="main" id="main"></main>
+    <div class="chat-dock" id="dock">
+      <div class="chat-thread" id="thread"></div>
+      <div class="chat-bar">
+        <div class="bot-ico">🤖</div>
+        <input id="ask" placeholder="¡Hey! Decime acá qué te gustaría y encuentro algo para vos ✨" onkeydown="if(event.key==='Enter')preguntar()">
+        <button class="send" id="sendbtn" onclick="preguntar()" aria-label="Enviar">↑</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-const RAILWAY = "https://bot-planes-production.up.railway.app";
-let history = [];
-let busy = false;
+const API = 'https://bot-planes-production.up.railway.app';
 
-const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-
-function now() { return new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }); }
-
-function formatFecha(fechaStr) {
-  if (!fechaStr) return '';
-  const d = new Date(fechaStr + 'T12:00:00');
-  return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
-}
-
-function badgeInfo(ev) {
-  // El backend ya manda categoría (en euros) + precio en moneda local: "Barato · R$50"
-  const cat = ev.precio_cat || (ev.gratis ? 'gratis' : 'nd');
-  const cls = { gratis: 'badge-gratis', barato: 'badge-barato', normal: 'badge-normal', caro: 'badge-caro' }[cat] || 'badge-nd';
-  const txt = cat === 'nd' ? 'PRECIO EN WEB' : (ev.precio_label || 'GRATIS').toUpperCase();
-  return { cls, txt };
-}
-
-function initCalIcon() {
-  const d = new Date();
-  document.getElementById('calbtn-dow').textContent = ['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()];
-  document.getElementById('calbtn-num').textContent = d.getDate();
-}
-initCalIcon();
-
-// ── BIENVENIDA ─────────────────────────────────────────────────────────────
-function showWelcome() {
-  const msgs = document.getElementById('msgs');
-  const welcome = document.createElement('div');
-  welcome.className = 'welcome';
-  welcome.id = 'welcome-screen';
-
-  welcome.innerHTML = `
-    <div>
-      <div class="welcome-title">Let's <span class="part">Part</span>IA</div>
-      <div class="welcome-sub" style="margin-top:12px">Tu asistente de planes para salir.<br>Eventos reales de Resident Advisor.</div>
-    </div>
-
-    <div class="welcome-grid">
-      <button class="welcome-btn" onclick="quickSearch('planes-finde')"><span class="icon">🗓️</span>Planes este finde</button>
-      <button class="welcome-btn" onclick="quickSearch('top-hoy')"><span class="icon">🔥</span>Lo más top hoy</button>
-      <button class="welcome-btn" onclick="quickSearch('elegir-fecha')"><span class="icon">📅</span>Elegí tu fecha</button>
-      <button class="welcome-btn" onclick="quickSearch('gratis-barato')"><span class="icon">💸</span>Gratis o barato</button>
-      <button class="welcome-btn" onclick="quickSearch('tarde-dia')"><span class="icon">🌅</span>Algo de día / sunset</button>
-      <button class="welcome-btn" onclick="quickSearch('por-genero')"><span class="icon">🎵</span>Por género musical</button>
-      <button class="welcome-btn" onclick="quickSearch('buscar-dj')"><span class="icon">🎧</span>Fechas de un DJ</button>
-      <button class="welcome-btn" onclick="quickSearch('buscar-disco')"><span class="icon">🪩</span>Ir a una disco</button>
-      <button class="welcome-btn" onclick="quickSearch('festivales')"><span class="icon">🎪</span>Festivales</button>
-    </div>
-
-    <div class="welcome-hint">o simplemente escribí lo que tenés en mente<span class="arrow">↓</span></div>
-  `;
-
-  msgs.appendChild(welcome);
-}
-
-const QUICK_MESSAGES = {
-  'planes-finde':     'Quiero planes para este finde',
-  'gratis-barato':    'Busco algo gratis o barato este finde',
-  'tarde-dia':        'Quiero algo de día o tarde, open air o sunset',
-  'buscar-dj':        'Quiero buscar las próximas fechas de un DJ o artista',
-  'buscar-disco':     'Quiero saber qué hay en una disco o venue en particular',
-  'por-genero':       'Quiero buscar eventos por género musical',
-  'top-hoy':          'Quiero ver lo más top de hoy',
-  'festivales':       'Quiero ver festivales',
+// ── DATOS FIJOS ────────────────────────────────────────────────────────────
+const CIUDADES = [
+  ['barcelona', 'Barcelona'], ['madrid', 'Madrid'], ['ibiza', 'Ibiza'], ['valencia', 'Valencia'], ['mallorca', 'Mallorca'],
+  ['berlin', 'Berlin'], ['london', 'London'], ['amsterdam', 'Amsterdam'], ['paris', 'Paris'], ['lisbon', 'Lisboa'],
+  ['porto', 'Porto'], ['rome', 'Roma'], ['milan', 'Milán'], ['munich', 'Múnich'], ['hamburg', 'Hamburgo'],
+  ['vienna', 'Viena'], ['brussels', 'Bruselas'], ['prague', 'Praga'], ['budapest', 'Budapest'], ['stockholm', 'Estocolmo'],
+  ['buenos aires', 'Buenos Aires'], ['rio de janeiro', 'Rio de Janeiro'], ['sao paulo', 'São Paulo'], ['mexico city', 'Ciudad de México'],
+  ['bogota', 'Bogotá'], ['santiago', 'Santiago'], ['new york', 'New York'], ['los angeles', 'Los Angeles'], ['miami', 'Miami'],
+  ['chicago', 'Chicago'], ['toronto', 'Toronto'], ['montreal', 'Montreal'], ['tokyo', 'Tokio'], ['sydney', 'Sydney'], ['melbourne', 'Melbourne'],
+];
+// Moneda local: símbolo y cotización aproximada a euros (umbrales: bajo < 15€, medio 15–30€, alto > 30€)
+const MONEDA = {
+  london: ['£', 1.17], 'new york': ['US$', 0.92], 'los angeles': ['US$', 0.92], chicago: ['US$', 0.92], miami: ['US$', 0.92],
+  'rio de janeiro': ['R$', 0.17], 'sao paulo': ['R$', 0.17], 'buenos aires': ['AR$', 0.0008], 'mexico city': ['MX$', 0.05],
+  bogota: ['COL$', 0.00022], santiago: ['CLP$', 0.00097], toronto: ['CA$', 0.67], montreal: ['CA$', 0.67],
+  tokyo: ['¥', 0.0061], sydney: ['AU$', 0.60], melbourne: ['AU$', 0.60], prague: ['Kč ', 0.040], budapest: ['Ft ', 0.0025], stockholm: ['kr ', 0.087],
 };
+const GENEROS = {
+  clubs: [['techno', 'Techno'], ['house', 'House'], ['tech house', 'Tech House'], ['progressive house', 'Progressive'], ['melodic', 'Melodic'], ['disco', 'Disco']],
+  conciertos: [['rock', 'Rock'], ['pop', 'Pop'], ['latin', 'Latino'], ['hip-hop', 'Hip-Hop'], ['alternative', 'Alternativo'], ['jazz', 'Jazz']],
+  teatro: [], deportes: [],
+};
+const TAB_TXT = { clubs: ['plan', 'planes'], conciertos: ['concierto', 'conciertos'], teatro: ['show', 'shows'], deportes: ['evento deportivo', 'eventos deportivos'] };
+const DIAS_L = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES_L = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
-function quickSearch(tipo) {
-  removeWelcome();
-  if (tipo === 'elegir-fecha') { openCalendar(); return; }
-  handleSend(QUICK_MESSAGES[tipo]);
+// ── ESTADO ─────────────────────────────────────────────────────────────────
+const st = { tab: 'clubs', cuando: 'finde', franja: null, precio: null, genero: null };
+const cal = { abierto: false, a: null, b: null, mes: null };
+let vista = 'inicio';
+let historial = [];
+
+// ── UTILIDADES DE FECHA ────────────────────────────────────────────────────
+function hoy0() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function iso(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function deIso(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function rangoFinde() {
+  const h = hoy0(), wd = h.getDay();
+  const vie = wd === 0 ? addDays(h, -2) : addDays(h, 5 - wd);
+  return [vie < h ? h : vie, addDays(vie, 2)];
 }
-
-function removeWelcome() {
-  const w = document.getElementById('welcome-screen');
-  if (w) w.remove();
+function rango() {
+  const h = hoy0();
+  if (st.cuando === 'hoy') return [h, h];
+  if (st.cuando === 'manana') return [addDays(h, 1), addDays(h, 1)];
+  if (st.cuando === 'cal' && cal.a) return [cal.a, cal.b || cal.a];
+  return rangoFinde();
 }
-
-// ── UI ─────────────────────────────────────────────────────────────────────
-function addMsg(role, text, opts = [], events = []) {
-  removeWelcome();
-  const msgs = document.getElementById('msgs');
-  const wrap = document.createElement('div');
-  wrap.className = `msg ${role}`;
-  const bub = document.createElement('div');
-  bub.className = 'bubble';
-  bub.textContent = (text || '').replace(/\*\*/g, '').replace(/^#+\s*/gm, '');
-  if (events.length) bub.classList.add('has-events');
-  const grid = document.createElement('div');
-  grid.className = 'ev-grid';
-
-  const multiDia = new Set(events.map(e => e.fecha)).size > 1;
-  let diaActual = null;
-  events.forEach(ev => {
-    if (multiDia && ev.fecha !== diaActual) {
-      diaActual = ev.fecha;
-      const h = document.createElement('div');
-      h.className = 'day-header';
-      h.textContent = formatFecha(ev.fecha);
-      grid.appendChild(h);
-    }
-    const card = document.createElement('div');
-    card.className = 'ev-card';
-    const artists = (ev.artistas||[]).slice(0,4).join(' · ') + ((ev.artistas||[]).length>4?` +${ev.artistas.length-4}`:'');
-    const horaInicio = ev.hora && ev.hora !== '23:59' ? ev.hora : null;
-    const horaFin    = ev.hora_fin && ev.hora_fin !== '23:59' ? ev.hora_fin : null;
-    let horaStr = horaInicio && horaFin ? `${horaInicio} → ${horaFin}` : horaInicio ? `desde ${horaInicio}` : 'Noche';
-    const { cls, txt } = badgeInfo(ev);
-    const fecha = formatFecha(ev.fecha);
-
-    card.innerHTML = `
-      <div class="ev-header">
-        <div class="ev-title">${ev.titulo}</div>
-        <div class="ev-badge ${cls}">${txt}</div>
-      </div>
-      ${artists ? `<div class="ev-artists">👤 ${artists}</div>` : ''}
-      <div class="ev-meta">
-        ${fecha ? `<span class="ev-date">📅 ${fecha}</span>` : ''}
-        <span class="ev-hora">🕐 ${horaStr}</span>
-        ${ev.venue ? `<span>📍 ${ev.venue}</span>` : ''}
-        ${ev.ciudad_venue ? `<span>🌆 ${ev.ciudad_venue}</span>` : ''}
-        ${(ev.generos||[]).length ? `<span>🎵 ${ev.generos.slice(0,2).join(' · ')}</span>` : ''}
-      </div>
-      ${ev.destacado ? `<div class="ev-destacado">${ev.destacado.slice(0,130)}${ev.destacado.length>130?'…':''}</div>` : ''}
-      <div class="ev-footer">
-        <div class="ev-asistentes">${ev.asistentes ? `${ev.asistentes} van` : ''}</div>
-        <a class="ev-link" href="${ev.url}" target="_blank" rel="noopener">${ev.fuente === 'Ticketmaster' ? 'Entradas en Ticketmaster →' : 'Ver en RA →'}</a>
-      </div>
-    `;
-    grid.appendChild(card);
-  });
-  if (events.length) bub.appendChild(grid);
-
-  wrap.appendChild(bub);
-
-  if (opts.length) {
-    const optDiv = document.createElement('div');
-    optDiv.className = 'opts';
-    opts.forEach(o => {
-      const btn = document.createElement('button');
-      btn.className = 'opt'; btn.textContent = o;
-      if (o === OPT_CALENDARIO) btn.classList.add('opt-cal');
-      btn.onclick = () => {
-        optDiv.remove();
-        if (o === OPT_CALENDARIO) openCalendar();
-        else handleSend(o);
-      };
-      optDiv.appendChild(btn);
-    });
-    wrap.appendChild(optDiv);
-  }
-
-  const t = document.createElement('div');
-  t.className = 'time'; t.textContent = now();
-  wrap.appendChild(t);
-  msgs.appendChild(wrap);
-  msgs.scrollTop = msgs.scrollHeight;
+function textoFechas() {
+  if (!cal.a) return '📅 Elegir fechas';
+  const f = d => `${d.getDate()} ${MESES_C[d.getMonth()]}`;
+  return cal.b ? `📅 ${f(cal.a)} → ${f(cal.b)}` : `📅 ${DIAS_L[cal.a.getDay()].slice(0, 3).toLowerCase()} ${f(cal.a)}`;
 }
+function ciudad() { return document.getElementById('city').value; }
+function ciudadTxt() { const c = CIUDADES.find(x => x[0] === ciudad()); return c ? c[1] : ciudad(); }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
-function showTyping() {
-  removeWelcome();
-  const msgs = document.getElementById('msgs');
-  const w = document.createElement('div');
-  w.className = 'msg bot'; w.id = 'typing';
-  const b = document.createElement('div');
-  b.className = 'bubble';
-  b.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
-  w.appendChild(b); msgs.appendChild(w);
-  msgs.scrollTop = msgs.scrollHeight;
+// ── PINTAR FILTROS ─────────────────────────────────────────────────────────
+function redondo(n) { const p = n < 100 ? 5 : n < 1000 ? 10 : Math.pow(10, String(Math.round(n)).length - 2); return Math.round(n / p) * p; }
+function preciosCiudad() {
+  const [sym, rate] = MONEDA[ciudad()] || ['€', 1];
+  const f = n => sym + redondo(n / rate).toLocaleString('es');
+  document.getElementById('p-bajo').textContent = `hasta ${f(15)}`;
+  document.getElementById('p-medio').textContent = `${f(15)}–${f(30)}`;
+  document.getElementById('p-alto').textContent = `desde ${f(30)}`;
 }
-function hideTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
+function pintarGeneros() {
+  const lista = GENEROS[st.tab] || [];
+  document.getElementById('group-genero').hidden = !lista.length;
+  document.getElementById('chips-genero').innerHTML = lista.map(([v, t]) => `<button class="chip" data-v="${v}">${t}</button>`).join('');
+}
+function pintar() {
+  document.querySelectorAll('.chips').forEach(g => g.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', st[g.dataset.g] === b.dataset.v)));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === st.tab));
+  document.getElementById('chip-cal').textContent = textoFechas();
+  const et = { hoy: 'Hoy', manana: 'Mañana', finde: 'Este finde', cal: textoFechas().replace('📅 ', '') };
+  document.getElementById('fsummary').textContent = [et[st.cuando], st.franja, st.precio, st.genero].filter(Boolean).join(' · ');
+}
 
 // ── CALENDARIO ─────────────────────────────────────────────────────────────
-const OPT_CALENDARIO = '📅 Elegir fechas';
-const MAX_DIAS = 7;
-const MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-
-function isoDate(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function pintarCal() {
+  const el = document.getElementById('minical');
+  el.classList.toggle('open', cal.abierto);
+  if (!cal.abierto) return;
+  const H = hoy0();
+  if (!cal.mes) cal.mes = new Date(H.getFullYear(), H.getMonth(), 1);
+  const y = cal.mes.getFullYear(), m = cal.mes.getMonth();
+  const off = (new Date(y, m, 1).getDay() + 6) % 7, n = new Date(y, m + 1, 0).getDate();
+  let g = ['L','M','X','J','V','S','D'].map(d => `<div class="mc-dow">${d}</div>`).join('') + '<div></div>'.repeat(off);
+  for (let i = 1; i <= n; i++) {
+    const d = new Date(y, m, i), t = d.getTime(), c = ['mc-d'];
+    if (t === H.getTime()) c.push('today');
+    if ((cal.a && t === cal.a.getTime()) || (cal.b && t === cal.b.getTime())) c.push('sel');
+    else if (cal.a && cal.b && t > cal.a && t < cal.b) c.push('in');
+    g += `<button class="${c.join(' ')}" ${d < H ? 'disabled' : ''} onclick="elegirDia(${y},${m},${i})">${i}</button>`;
+  }
+  const esMesActual = y === H.getFullYear() && m === H.getMonth();
+  el.innerHTML = `<div class="mc-top"><button ${esMesActual ? 'disabled' : ''} onclick="cal.mes=new Date(${y},${m - 1},1);pintarCal()">‹</button>${MESES_L[m]} ${y}<button onclick="cal.mes=new Date(${y},${m + 1},1);pintarCal()">›</button></div>
+    <div class="mc-grid">${g}</div><div class="mc-note">${cal.a && !cal.b ? 'Tocá otro día para elegir un rango' : 'Tocá un día, o dos para un rango (hasta 7 días)'}</div>
+    <button class="mc-ok" ${cal.a ? '' : 'disabled'} onclick="cal.abierto=false;pintarCal()">Listo</button>`;
 }
-function hoy0() { const d = new Date(); d.setHours(0,0,0,0); return d; }
-function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
-function diffDias(a, b) { return Math.round((b - a) / 86400000); }
-
-function openCalendar() {
-  if (busy) return;
-  const prev = document.getElementById('cal-msg');
-  if (prev) prev.remove();
-  removeWelcome();
-
-  const state = { start: null, end: null, mes: new Date(hoy0().getFullYear(), hoy0().getMonth(), 1), note: '' };
-  const msgs = document.getElementById('msgs');
-  const wrap = document.createElement('div');
-  wrap.className = 'msg bot'; wrap.id = 'cal-msg';
-  const cal = document.createElement('div');
-  cal.className = 'cal';
-  wrap.appendChild(cal);
-  msgs.appendChild(wrap);
-
-  function setRango(a, b) { state.start = a; state.end = b; state.note = ''; render(); }
-
-  function pick(d) {
-    const { start, end } = state;
-    state.note = '';
-    if (!start || end) { state.start = d; state.end = null; }
-    else if (d.getTime() === start.getTime()) { state.end = null; }
-    else if (d < start) { state.start = d; }
-    else if (diffDias(start, d) >= MAX_DIAS) {
-      state.end = addDays(start, MAX_DIAS - 1);
-      state.note = `Máximo ${MAX_DIAS} días por búsqueda`;
-    } else { state.end = d; }
-    render();
-  }
-
-  function etiqueta() {
-    const { start, end } = state;
-    if (!start) return 'Elegí uno o más días';
-    if (!end) return `Buscar el ${formatFecha(isoDate(start)).toLowerCase()}`;
-    return `Buscar del ${formatFecha(isoDate(start)).toLowerCase()} al ${formatFecha(isoDate(end)).toLowerCase()}`;
-  }
-
-  function confirmar() {
-    const { start, end } = state;
-    if (!start) return;
-    const a = isoDate(start);
-    const txt = end
-      ? `Del ${formatFecha(a)} al ${formatFecha(isoDate(end))} (${a}/${isoDate(end)})`
-      : `El ${formatFecha(a)} (${a})`;
-    wrap.remove();
-    handleSend(txt);
-  }
-
-  function render() {
-    const hoy = hoy0();
-    const y = state.mes.getFullYear(), m = state.mes.getMonth();
-    const primero = new Date(y, m, 1);
-    const offset = (primero.getDay() + 6) % 7; // lunes primero
-    const diasMes = new Date(y, m + 1, 0).getDate();
-    const esMesActual = y === hoy.getFullYear() && m === hoy.getMonth();
-    const { start, end } = state;
-
-    let celdas = ['L','M','X','J','V','S','D'].map(d => `<div class="cal-dow">${d}</div>`).join('');
-    for (let i = 0; i < offset; i++) celdas += '<div></div>';
-    for (let n = 1; n <= diasMes; n++) {
-      const d = new Date(y, m, n);
-      const cls = ['cal-day'];
-      if (d.getTime() === hoy.getTime()) cls.push('today');
-      const t = d.getTime();
-      if (start && t === start.getTime()) cls.push('sel', 'start', end ? 'has-end' : '');
-      if (end && t === end.getTime()) cls.push('sel', 'end');
-      if (start && end && t > start.getTime() && t < end.getTime()) cls.push('in-range');
-      celdas += `<button class="${cls.join(' ')}" data-iso="${isoDate(d)}" ${d < hoy ? 'disabled' : ''}>${n}</button>`;
-    }
-
-    cal.innerHTML = `
-      <div class="cal-quick">
-        <button class="opt" data-q="hoy">Hoy</button>
-        <button class="opt" data-q="manana">Mañana</button>
-        <button class="opt" data-q="finde">Este finde</button>
-        <button class="opt" data-q="finde2">Próximo finde</button>
-      </div>
-      <div class="cal-top">
-        <button class="cal-nav" data-nav="-1" ${esMesActual ? 'disabled' : ''}>‹</button>
-        <div class="cal-title">${MESES_LARGOS[m]} ${y}</div>
-        <button class="cal-nav" data-nav="1">›</button>
-      </div>
-      <div class="cal-grid">${celdas}</div>
-      <div class="cal-note">${state.note || (start && !end ? 'Tocá otro día para elegir un rango' : '')}</div>
-      <div class="cal-actions">
-        <button class="cal-cancel">Cancelar</button>
-        <button class="cal-ok" ${start ? '' : 'disabled'}>${etiqueta()}</button>
-      </div>`;
-
-    cal.querySelectorAll('.cal-day:not(:disabled)').forEach(b =>
-      b.onclick = () => { const [yy, mm, dd] = b.dataset.iso.split('-').map(Number); pick(new Date(yy, mm - 1, dd)); });
-    cal.querySelectorAll('.cal-nav').forEach(b =>
-      b.onclick = () => { state.mes = new Date(y, m + Number(b.dataset.nav), 1); render(); });
-    cal.querySelectorAll('[data-q]').forEach(b => b.onclick = () => {
-      const q = b.dataset.q, wd = hoy.getDay(); // 0=dom
-      if (q === 'hoy') setRango(hoy, null);
-      if (q === 'manana') setRango(addDays(hoy, 1), null);
-      if (q === 'finde' || q === 'finde2') {
-        // viernes de esta semana (si hoy es sáb/dom, el viernes que ya pasó)
-        const vieEsta = wd === 0 ? addDays(hoy, -2) : addDays(hoy, 5 - wd);
-        let a, b;
-        if (q === 'finde') { a = vieEsta < hoy ? hoy : vieEsta; b = addDays(vieEsta, 2); }
-        else { a = addDays(vieEsta, 7); b = addDays(vieEsta, 9); }
-        state.mes = new Date(a.getFullYear(), a.getMonth(), 1);
-        setRango(a, b.getTime() === a.getTime() ? null : b);
-      }
-    });
-    cal.querySelector('.cal-ok').onclick = confirmar;
-    cal.querySelector('.cal-cancel').onclick = () => wrap.remove();
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-
-  render();
+function elegirDia(y, m, i) {
+  const d = new Date(y, m, i);
+  st.cuando = 'cal';
+  if (!cal.a || cal.b) { cal.a = d; cal.b = null; }
+  else if (d < cal.a) cal.a = d;
+  else if (d.getTime() !== cal.a.getTime()) cal.b = (d - cal.a) / 864e5 > 6 ? addDays(cal.a, 6) : d;
+  if (cal.b) setTimeout(() => { cal.abierto = false; pintarCal(); }, 350);
+  pintarCal(); pintar(); autoBuscar();
 }
 
-function getOpts(reply) {
-  // Mirar solo la última pregunta del bot (lo que empieza con el último "¿"),
-  // así "buscamos en la franja de tarde... ¿precio?" muestra opciones de precio y no de horario
-  const idx = reply.lastIndexOf('¿');
-  const low = (idx >= 0 ? reply.slice(idx) : reply).toLowerCase();
-  if (low.includes('ciudad') || low.includes('dónde') || low.includes('donde'))
-    return ['Buenos Aires', 'Berlin', 'Barcelona', 'London', 'Amsterdam', 'Madrid'];
-  if ((low.includes('viernes') && (low.includes('sábado') || low.includes('sabado'))) || low.includes('qué día') || low.includes('que dia') || low.includes('cuándo') || low.includes('cuando'))
-    return [OPT_CALENDARIO, 'Hoy', 'Mañana', 'Viernes', 'Sábado', 'Domingo', 'Todo el finde'];
-  if (low.includes('tarde') || low.includes('noche') || low.includes('horario') || low.includes('franja') || low.includes('sunset') || low.includes('after'))
-    return ['🌤️ Tarde (14-20hs)', '🌅 Sunset (18-21hs)', '🌙 Noche (21-03hs)', '☀️ Afters (05-09hs)', 'Me da igual'];
-  if (low.includes('gratis') || low.includes('precio') || low.includes('entrada'))
-    return ['Gratis', 'Barato (<15€)', 'Normal (15-30€)', 'Me da igual'];
-  if (low.includes('género') || low.includes('genero') || low.includes('música'))
-    return ['Techno', 'House', 'Tech House', 'Progressive', 'Melodic', 'Drum & Bass', 'Otro'];
-  return [];
+// ── BÚSQUEDA ───────────────────────────────────────────────────────────────
+let timer = null, ctrl = null, ultimaBusqueda = null;
+function autoBuscar() {
+  document.getElementById('main').classList.add('loading');
+  clearTimeout(timer);
+  timer = setTimeout(buscar, 450);
 }
 
-async function handleSend(texto) {
-  if (!texto.trim() || busy) return;
-  busy = true;
-  document.getElementById('sendbtn').disabled = true;
-  document.getElementById('inp').value = '';
-
-  addMsg('user', texto);
-  history.push({ role: 'user', content: texto });
-  showTyping();
-
+async function buscar() {
+  vista = 'resultados';
+  const main = document.getElementById('main');
+  main.classList.add('loading');
+  const [a, b] = rango();
+  const p = new URLSearchParams({ ciudad: ciudad(), categoria: st.tab, desde: iso(a), hasta: iso(b), max: 30 });
+  if (st.franja) p.set('franja', st.franja);
+  if (st.genero) p.set('genero', st.genero);
+  if (st.precio === 'gratis') p.set('gratis', 'true');
+  if (st.precio === 'bajo') { p.set('precio_min', 0); p.set('precio_max', 15); }
+  if (st.precio === 'medio') { p.set('precio_min', 15); p.set('precio_max', 30); }
+  if (st.precio === 'alto') p.set('precio_min', 31);
+  if (ctrl) ctrl.abort();
+  ctrl = new AbortController();
+  ultimaBusqueda = new URLSearchParams(p);
   try {
-    const res = await fetch(`${RAILWAY}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: history })
-    });
-    const data = await res.json();
-    hideTyping();
-
-    const reply   = data.reply || '';
-    const eventos = data.eventos || [];
-    const total   = data.total_ra || 0;
-    const filtros = data.filtros;
-
-    history.push({ role: 'assistant', content: reply });
-
-    if (filtros && eventos.length > 0) {
-      const tipo = filtros.tipo || 'fecha';
-      let intro = '';
-      if (tipo === 'fecha') {
-        const ciudadTxt = (filtros.ciudad || '').replace(/\b\w/g, c => c.toUpperCase());
-        const generoTxt = filtros.genero ? ` de ${filtros.genero}` : '';
-        intro = total > eventos.length
-          ? `¡Encontré ${total} eventos${generoTxt} en ${ciudadTxt}! 🔥 Te dejo los ${eventos.length} que más gente convocan.`
-          : `¡Mirá lo que encontré${generoTxt} en ${ciudadTxt}! 🔥`;
-        intro += `\n💡 Los precios son orientativos, chequealos en RA antes de comprar.`;
-      } else if (tipo === 'artista') {
-        intro = reply || `Próximas fechas de ${(filtros.artista||'').replace(/-/g,' ')}:`;
-      } else if (tipo === 'venue') {
-        intro = `Esto hay en ${filtros.venue || 'ese venue/disco'}:`;
-      } else {
-        intro = filtros.query ? `Resultados para "${filtros.query}":` : 'Acá van los resultados:';
-      }
-      addMsg('bot', intro, ['🔄 Nueva búsqueda', OPT_CALENDARIO], eventos);
-    } else if (filtros && eventos.length === 0 && reply && filtros.tipo !== 'fecha') {
-      addMsg('bot', reply, ['🔄 Nueva búsqueda']);
-    } else if (filtros && eventos.length === 0) {
-      const opcionesSinRes = [];
-      if (filtros.franja || filtros.hora_min) opcionesSinRes.push('Sin filtro de horario');
-      if (filtros.gratis || filtros.precio_max) opcionesSinRes.push('Sin filtro de precio');
-      if (filtros.genero) opcionesSinRes.push('Cualquier género');
-      opcionesSinRes.push(OPT_CALENDARIO, '🔄 Nueva búsqueda');
-      const pistas = [filtros.franja || filtros.hora_min ? 'el horario' : null,
-                      filtros.gratis || filtros.precio_max ? 'el precio' : null,
-                      filtros.genero ? 'el género' : null].filter(Boolean);
-      const sugerencia = pistas.length ? `¿Probamos aflojando ${pistas.join(' o ')}?` : '¿Probamos con otra fecha?';
-      addMsg('bot',
-        `No encontré exactamente lo que buscás 😕 ${sugerencia}` +
-        (total ? `\nEsos días hay ${total} eventos en total en ${filtros.ciudad || 'la ciudad'}, así que seguro hay algo para vos.` : ''),
-        opcionesSinRes
-      );
-    } else {
-      addMsg('bot', reply, getOpts(reply));
-    }
-  } catch(e) {
-    hideTyping();
-    addMsg('bot', 'Uy, se me cortó algo 😅 ¿Lo intentamos de nuevo?', ['🔄 Reiniciar']);
+    const r = await fetch(`${API}/eventos?${p}`, { signal: ctrl.signal });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    mostrar(data.eventos || [], data.total_ra || 0, null, data.por_dia || {});
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    main.innerHTML = volver() + `<div class="empty"><b>Uy, se me cortó algo 😅</b>No pude traer los eventos. Probá de nuevo en un ratito.</div>`;
   }
-
-  busy = false;
-  document.getElementById('sendbtn').disabled = false;
-  document.getElementById('inp').focus();
+  main.classList.remove('loading');
 }
 
-function send() { handleSend(document.getElementById('inp').value.trim()); }
-document.getElementById('inp').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); send(); }
+function volver() { return '<button class="back" onclick="inicio()">← Volver a los atajos</button>'; }
+
+function mostrar(eventos, total, titulo, porDia = {}) {
+  const main = document.getElementById('main');
+  const activos = [st.franja, st.precio, (GENEROS[st.tab] || []).find(g => g[0] === st.genero)?.[1] || st.genero].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join('');
+  const n = Math.max(total, eventos.length);
+  const h2 = titulo || (eventos.length
+    ? `${n} ${TAB_TXT[st.tab][n === 1 ? 0 : 1]} en <span>${esc(ciudadTxt())}</span>`
+    : `Nada por acá en <span>${esc(ciudadTxt())}</span>`);
+  let html = volver() + `<div class="res-head"><h2>${h2}</h2><div class="active">${titulo ? '' : activos}</div></div>`;
+  if (!eventos.length) {
+    const tm = st.tab !== 'clubs' && !titulo;
+    html += `<div class="empty"><b>No encontré exactamente lo que buscás 😕</b>
+      ${st.franja || st.precio || st.genero ? 'Probá sacando algún filtro de la izquierda, o elegí otras fechas.' : 'Probá con otras fechas o con otra ciudad.'}
+      ${tm ? '<br><br>Ojo: estos eventos vienen de Ticketmaster, que en algunas ciudades (como Barcelona o Madrid) tiene poca oferta.' : ''}</div>`;
+    main.innerHTML = html; return;
+  }
+  html += `<div class="res-sub" style="margin-top:10px">${total > eventos.length ? `Te muestro los ${eventos.length} más destacados.` : ''} Ordenados por día.</div>`;
+  const dias = [...new Set(eventos.map(e => e.fecha))];
+  dias.forEach(dia => {
+    const delDia = eventos.filter(e => e.fecha === dia);
+    const d = deIso(dia);
+    html += `<div class="day"><b>${DIAS_L[d.getDay()]} ${d.getDate()}</b> ${MESES_L[d.getMonth()]}</div>`;
+    html += `<div class="grid" id="grid-${dia}">${delDia.map(tarjeta).join('')}</div>`;
+    const hay = porDia[dia] || 0;
+    if (!titulo && hay > delDia.length) {
+      html += `<button class="more" id="more-${dia}" onclick="verDia('${dia}')">Ver los ${hay} ${TAB_TXT[st.tab][1]} del ${DIAS_L[d.getDay()].toLowerCase()} ${d.getDate()} ↓</button>`;
+    }
+  });
+  main.innerHTML = html;
+  main.scrollTop = 0;
+}
+
+async function verDia(dia) {
+  if (!ultimaBusqueda) return;
+  const btn = document.getElementById('more-' + dia);
+  btn.disabled = true; btn.textContent = 'Buscando todos…';
+  const p = new URLSearchParams(ultimaBusqueda);
+  p.set('desde', dia); p.set('hasta', dia); p.set('max', 300);
+  try {
+    const r = await fetch(`${API}/eventos?${p}`);
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    document.getElementById('grid-' + dia).innerHTML = (data.eventos || []).map(tarjeta).join('');
+    btn.remove();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'No pude traerlos, tocá para reintentar';
+  }
+}
+
+function tarjeta(e) {
+  const cat = e.precio_cat || (e.gratis ? 'gratis' : 'nd');
+  const precio = cat === 'nd' ? 'PRECIO EN WEB' : cat === 'gratis' ? 'GRATIS' : (e.precio_label || '').toUpperCase();
+  const hora = e.hora && e.hora !== '23:59' ? e.hora : null;
+  const fin = e.hora_fin && e.hora_fin !== '23:59' ? e.hora_fin : null;
+  const gente = e.asistentes ? `👥 ${e.asistentes} interesados` : (e.fuente === 'Ticketmaster' ? 'vía Ticketmaster' : 'vía Resident Advisor');
+  const lugar = e.ciudad_venue || ciudadTxt();
+  const id = idEvento(e);
+  EVENTOS[id] = e;
+  const emoji = { conciertos: '🎤', teatro: '🎭', deportes: '⚽' }[st.tab] || '🪩';
+  const pic = e.imagen ? `<div class="pic" style="background-image:url('${esc(e.imagen)}')"></div>` : `<div class="pic vacia">${emoji}</div>`;
+  return `
+    <article class="card" data-id="${esc(id)}">
+      ${pic}
+      <div class="acciones">
+        <button class="ico ${estaGuardado(id) ? 'on' : ''}" title="Guardar" onclick="toggleGuardado(event, '${esc(id)}')">${estaGuardado(id) ? '♥' : '♡'}</button>
+        <button class="ico" title="Compartir" onclick="compartir(event, '${esc(id)}')">↗</button>
+      </div>
+      <div class="inner">
+      <div class="town">📍 ${esc(lugar)}</div>
+      <div class="title">${esc(e.titulo)}</div>
+      ${(e.artistas || []).length ? `<div class="who">${esc(e.artistas.slice(0, 5).join(', '))}</div>` : ''}
+      <div class="facts">
+        ${e.venue ? `<div><span>en:</span> <b>${esc(e.venue)}</b></div>` : ''}
+        ${hora ? `<div><span>de</span> ${hora}${fin ? ` <span>a</span> ${fin}` : ''}<span> hs</span></div>` : ''}
+      </div>
+      <div class="foot">
+        <div class="tags">${(e.generos || []).slice(0, 2).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
+        <span class="price p-${cat}">${esc(precio)}</span>
+        <span class="people">${gente}</span>
+        <a class="tickets" href="${esc(e.url)}" target="_blank" rel="noopener">Ver tickets →</a>
+      </div>
+      </div>
+    </article>`;
+}
+
+// ── GUARDADOS Y COMPARTIR ──────────────────────────────────────────────────
+const EVENTOS = {};
+function idEvento(e) { return e.url || `${e.titulo}|${e.fecha}`; }
+function leerGuardados() { try { return JSON.parse(localStorage.getItem('lp_guardados') || '{}'); } catch (e) { return {}; } }
+function escribirGuardados(g) { try { localStorage.setItem('lp_guardados', JSON.stringify(g)); } catch (e) {} }
+function estaGuardado(id) { return !!leerGuardados()[id]; }
+function contarGuardados() {
+  const hoy = iso(hoy0());
+  const n = Object.values(leerGuardados()).filter(e => (e.fecha || '') >= hoy).length;
+  document.getElementById('nguardados').textContent = n || '';
+}
+function toast(txt) {
+  const t = document.getElementById('toast');
+  t.textContent = txt; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1800);
+}
+function toggleGuardado(ev, id) {
+  ev.stopPropagation();
+  const g = leerGuardados();
+  if (g[id]) { delete g[id]; toast('Lo sacaste de tus guardados'); }
+  else { g[id] = EVENTOS[id]; toast('❤️ Guardado'); }
+  escribirGuardados(g); contarGuardados();
+  const b = ev.currentTarget; const on = !!g[id];
+  b.classList.toggle('on', on); b.textContent = on ? '♥' : '♡';
+  if (vista === 'guardados' && !on) verGuardados();
+}
+function verGuardados() {
+  vista = 'guardados';
+  const hoy = iso(hoy0());
+  const lista = Object.values(leerGuardados()).filter(e => (e.fecha || '') >= hoy).sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+  if (!lista.length) {
+    document.getElementById('main').innerHTML = volver() + `<div class="res-head"><h2>Tus <span>guardados</span></h2></div>
+      <div class="empty"><b>Todavía no guardaste nada</b>Tocá el ♡ en cualquier evento y lo vas a encontrar acá.</div>`;
+    return;
+  }
+  mostrar(lista, lista.length, `Tus <span>guardados</span>`);
+  vista = 'guardados';
+}
+function textoCompartir(e) {
+  const d = deIso(e.fecha);
+  return `¿Vamos? 🔥 ${e.titulo} — ${DIAS_L[d.getDay()]} ${d.getDate()} de ${MESES_L[d.getMonth()]}${e.venue ? ' en ' + e.venue : ''}`;
+}
+function cerrarMenus() { document.querySelectorAll('.menu-share').forEach(m => m.remove()); }
+document.addEventListener('click', cerrarMenus);
+async function compartir(ev, id) {
+  ev.stopPropagation();
+  const e = EVENTOS[id]; if (!e) return;
+  const texto = textoCompartir(e);
+  if (navigator.share && matchMedia('(max-width: 820px)').matches) {
+    try { await navigator.share({ title: e.titulo, text: texto, url: e.url }); } catch (err) {}
+    return;
+  }
+  cerrarMenus();
+  const card = ev.currentTarget.closest('.card');
+  const m = document.createElement('div');
+  m.className = 'menu-share';
+  const msg = encodeURIComponent(`${texto}\n${e.url}`);
+  m.innerHTML = `<a href="https://wa.me/?text=${msg}" target="_blank" rel="noopener">💬 WhatsApp</a>
+    <a href="mailto:?subject=${encodeURIComponent(e.titulo)}&body=${msg}">✉️ Mail</a>
+    <button>🔗 Copiar link</button>`;
+  m.querySelector('button').onclick = async (x) => {
+    x.stopPropagation();
+    try { await navigator.clipboard.writeText(`${texto}\n${e.url}`); toast('🔗 Link copiado'); } catch (err) { toast('No pude copiarlo 😕'); }
+    cerrarMenus();
+  };
+  m.addEventListener('click', x => x.stopPropagation());
+  card.appendChild(m);
+}
+
+// ── INICIO ─────────────────────────────────────────────────────────────────
+function inicio() {
+  vista = 'inicio';
+  document.getElementById('main').classList.remove('loading');
+  document.getElementById('main').innerHTML = `
+    <div class="hello">
+      <h2>¿Qué hacemos en <span>${esc(ciudadTxt())}</span>?</h2>
+      <p>Elegí un atajo, armá tu búsqueda con los filtros o decime qué querés abajo 👇</p>
+      <div class="shortcuts">
+        <button class="sc" onclick="atajo('finde')"><i>🗓️</i>Lo mejor de este finde<small>Lo que más gente convoca</small></button>
+        <button class="sc" onclick="atajo('top')"><i>🔥</i>Lo más top hoy<small>Lo que está pegando hoy</small></button>
+        <button class="sc" onclick="atajo('gratis')"><i>💸</i>Gratis o barato<small>Para salir sin gastar</small></button>
+        <button class="sc" onclick="atajo('sunset')"><i>🌅</i>Sunset y open air<small>Arrancan al caer el sol</small></button>
+        <button class="sc" onclick="atajo('club')"><i>🪩</i>Buscar por club<small>Qué hay en tu disco favorita</small></button>
+        <button class="sc" onclick="atajo('dj')"><i>🎧</i>Fechas de un DJ<small>Cuándo toca tu artista</small></button>
+      </div>
+    </div>`;
+}
+
+function atajo(k) {
+  if (k === 'club') return preguntar('Quiero saber qué hay en una disco o venue en particular en ' + ciudadTxt());
+  if (k === 'dj') return preguntar('Quiero buscar las próximas fechas de un DJ o artista');
+  Object.assign(st, { tab: 'clubs', cuando: 'finde', franja: null, precio: null, genero: null });
+  cal.a = cal.b = null;
+  if (k === 'top') st.cuando = 'hoy';
+  if (k === 'gratis') st.precio = 'bajo';
+  if (k === 'sunset') st.franja = 'sunset';
+  pintarGeneros(); pintar(); buscar();
+}
+
+// ── CHAT ───────────────────────────────────────────────────────────────────
+function burbuja(txt, quien) {
+  const t = document.getElementById('thread');
+  const m = document.createElement('div');
+  m.className = 'msg ' + quien; m.textContent = txt;
+  t.appendChild(m); t.scrollTop = t.scrollHeight;
+  document.getElementById('dock').classList.add('open');
+  return m;
+}
+
+function aplicarFiltrosDelBot(f) {
+  if (f.ciudad && CIUDADES.some(c => c[0] === f.ciudad)) document.getElementById('city').value = f.ciudad;
+  st.tab = GENEROS[f.categoria] ? f.categoria : 'clubs';
+  if (f.desde && f.hasta) {
+    const H = hoy0(), a = deIso(f.desde), b = deIso(f.hasta), [fa, fb] = rangoFinde();
+    if (+a === +H && +b === +H) st.cuando = 'hoy';
+    else if (+a === +addDays(H, 1) && +b === +a) st.cuando = 'manana';
+    else if (+a === +fa && +b === +fb) st.cuando = 'finde';
+    else { st.cuando = 'cal'; cal.a = a; cal.b = +b === +a ? null : b; cal.mes = new Date(a.getFullYear(), a.getMonth(), 1); }
+  }
+  st.franja = ['tarde', 'sunset', 'noche', 'afters'].includes(f.franja) ? f.franja : null;
+  st.precio = f.gratis ? 'gratis' : f.precio_max ? (f.precio_max <= 15 ? 'bajo' : f.precio_max <= 30 ? 'medio' : null) : null;
+  st.genero = f.genero ? String(f.genero).toLowerCase() : null;
+  preciosCiudad(); pintarGeneros(); pintar();
+}
+
+async function preguntar(textoFijo) {
+  const inp = document.getElementById('ask');
+  const texto = (textoFijo || inp.value).trim();
+  if (!texto) return;
+  inp.value = '';
+  const btn = document.getElementById('sendbtn');
+  btn.disabled = true;
+  burbuja(texto, 'me');
+  historial.push({ role: 'user', content: texto });
+  const esperando = burbuja('…', 'bot typing');
+  try {
+    const r = await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: historial }) });
+    const data = await r.json();
+    esperando.remove();
+    const reply = (data.reply || '').replace(/\*\*/g, '');
+    historial.push({ role: 'assistant', content: data.reply || '' });
+    const f = data.filtros;
+    if (!f) {
+      burbuja(reply || 'Contame un poco más y te busco algo 🙂', 'bot');
+    } else if ((f.tipo || 'fecha') === 'fecha') {
+      burbuja('¡Listo! Te marqué los filtros a la izquierda y busqué 🔎 Si algo no es lo que querías, tocalo y cambialo.', 'bot');
+      aplicarFiltrosDelBot(f);
+      buscar();
+    } else {
+      const ev = data.eventos || [];
+      burbuja(ev.length ? (reply || 'Mirá lo que encontré 👇') : (reply || 'No encontré nada con eso 😕'), 'bot');
+      if (ev.length) {
+        const nombre = f.artista || f.venue || f.query || '';
+        const titulo = f.tipo === 'artista' ? `Próximas fechas de <span>${esc(nombre)}</span>`
+          : f.tipo === 'venue' ? `Lo que viene en <span>${esc(nombre)}</span>` : `Resultados para <span>${esc(nombre)}</span>`;
+        mostrar(ev, ev.length, titulo);
+        vista = 'resultados';
+      }
+    }
+  } catch (e) {
+    esperando.remove();
+    burbuja('Uy, se me cortó algo 😅 ¿Lo intentamos de nuevo?', 'bot');
+  }
+  btn.disabled = false;
+  inp.focus();
+}
+
+// ── EVENTOS DE LA UI ───────────────────────────────────────────────────────
+document.querySelectorAll('.chips').forEach(g => {
+  g.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    const k = g.dataset.g, v = b.dataset.v;
+    if (v === 'cal') { cal.abierto = !cal.abierto; pintarCal(); if (cal.a) { st.cuando = 'cal'; pintar(); autoBuscar(); } return; }
+    if (k === 'cuando') { cal.abierto = false; pintarCal(); }
+    st[k] = st[k] === v && k !== 'cuando' ? null : v;
+    pintar(); autoBuscar();
+  });
+});
+document.getElementById('tabs').addEventListener('click', e => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  st.tab = t.dataset.tab;
+  if (!(GENEROS[st.tab] || []).some(g => g[0] === st.genero)) st.genero = null;
+  pintarGeneros(); pintar(); buscar();
+});
+document.getElementById('city').addEventListener('change', () => {
+  preciosCiudad();
+  try { localStorage.setItem('lp_ciudad', ciudad()); } catch (e) {}
+  if (vista === 'resultados') autoBuscar(); else inicio();
 });
 
-showWelcome();
+// ── ARRANQUE ───────────────────────────────────────────────────────────────
+(function () {
+  const sel = document.getElementById('city');
+  sel.innerHTML = CIUDADES.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+  let guardada = null;
+  try { guardada = localStorage.getItem('lp_ciudad'); } catch (e) {}
+  sel.value = CIUDADES.some(c => c[0] === guardada) ? guardada : 'barcelona';
+  preciosCiudad(); pintarGeneros(); pintar(); inicio(); contarGuardados();
+})();
 </script>
 </body>
 </html>
