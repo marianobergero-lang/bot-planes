@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
   :root {
     --bg: #0D0C0B; --surface: #141311; --card: #171614;
@@ -54,7 +55,7 @@
   /* FILTROS */
   .side > .group { padding-top: 15px; border-top: 1px solid var(--line); }
   .group[hidden] { display: none !important; }
-  #chips-genero { flex-wrap: wrap; }
+  #chips-genero, #chips-tipo { flex-wrap: wrap; }
   .chips { display: flex; flex-wrap: nowrap; gap: 6px; }
   .chip {
     background: transparent; border: 1px solid var(--border2); color: var(--muted);
@@ -184,6 +185,73 @@
   .fav.on { background: var(--orange-soft); border-color: rgba(233,104,46,.55); color: var(--orange); }
   .facts .people { font-size: 12px; color: var(--dim); margin-top: 2px; }
 
+  /* CERCA MÍO */
+  .city-block { position: relative; }
+  .city-row { display: flex; gap: 8px; }
+  .city-row .city { flex: 1; }
+  .near { border: 1px solid var(--border2); background: transparent; color: var(--text); border-radius: 12px; padding: 0 14px; font: 600 13px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; transition: all .12s; }
+  .near:hover { border-color: var(--orange); }
+  .near.on { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .near-note { font-size: 12px; color: var(--dim); margin-top: 7px; display: none; }
+  .near-note.show { display: block; }
+  .near-note b { color: var(--text); font-weight: 600; }
+  .near-note a { color: var(--orange); }
+  .near-pop { display: none; position: absolute; left: 0; right: 0; top: 74px; z-index: 30; background: var(--card); border: 1px solid var(--border2); border-radius: 12px; padding: 10px; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
+  .near-pop.open { display: block; }
+  .near-opt { width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--border2); color: var(--text); border-radius: 9px; padding: 10px 12px; font: 600 13.5px 'Space Grotesk', sans-serif; cursor: pointer; }
+  .near-opt:hover { border-color: var(--orange); }
+  .near-or { font-size: 11.5px; color: var(--dim); margin: 10px 2px 6px; text-transform: uppercase; letter-spacing: 1px; }
+  #diri { width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text); border-radius: 9px; padding: 10px 12px; font: 14px 'Space Grotesk', sans-serif; outline: none; }
+  #diri:focus { border-color: var(--orange); }
+  .sug { padding: 8px 10px; font-size: 13px; border-radius: 7px; cursor: pointer; }
+  .sug:hover { background: var(--surface); }
+  .sug small { display: block; color: var(--dim); font-size: 11.5px; }
+  .dist { position: absolute; left: 10px; top: 10px; z-index: 2; font-size: 11.5px; font-weight: 700; background: var(--text); color: var(--bg); border-radius: 6px; padding: 4px 8px; }
+
+  /* LISTA / MAPA */
+  .seg { display: flex; border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; }
+  .seg button { background: none; border: none; color: var(--muted); padding: 7px 13px; font: 600 13px 'Space Grotesk', sans-serif; cursor: pointer; }
+  .seg button.on { background: var(--text); color: var(--bg); }
+  .head-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .mapa-wrap { display: grid; grid-template-columns: 1fr 360px; gap: 0; height: calc(100vh - 290px); min-height: 420px; margin-top: 14px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  #mapa { height: 100%; background: #1a1916; }
+  .mapa-lista { overflow-y: auto; padding: 10px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+  .mapa-lista .card .pic { height: 100px; }
+  .mapa-info { font-size: 12.5px; color: var(--dim); padding: 2px 4px 4px; }
+  .leaflet-container { font-family: 'Space Grotesk', sans-serif; background: #1a1916; }
+  .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.6); }
+  .leaflet-tooltip { background: var(--card); color: var(--text); border: 1px solid var(--border2); font-weight: 600; }
+  .leaflet-tooltip:before { display: none; }
+  .pin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #0D0C0B; box-shadow: 0 0 0 2px rgba(255,255,255,.25); transition: transform .12s; }
+  .pin.ev { background: #E9682E; } .pin.bar { background: #F2EEE8; }
+  .pin.me { background: #4da3ff; box-shadow: 0 0 0 6px rgba(77,163,255,.25); }
+  .pin.big { transform: scale(1.5); }
+  .card.hl { border-color: rgba(233,104,46,.7); }
+
+  /* DIRECCIÓN */
+  .dir-btn { background: none; color: var(--muted); font: 500 11.5px 'Space Grotesk', sans-serif; cursor: pointer; margin-left: 6px; padding: 1px 7px; border: 1px solid var(--border); border-radius: 6px; }
+  .dir-btn:hover { color: var(--text); border-color: var(--border2); }
+  .dir-link { cursor: pointer; }
+  .dir-link:hover { text-decoration: underline; }
+  .modal { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.6); align-items: center; justify-content: center; padding: 16px; }
+  .modal.open { display: flex; }
+  .modal-box { width: 460px; max-width: 100%; background: var(--card); border: 1px solid var(--border2); border-radius: 14px; overflow: hidden; }
+  .modal-map { height: 230px; background: #1a1916; }
+  .modal-info { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .modal-info h3 { font-size: 17px; letter-spacing: -0.4px; }
+  .modal-info p { font-size: 13.5px; color: var(--muted); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .modal-actions > * { flex: 1; text-align: center; }
+
+  /* BARES */
+  .horario { font-size: 12px; color: var(--muted); }
+  .res-wrap { position: relative; justify-self: end; }
+  .res-menu { position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 50; width: 260px; background: var(--card); border: 1px solid var(--border2); border-radius: 10px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.6); }
+  .res-menu a { display: block; color: var(--text); text-decoration: none; font-size: 13.5px; font-weight: 600; padding: 8px 10px; border-radius: 7px; }
+  .res-menu a:hover { background: var(--surface); }
+  .res-menu small { display: block; color: var(--dim); font-weight: 400; font-size: 11.5px; margin-top: 2px; }
+  .osm-note { font-size: 12px; color: var(--dim); margin-top: 18px; }
+
   /* CHAT */
   .chat-dock { border-top: 1px solid var(--border); background: var(--bg); flex-shrink: 0; }
   .chat-thread { max-height: 0; overflow-y: auto; transition: max-height .25s ease; display: flex; flex-direction: column; gap: 10px; padding: 0 28px; }
@@ -232,6 +300,9 @@
     .hello h2 { font-size: 24px; }
     .res-head h2 { font-size: 20px; }
     .msg { max-width: 88%; }
+    .mapa-wrap { grid-template-columns: 1fr; height: auto; }
+    #mapa { height: 340px; }
+    .mapa-lista { border-left: none; border-top: 1px solid var(--border); max-height: none; }
   }
 </style>
 </head>
@@ -241,6 +312,7 @@
   <div class="brand">Let's <span>Part</span>IA<small>Many events · Your event</small></div>
   <nav class="tabs" id="tabs">
     <button class="tab on" data-tab="clubs">🪩 Fiestas y clubs</button>
+    <button class="tab" data-tab="bares">🍸 Bares</button>
     <button class="tab" data-tab="conciertos">🎤 Conciertos</button>
     <button class="tab" data-tab="teatro">🎭 Teatro y shows</button>
     <button class="tab" data-tab="deportes">⚽ Deportes</button>
@@ -251,19 +323,30 @@
   </div>
 </header>
 <div class="toast" id="toast"></div>
+<div class="modal" id="modal" onclick="if(event.target===this)cerrarModal()"><div class="modal-box" id="modalbox"></div></div>
 
 <div class="app">
   <aside class="side" id="side">
-    <div>
+    <div class="city-block">
       <label class="city-label" for="city">Ciudad</label>
-      <div class="city"><select id="city"></select></div>
+      <div class="city-row">
+        <div class="city"><select id="city"></select></div>
+        <button class="near" id="near" onclick="abrirCerca(event)">◎ Cerca mío</button>
+      </div>
+      <div class="near-pop" id="nearpop">
+        <button class="near-opt" onclick="usarUbicacion()">◎ Usar mi ubicación actual</button>
+        <div class="near-or">o escribí una dirección</div>
+        <input id="diri" placeholder="Ej: Carrer de Blai 30, un hotel o un barrio" oninput="sugerirDir()" autocomplete="off">
+        <div id="sugs"></div>
+      </div>
+      <div class="near-note" id="nearnote"></div>
     </div>
 
     <button class="filters-toggle" onclick="document.getElementById('side').classList.toggle('open')">
       <span>Filtros</span><em id="fsummary"></em>
     </button>
 
-    <div class="group group-cuando">
+    <div class="group group-cuando g-ev">
       <h4>Cuándo</h4>
       <div class="chips" data-g="cuando">
         <button class="chip" data-v="hoy">Hoy</button>
@@ -273,7 +356,7 @@
       </div>
       <div class="mini-cal" id="minical"></div>
     </div>
-    <div class="group">
+    <div class="group g-ev">
       <h4>Franja <em>· horario de inicio entre</em></h4>
       <div class="chips" data-g="franja">
         <button class="chip" data-v="tarde">Tarde<small>14–20hs</small></button>
@@ -282,7 +365,7 @@
         <button class="chip" data-v="afters">Afters<small>05–09hs</small></button>
       </div>
     </div>
-    <div class="group">
+    <div class="group g-ev">
       <h4>Precio</h4>
       <div class="chips" data-g="precio">
         <button class="chip" data-v="gratis">Gratis</button>
@@ -291,9 +374,22 @@
         <button class="chip" data-v="alto">Alto<small id="p-alto"></small></button>
       </div>
     </div>
-    <div class="group" id="group-genero">
+    <div class="group g-ev" id="group-genero">
       <h4>Género</h4>
       <div class="chips" data-g="genero" id="chips-genero"></div>
+    </div>
+    <div class="group g-bar" hidden>
+      <h4>Tipo</h4>
+      <div class="chips" data-g="tipoBar" id="chips-tipo">
+        <button class="chip" data-v="cocteles">🍸 Cócteles</button><button class="chip" data-v="vinos">🍷 Vinos</button><button class="chip" data-v="cervezas">🍺 Cervezas</button>
+        <button class="chip" data-v="terraza">☀️ Terraza</button><button class="chip" data-v="musica">🎷 Música en vivo</button>
+      </div>
+    </div>
+    <div class="group">
+      <h4>Distancia <em id="dist-hint">· activá "Cerca mío"</em></h4>
+      <div class="chips" data-g="km">
+        <button class="chip" data-v="1.5">A pie<small>&lt; 1,5 km</small></button><button class="chip" data-v="3">Cerca<small>&lt; 3 km</small></button><button class="chip on" data-v="99">Toda la ciudad</button>
+      </div>
     </div>
 
     <div class="live"><i></i>Los resultados se actualizan solos al tocar los filtros</div>
@@ -313,6 +409,7 @@
   </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const API = 'https://bot-planes-production.up.railway.app';
 
@@ -338,13 +435,17 @@ const GENEROS = {
   conciertos: [['rock', 'Rock'], ['pop', 'Pop'], ['latin', 'Latino'], ['hip-hop', 'Hip-Hop'], ['alternative', 'Alternativo'], ['jazz', 'Jazz']],
   teatro: [], deportes: [],
 };
-const TAB_TXT = { clubs: ['plan', 'planes'], conciertos: ['concierto', 'conciertos'], teatro: ['show', 'shows'], deportes: ['evento deportivo', 'eventos deportivos'] };
+const TAB_TXT = { bares: ['bar', 'bares'], clubs: ['plan', 'planes'], conciertos: ['concierto', 'conciertos'], teatro: ['show', 'shows'], deportes: ['evento deportivo', 'eventos deportivos'] };
 const DIAS_L = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES_L = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
 // ── ESTADO ─────────────────────────────────────────────────────────────────
-const st = { tab: 'clubs', cuando: 'finde', franja: null, precio: null, genero: null };
+const st = { tab: 'clubs', cuando: 'finde', franja: null, precio: null, genero: null, tipoBar: null, km: '99' };
+let ubic = null;          // { lat, lng, txt } cuando "Cerca mío" está activo
+let modoVista = 'lista';  // 'lista' | 'mapa'
+let actual = { items: [], total: 0, porDia: {}, titulo: null };
+const MAX_MAPA = 20;
 const cal = { abierto: false, a: null, b: null, mes: null };
 let vista = 'inicio';
 let historial = [];
@@ -394,7 +495,12 @@ function pintar() {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === st.tab));
   document.getElementById('chip-cal').textContent = textoFechas();
   const et = { hoy: 'Hoy', manana: 'Mañana', finde: 'Este finde', cal: textoFechas().replace('📅 ', '') };
-  document.getElementById('fsummary').textContent = [et[st.cuando], st.franja, st.precio, st.genero].filter(Boolean).join(' · ');
+  const esBar = st.tab === 'bares';
+  document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length));
+  document.querySelectorAll('.g-bar').forEach(g => g.hidden = !esBar);
+  document.getElementById('dist-hint').textContent = ubic ? '' : '· activá "Cerca mío"';
+  const kmTxt = st.km !== '99' && ubic ? `< ${st.km.replace('.', ',')} km` : null;
+  document.getElementById('fsummary').textContent = (esBar ? [st.tipoBar, kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).join(' · ');
 }
 
 // ── CALENDARIO ─────────────────────────────────────────────────────────────
@@ -438,11 +544,14 @@ function autoBuscar() {
 }
 
 async function buscar() {
+  if (st.tab === 'bares') return buscarBares();
   vista = 'resultados';
   const main = document.getElementById('main');
   main.classList.add('loading');
   const [a, b] = rango();
-  const p = new URLSearchParams({ ciudad: ciudad(), categoria: st.tab, desde: iso(a), hasta: iso(b), max: 30 });
+  const completo = !!ubic || modoVista === 'mapa';
+  const p = new URLSearchParams({ ciudad: ciudad(), categoria: st.tab, desde: iso(a), hasta: iso(b), max: completo ? 300 : 30 });
+  if (completo) p.set('coords', '1');
   if (st.franja) p.set('franja', st.franja);
   if (st.genero) p.set('genero', st.genero);
   if (st.precio === 'gratis') p.set('gratis', 'true');
@@ -456,7 +565,8 @@ async function buscar() {
     const r = await fetch(`${API}/eventos?${p}`, { signal: ctrl.signal });
     const data = await r.json();
     if (data.error) throw new Error(data.error);
-    mostrar(data.eventos || [], data.total_ra || 0, null, data.por_dia || {});
+    actual = { items: data.eventos || [], total: data.total_ra || 0, porDia: data.por_dia || {}, titulo: null };
+    renderActual();
   } catch (e) {
     if (e.name === 'AbortError') return;
     main.innerHTML = volver() + `<div class="empty"><b>Uy, se me cortó algo 😅</b>No pude traer los eventos. Probá de nuevo en un ratito.</div>`;
@@ -466,14 +576,14 @@ async function buscar() {
 
 function volver() { return '<button class="back" onclick="inicio()">← Volver a los atajos</button>'; }
 
-function mostrar(eventos, total, titulo, porDia = {}) {
+function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
   const main = document.getElementById('main');
   const activos = [st.franja, st.precio, (GENEROS[st.tab] || []).find(g => g[0] === st.genero)?.[1] || st.genero].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join('');
   const n = Math.max(total, eventos.length);
   const h2 = titulo || (eventos.length
     ? `${n} ${TAB_TXT[st.tab][n === 1 ? 0 : 1]} en <span>${esc(ciudadTxt())}</span>`
     : `Nada por acá en <span>${esc(ciudadTxt())}</span>`);
-  let html = volver() + `<div class="res-head"><h2>${h2}</h2><div class="active">${titulo ? '' : activos}</div></div>`;
+  let html = volver() + `<div class="res-head"><h2>${h2}</h2><div class="head-tools"><div class="active">${titulo ? '' : activos}</div>${titulo ? '' : segVista()}</div></div>${extra}`;
   if (!eventos.length) {
     const tm = st.tab !== 'clubs' && !titulo;
     html += `<div class="empty"><b>No encontré exactamente lo que buscás 😕</b>
@@ -481,7 +591,7 @@ function mostrar(eventos, total, titulo, porDia = {}) {
       ${tm ? '<br><br>Ojo: estos eventos vienen de Ticketmaster, que en algunas ciudades (como Barcelona o Madrid) tiene poca oferta.' : ''}</div>`;
     main.innerHTML = html; return;
   }
-  html += `<div class="res-sub" style="margin-top:10px">${total > eventos.length ? `Te muestro los ${eventos.length} más destacados.` : ''} Ordenados por día.</div>`;
+  html += `<div class="res-sub" style="margin-top:10px">${ubic ? `Ordenados por día y por cercanía a ${esc(ubic.txt)}.` : `${total > eventos.length ? `Te muestro los ${eventos.length} más destacados.` : ''} Ordenados por día.`}</div>`;
   const dias = [...new Set(eventos.map(e => e.fecha))];
   dias.forEach(dia => {
     const delDia = eventos.filter(e => e.fecha === dia);
@@ -489,7 +599,7 @@ function mostrar(eventos, total, titulo, porDia = {}) {
     html += `<div class="day"><b>${DIAS_L[d.getDay()]} ${d.getDate()}</b> ${MESES_L[d.getMonth()]}</div>`;
     html += `<div class="grid" id="grid-${dia}">${delDia.map(tarjeta).join('')}</div>`;
     const hay = porDia[dia] || 0;
-    if (!titulo && hay > delDia.length) {
+    if (!titulo && !ubic && hay > delDia.length) {
       html += `<button class="more" id="more-${dia}" onclick="verDia('${dia}')">Ver los ${hay} ${TAB_TXT[st.tab][1]} del ${DIAS_L[d.getDay()].toLowerCase()} ${d.getDate()} ↓</button>`;
     }
   });
@@ -526,8 +636,9 @@ function tarjeta(e) {
   const emoji = { conciertos: '🎤', teatro: '🎭', deportes: '⚽' }[st.tab] || '🪩';
   const pic = e.imagen ? `<div class="pic" style="background-image:url('${esc(e.imagen)}')"></div>` : `<div class="pic vacia">${emoji}</div>`;
   return `
-    <article class="card" data-id="${esc(id)}">
+    <article class="card" data-id="${esc(id)}" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
       ${pic}
+      ${e.d != null ? `<span class="dist">${fmtDist(e.d)} · ${aPie(e.d)}</span>` : ''}
       <div class="acciones">
         <button class="ico" title="Compartir" onclick="compartir(event, '${esc(id)}')">↗</button>
       </div>
@@ -536,7 +647,7 @@ function tarjeta(e) {
       <div class="title">${esc(e.titulo)}</div>
       ${(e.artistas || []).length ? `<div class="who">${esc(e.artistas.slice(0, 5).join(', '))}</div>` : ''}
       <div class="facts">
-        ${e.venue ? `<div><span>en:</span> <b>${esc(e.venue)}</b></div>` : ''}
+        ${e.venue ? `<div><span>en:</span> <b>${esc(e.venue)}</b> <button class="dir-btn" onclick="verDireccion('${esc(id)}')">📍 Ver dirección</button></div>` : ''}
         ${hora ? `<div><span>de</span> ${hora}${fin ? ` <span>a</span> ${fin}` : ''}<span> hs</span></div>` : ''}
         <div class="people">${gente}</div>
       </div>
@@ -558,7 +669,7 @@ function escribirGuardados(g) { try { localStorage.setItem('lp_guardados', JSON.
 function estaGuardado(id) { return !!leerGuardados()[id]; }
 function contarGuardados() {
   const hoy = iso(hoy0());
-  const n = Object.values(leerGuardados()).filter(e => (e.fecha || '') >= hoy).length;
+  const n = Object.values(leerGuardados()).filter(e => e.tipo === 'bar' || (e.fecha || '') >= hoy).length;
   document.getElementById('nguardados').textContent = n || '';
 }
 function toast(txt) {
@@ -580,13 +691,21 @@ function toggleGuardado(ev, id) {
 function verGuardados() {
   vista = 'guardados';
   const hoy = iso(hoy0());
-  const lista = Object.values(leerGuardados()).filter(e => (e.fecha || '') >= hoy).sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+  const todos = Object.values(leerGuardados());
+  const lista = todos.filter(e => e.tipo !== 'bar' && (e.fecha || '') >= hoy).sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+  const susBares = todos.filter(e => e.tipo === 'bar');
+  if (!lista.length && susBares.length) {
+    document.getElementById('main').innerHTML = volver() + `<div class="res-head"><h2>Mis planes <span>favoritos</span></h2></div>
+      <div class="day"><b>Bares</b></div><div class="grid">${susBares.map(tarjetaBar).join('')}</div>`;
+    return;
+  }
   if (!lista.length) {
     document.getElementById('main').innerHTML = volver() + `<div class="res-head"><h2>Mis planes <span>favoritos</span></h2></div>
       <div class="empty"><b>Todavía no sumaste nada</b>Tocá "♡ Mis planes" en cualquier evento y lo vas a encontrar acá, ordenado por día.</div>`;
     return;
   }
   mostrar(lista, lista.length, `Mis planes <span>favoritos</span>`);
+  if (susBares.length) document.getElementById('main').insertAdjacentHTML('beforeend', `<div class="day"><b>Bares</b></div><div class="grid">${susBares.map(tarjetaBar).join('')}</div>`);
   vista = 'guardados';
 }
 function textoCompartir(e) {
@@ -619,6 +738,261 @@ async function compartir(ev, id) {
   m.addEventListener('click', x => x.stopPropagation());
   card.appendChild(m);
 }
+
+// ── DISTANCIAS ─────────────────────────────────────────────────────────────
+function distKm(a, b) {
+  const r = x => x * Math.PI / 180, dLat = r(b[0] - a[0]), dLon = r(b[1] - a[1]);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dLon / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(h));
+}
+function fmtDist(d) { return d < 1 ? `${Math.round(d * 1000 / 50) * 50} m` : `${d.toFixed(1).replace('.', ',')} km`; }
+function aPie(d) { const m = Math.max(1, Math.round(d * 13)); return m > 60 ? `${Math.round(m / 60)} h a pie` : `${m}' a pie`; }
+function tieneCoords(x) { return x.lat != null && x.lng != null; }
+
+// ── RESULTADOS: LISTA O MAPA ───────────────────────────────────────────────
+function segVista() {
+  return `<div class="seg"><button class="${modoVista === 'lista' ? 'on' : ''}" onclick="setModo('lista')">☰ Lista</button><button class="${modoVista === 'mapa' ? 'on' : ''}" onclick="setModo('mapa')">🗺️ Mapa</button></div>`;
+}
+function setModo(m) {
+  if (m === modoVista) return;
+  modoVista = m;
+  if (st.tab === 'bares') renderActual(); else buscar();
+}
+
+function renderActual() {
+  const main = document.getElementById('main');
+  main.classList.remove('loading');
+  let items = actual.items.map(x => ({ ...x, d: ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null }));
+  const esBar = st.tab === 'bares';
+  if (modoVista === 'mapa') return renderMapa(items, esBar);
+  let extra = '';
+  if (ubic && st.km !== '99') {
+    const lim = Number(st.km), antes = items.length;
+    const sinCoords = items.filter(x => x.d == null).length;
+    items = items.filter(x => x.d != null && x.d <= lim);
+    if (!esBar && sinCoords) extra = `<div class="res-sub" style="margin-top:10px">${sinCoords} de ${antes} sin ubicación exacta no entran en el filtro de distancia.</div>`;
+  }
+  if (esBar) return mostrarBares(items);
+  if (ubic) items.sort((a, b) => a.fecha.localeCompare(b.fecha) || ((a.d ?? 999) - (b.d ?? 999)));
+  mostrar(items, ubic && st.km !== '99' ? items.length : actual.total, null, actual.porDia, extra);
+}
+
+function mostrarBares(items) {
+  const main = document.getElementById('main');
+  const donde = ubic ? `cerca de <span>${esc(ubic.txt)}</span>` : `en <span>${esc(ciudadTxt())}</span>`;
+  let html = volver() + `<div class="res-head"><h2>${items.length} ${items.length === 1 ? 'bar' : 'bares'} ${donde}</h2><div class="head-tools">${segVista()}</div></div>`;
+  if (!items.length) {
+    html += `<div class="empty"><b>No encontré bares con esos filtros 😕</b>${ubic ? 'Probá con "Cerca < 3 km" o "Toda la ciudad".' : 'Probá con otro tipo o activá "Cerca mío" para buscar en tu zona.'}</div>`;
+  } else {
+    html += `<div class="res-sub" style="margin-top:10px">${ubic ? 'Ordenados por distancia.' : 'Bares del centro de la ciudad. Activá "Cerca mío" para ver los de tu zona.'}</div><div class="grid" style="margin-top:16px">${items.map(tarjetaBar).join('')}</div>`;
+  }
+  html += `<div class="osm-note">Datos de bares: © colaboradores de OpenStreetMap.</div>`;
+  main.innerHTML = html;
+  main.scrollTop = 0;
+}
+
+let mapa = null, capaPines = null, pines = {}, itemsMapa = [], esBarMapa = false;
+function renderMapa(items, esBar) {
+  const main = document.getElementById('main');
+  itemsMapa = items.filter(tieneCoords); esBarMapa = esBar;
+  const sin = items.length - itemsMapa.length;
+  const que = esBar ? 'bares' : TAB_TXT[st.tab][1];
+  main.innerHTML = volver() + `<div class="res-head"><h2>${items.length} ${que} en <span>${esc(ubic ? ubic.txt : ciudadTxt())}</span></h2><div class="head-tools">${segVista()}</div></div>
+    <div class="mapa-wrap"><div id="mapa"></div><div class="mapa-lista" id="mapalista"></div></div>
+    ${sin ? `<div class="res-sub" style="margin-top:8px">${sin} sin ubicación exacta no aparecen en el mapa (sí en la lista).</div>` : ''}`;
+  if (!window.L) { document.getElementById('mapalista').innerHTML = '<div class="mapa-info">No pude cargar el mapa. Probá recargar la página.</div>'; return; }
+  if (mapa) { mapa.remove(); mapa = null; }
+  mapa = L.map('mapa', { zoomControl: true });
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(mapa);
+  capaPines = L.layerGroup().addTo(mapa);
+  if (ubic) {
+    L.marker([ubic.lat, ubic.lng], { icon: L.divIcon({ className: '', html: '<div class="pin me"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }) })
+      .addTo(mapa).bindTooltip('Vos', { permanent: true, direction: 'top', offset: [0, -10] });
+    mapa.setView([ubic.lat, ubic.lng], st.km === '1.5' ? 15 : 14);
+  } else if (itemsMapa.length) {
+    mapa.fitBounds(itemsMapa.map(x => [x.lat, x.lng]), { padding: [30, 30], maxZoom: 14 });
+  } else {
+    mapa.setView([41.3874, 2.1686], 12);
+  }
+  mapa.on('moveend', actualizarMapa);
+  setTimeout(() => { mapa.invalidateSize(); actualizarMapa(); }, 60);
+}
+function actualizarMapa() {
+  if (!mapa) return;
+  const b = mapa.getBounds();
+  let vis = itemsMapa.filter(x => b.contains([x.lat, x.lng]));
+  vis.sort((a, c) => ubic ? (a.d ?? 999) - (c.d ?? 999) : esBarMapa ? 0 : ((c.asistentes || 0) - (a.asistentes || 0)));
+  const total = vis.length;
+  vis = vis.slice(0, MAX_MAPA);
+  capaPines.clearLayers(); pines = {};
+  vis.forEach(x => {
+    const id = esBarMapa ? x.id : idEvento(x);
+    const m = L.marker([x.lat, x.lng], { icon: L.divIcon({ className: '', html: `<div class="pin ${esBarMapa ? 'bar' : 'ev'}"></div>`, iconSize: [16, 16], iconAnchor: [8, 8] }) })
+      .bindTooltip(x.titulo, { direction: 'top', offset: [0, -10] })
+      .on('click', () => { const c = document.querySelector(`#mapalista .card[data-id="${CSS.escape(id)}"]`); if (c) { c.scrollIntoView({ behavior: 'smooth', block: 'center' }); c.classList.add('hl'); setTimeout(() => c.classList.remove('hl'), 1500); } });
+    m.addTo(capaPines); pines[id] = m;
+  });
+  const info = total ? `${vis.length} en esta zona${total > MAX_MAPA ? ` · los ${MAX_MAPA} más destacados de ${total}, acercate para ver más` : ''}` : 'No hay nada en esta zona del mapa. Alejate o movete un poco 🗺️';
+  document.getElementById('mapalista').innerHTML = `<div class="mapa-info">${info}</div>` + vis.map(x => esBarMapa ? tarjetaBar(x) : tarjeta(x)).join('');
+}
+function resaltar(card, on) {
+  card.classList.toggle('hl', on);
+  const m = pines[card.dataset.id];
+  if (m && m._icon) m._icon.firstChild.classList.toggle('big', on);
+}
+
+// ── BARES ──────────────────────────────────────────────────────────────────
+async function buscarBares() {
+  vista = 'resultados';
+  const main = document.getElementById('main');
+  main.classList.add('loading');
+  const p = new URLSearchParams({ ciudad: ciudad() });
+  if (ubic) { p.set('lat', ubic.lat); p.set('lng', ubic.lng); p.set('radio', st.km === '99' ? 3000 : Math.round(Number(st.km) * 1000)); }
+  else p.set('radio', 2500);
+  if (st.tipoBar) p.set('tipo', st.tipoBar);
+  if (ctrl) ctrl.abort();
+  ctrl = new AbortController();
+  try {
+    const r = await fetch(`${API}/bares?${p}`, { signal: ctrl.signal });
+    const data = await r.json();
+    if (data.error && !(data.bares || []).length) throw new Error(data.error);
+    actual = { items: data.bares || [], total: (data.bares || []).length, porDia: {}, titulo: null };
+    renderActual();
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    main.innerHTML = volver() + `<div class="empty"><b>Uy, no pude traer los bares 😅</b>Probá de nuevo en un ratito.</div>`;
+  }
+  main.classList.remove('loading');
+}
+const DIAS_OSM = { Mo: 'Lu', Tu: 'Ma', We: 'Mi', Th: 'Ju', Fr: 'Vi', Sa: 'Sá', Su: 'Do', PH: 'Feriados', off: 'cerrado' };
+function horarioEs(h) { return (h || '').replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su|PH|off)\b/g, m => DIAS_OSM[m]).replace(/;\s*/g, ' · '); }
+function tarjetaBar(b) {
+  EVENTOS[b.id] = b;
+  const emoji = (b.tags || []).includes('Vinos') ? '🍷' : (b.tags || []).includes('Cervezas') || b.categoria === 'Pub' ? '🍺' : '🍸';
+  return `
+    <article class="card" data-id="${esc(b.id)}" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
+      <div class="pic vacia">${emoji}</div>
+      ${b.d != null ? `<span class="dist">${fmtDist(b.d)} · ${aPie(b.d)}</span>` : ''}
+      <div class="inner">
+        <div class="town">📍 ${esc(b.barrio || ciudadTxt())}</div>
+        <div class="title">${esc(b.titulo)}</div>
+        <div class="who">${esc(b.categoria)}</div>
+        <div class="facts">
+          ${b.direccion ? `<div class="dir-link" onclick="verDireccion('${esc(b.id)}')"><span>📍</span> ${esc(b.direccion)}</div>` : `<div><button class="dir-btn" style="margin:0" onclick="verDireccion('${esc(b.id)}')">📍 Ver en el mapa</button></div>`}
+          ${b.horario ? `<div class="horario"><span>🕐</span> ${esc(horarioEs(b.horario))}</div>` : ''}
+        </div>
+        <div class="foot">
+          <div class="tags">${(b.tags || []).slice(0, 2).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+          <span></span>
+          <button class="fav ${estaGuardado(b.id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(b.id)}')">${estaGuardado(b.id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
+          <div class="res-wrap"><button class="tickets" style="background:none;cursor:pointer;font-family:inherit" onclick="menuReservar(event, '${esc(b.id)}')">Reservar ▾</button></div>
+        </div>
+      </div>
+    </article>`;
+}
+function menuReservar(ev, id) {
+  ev.stopPropagation();
+  document.querySelectorAll('.res-menu').forEach(m => m.remove());
+  const b = EVENTOS[id]; if (!b) return;
+  const q = encodeURIComponent([b.titulo, b.direccion, ciudadTxt()].filter(Boolean).join(', '));
+  const m = document.createElement('div');
+  m.className = 'res-menu';
+  m.innerHTML = `<a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">📍 Ver ficha en Google<small>Fotos, horarios, teléfono y reserva si el lugar la ofrece</small></a>
+    ${b.web ? `<a href="${esc(b.web)}" target="_blank" rel="noopener">🌐 Ir a la web del lugar<small>Reservá directo con ellos</small></a>` : ''}
+    ${b.telefono ? `<a href="tel:${esc(b.telefono.replace(/\s/g, ''))}">📞 Llamar<small>${esc(b.telefono)}</small></a>` : ''}`;
+  m.addEventListener('click', x => x.stopPropagation());
+  ev.currentTarget.parentElement.appendChild(m);
+}
+document.addEventListener('click', () => document.querySelectorAll('.res-menu').forEach(m => m.remove()));
+
+// ── VER DIRECCIÓN ──────────────────────────────────────────────────────────
+let miniMapa = null;
+function verDireccion(id) {
+  const x = EVENTOS[id]; if (!x) return;
+  const nombre = x.tipo === 'bar' ? x.titulo : (x.venue || x.titulo);
+  const lugar = x.ciudad_venue || ciudadTxt();
+  const dir = x.direccion || '';
+  const destino = tieneCoords(x) ? `${x.lat},${x.lng}` : [nombre, dir, lugar].filter(Boolean).join(', ');
+  const d = ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null;
+  document.getElementById('modalbox').innerHTML = `
+    ${tieneCoords(x) ? '<div class="modal-map" id="modalmap"></div>' : ''}
+    <div class="modal-info">
+      <h3>${esc(nombre)}</h3>
+      <p>📍 ${esc(dir || 'Dirección no informada')} · ${esc(lugar)}</p>
+      ${d != null ? `<p>🚶 ${fmtDist(d)} desde ${esc(ubic.txt)} · ${aPie(d)}</p>` : ''}
+      <div class="modal-actions">
+        <button class="fav" id="copiardir">Copiar dirección</button>
+        <a class="tickets" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}" target="_blank" rel="noopener">Cómo llegar →</a>
+      </div>
+    </div>`;
+  document.getElementById('copiardir').onclick = async () => {
+    try { await navigator.clipboard.writeText([nombre, dir, lugar].filter(Boolean).join(', ')); toast('📍 Dirección copiada'); } catch (e) { toast('No pude copiarla 😕'); }
+  };
+  document.getElementById('modal').classList.add('open');
+  if (tieneCoords(x) && window.L) {
+    if (miniMapa) { miniMapa.remove(); miniMapa = null; }
+    miniMapa = L.map('modalmap', { zoomControl: false, attributionControl: false }).setView([x.lat, x.lng], 16);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMapa);
+    L.marker([x.lat, x.lng], { icon: L.divIcon({ className: '', html: `<div class="pin ${x.tipo === 'bar' ? 'bar' : 'ev'} big"></div>`, iconSize: [16, 16], iconAnchor: [8, 8] }) }).addTo(miniMapa);
+    setTimeout(() => miniMapa.invalidateSize(), 60);
+  }
+}
+function cerrarModal() { document.getElementById('modal').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
+
+// ── CERCA MÍO ──────────────────────────────────────────────────────────────
+function abrirCerca(ev) {
+  ev.stopPropagation();
+  if (ubic) return apagarCerca();
+  document.getElementById('nearpop').classList.toggle('open');
+  document.getElementById('diri').focus();
+}
+function usarUbicacion() {
+  if (!navigator.geolocation) return toast('Tu navegador no comparte ubicación. Escribí una dirección 👇');
+  toast('Buscando tu ubicación…');
+  navigator.geolocation.getCurrentPosition(
+    pos => fijarUbic(pos.coords.latitude, pos.coords.longitude, 'tu ubicación actual'),
+    () => toast('No pude acceder a tu ubicación. Escribí una dirección 👇'),
+    { enableHighAccuracy: true, timeout: 10000 });
+}
+let timerDir = null;
+function sugerirDir() {
+  clearTimeout(timerDir);
+  const q = document.getElementById('diri').value.trim();
+  if (q.length < 3) { document.getElementById('sugs').innerHTML = ''; return; }
+  timerDir = setTimeout(async () => {
+    try {
+      const r = await fetch(`${API}/geo?${new URLSearchParams({ q, ciudad: ciudad() })}`);
+      const data = await r.json();
+      const res = data.resultados || [];
+      document.getElementById('sugs').innerHTML = res.length
+        ? res.map((x, i) => `<div class="sug" data-i="${i}">📍 ${esc(x.nombre)}<small>${esc(x.detalle)}</small></div>`).join('')
+        : '<div class="sug" style="cursor:default;color:var(--dim)">No encontré esa dirección 🤔</div>';
+      document.querySelectorAll('#sugs .sug[data-i]').forEach(el => el.onclick = e => {
+        e.stopPropagation(); const x = res[Number(el.dataset.i)]; fijarUbic(x.lat, x.lng, x.nombre);
+      });
+    } catch (e) { document.getElementById('sugs').innerHTML = ''; }
+  }, 350);
+}
+function fijarUbic(lat, lng, txt) {
+  ubic = { lat, lng, txt };
+  st.km = '1.5';
+  document.getElementById('nearpop').classList.remove('open');
+  actualizarNota(); pintar(); buscar();
+}
+function apagarCerca(silencioso) {
+  ubic = null; st.km = '99';
+  actualizarNota(); pintar();
+  if (!silencioso) buscar();
+}
+function actualizarNota() {
+  const b = document.getElementById('near'), n = document.getElementById('nearnote');
+  b.classList.toggle('on', !!ubic);
+  b.textContent = ubic ? '✕ Cerca mío' : '◎ Cerca mío';
+  n.classList.toggle('show', !!ubic);
+  n.innerHTML = ubic ? `Distancias desde <b>${esc(ubic.txt)}</b> · <a href="#" onclick="event.preventDefault();event.stopPropagation();document.getElementById('nearpop').classList.add('open')">cambiar</a>` : '';
+}
+document.addEventListener('click', e => { if (!e.target.closest('#nearpop') && !e.target.closest('#near')) document.getElementById('nearpop').classList.remove('open'); });
 
 // ── INICIO ─────────────────────────────────────────────────────────────────
 function inicio() {
@@ -725,6 +1099,10 @@ document.querySelectorAll('.chips').forEach(g => {
     const k = g.dataset.g, v = b.dataset.v;
     if (v === 'cal') { cal.abierto = !cal.abierto; pintarCal(); if (cal.a) { st.cuando = 'cal'; pintar(); autoBuscar(); } return; }
     if (k === 'cuando') { cal.abierto = false; pintarCal(); }
+    if (k === 'km') {
+      if (!ubic && v !== '99') { e.stopPropagation(); document.getElementById('nearpop').classList.add('open'); document.getElementById('diri').focus(); return; }
+      st.km = v; pintar(); return ubic ? (st.tab === 'bares' ? autoBuscar() : renderActual()) : null;
+    }
     st[k] = st[k] === v && k !== 'cuando' ? null : v;
     pintar(); autoBuscar();
   });
@@ -737,8 +1115,9 @@ document.getElementById('tabs').addEventListener('click', e => {
 });
 document.getElementById('city').addEventListener('change', () => {
   preciosCiudad();
+  if (ubic) apagarCerca(true);
   try { localStorage.setItem('lp_ciudad', ciudad()); } catch (e) {}
-  if (vista === 'resultados') autoBuscar(); else inicio();
+  if (vista === 'resultados' || st.tab === 'bares') autoBuscar(); else inicio();
 });
 
 // ── ARRANQUE ───────────────────────────────────────────────────────────────
