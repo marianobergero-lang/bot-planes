@@ -164,6 +164,12 @@
   .noche.closed { display: none; }
   .noche-head em { cursor: pointer; font-size: 14px !important; }
 
+  .res-wrap { position: relative; }
+  .res-menu { position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 50; width: 250px; background: var(--card); border: 1px solid var(--border2); border-radius: 10px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.6); }
+  .res-menu a { display: block; color: var(--text); text-decoration: none; font-size: 13.5px; font-weight: 600; padding: 8px 10px; border-radius: 7px; }
+  .res-menu a:hover { background: var(--surface); }
+  .res-menu small { display: block; color: var(--dim); font-weight: 400; font-size: 11.5px; margin-top: 2px; }
+
   /* Mapa */
   .pin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #0D0C0B; box-shadow: 0 0 0 2px rgba(255,255,255,.25); }
   .pin.ev { background: #E9682E; }
@@ -402,7 +408,7 @@ function cardBar(b) {
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">${b.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
       <div class="foot">
         <button class="btn ghost ${enNoche ? 'added' : ''}" onclick="agregar('${b.id}')">${enNoche ? '♥ En mis planes' : '♡ Mis planes'}</button>
-        <button class="btn" onclick="alert('En la versión real abre la reserva (TheFork / OpenTable)')">Reservar →</button>
+        <div class="res-wrap"><button class="btn" onclick="menuReservar(event, '${b.id}')">Reservar ▾</button></div>
       </div>
     </div>
   </article>`;
@@ -494,6 +500,21 @@ function sugerir() {
 }
 document.addEventListener('click', e => { if (!e.target.closest('#nearpop') && !e.target.closest('#near')) document.getElementById('nearpop').classList.remove('open'); });
 function cercaMio() { if (!st.cerca) fijarUbicacion([41.3870, 2.1700], 'Plaça de Catalunya'); }
+
+// ── RESERVAR ───────────────────────────────────────────────────────────────
+function menuReservar(ev, id) {
+  ev.stopPropagation();
+  document.querySelectorAll('.res-menu').forEach(m => m.remove());
+  const b = BARES.find(x => x.id === id);
+  const q = encodeURIComponent(`${b.titulo}, ${b.dir}, Barcelona`);
+  const m = document.createElement('div');
+  m.className = 'res-menu';
+  m.innerHTML = `<a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">📍 Ver ficha en Google<small>Fotos, horarios, teléfono y reserva si el lugar la ofrece</small></a>
+    <a href="#" onclick="event.preventDefault();alert('En la versión real abre la web del bar (si la tiene cargada)')">🌐 Ir a la web del lugar<small>Reservá directo con ellos</small></a>`;
+  m.addEventListener('click', x => x.stopPropagation());
+  ev.currentTarget.parentElement.appendChild(m);
+}
+document.addEventListener('click', () => document.querySelectorAll('.res-menu').forEach(m => m.remove()));
 
 // ── DIRECCIÓN EN MAPA ──────────────────────────────────────────────────────
 let miniMapa = null;
