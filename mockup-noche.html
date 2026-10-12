@@ -128,6 +128,42 @@
   .noche-actions { display: flex; gap: 8px; margin-top: 12px; }
   .noche-actions .btn { flex: 1; text-align: center; }
 
+  /* Cerca mío */
+  .side > div:first-child { position: relative; }
+  .near-pop { display: none; position: absolute; left: 0; right: 0; top: 74px; z-index: 30; background: var(--card); border: 1px solid var(--border2); border-radius: 12px; padding: 10px; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
+  .near-pop.open { display: block; }
+  .near-opt { width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--border2); color: var(--text); border-radius: 9px; padding: 10px 12px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .near-opt:hover { border-color: var(--orange); }
+  .near-or { font-size: 11.5px; color: var(--dim); margin: 10px 2px 6px; text-transform: uppercase; letter-spacing: 1px; }
+  #diri { width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text); border-radius: 9px; padding: 10px 12px; font: 14px 'Space Grotesk', sans-serif; outline: none; }
+  #diri:focus { border-color: var(--orange); }
+  .sug { padding: 8px 10px; font-size: 13px; border-radius: 7px; cursor: pointer; }
+  .sug:hover { background: var(--surface); }
+  .sug small { display: block; color: var(--dim); font-size: 11.5px; }
+  /* Direcciones */
+  .dir { font-size: 12.5px; color: var(--muted); cursor: pointer; }
+  .dir:hover { color: var(--text); text-decoration: underline; }
+  .dir-btn { background: none; border: none; color: var(--muted); font: 500 11.5px 'Space Grotesk', sans-serif; cursor: pointer; margin-left: 6px; padding: 1px 6px; border: 1px solid var(--border); border-radius: 6px; }
+  .dir-btn:hover { color: var(--text); border-color: var(--border2); }
+  .modal { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.6); align-items: center; justify-content: center; padding: 16px; }
+  .modal.open { display: flex; }
+  .modal-box { width: 460px; max-width: 100%; background: var(--card); border: 1px solid var(--border2); border-radius: 14px; overflow: hidden; }
+  .modal-map { height: 230px; background: #1a1916; }
+  .modal-info { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .modal-info h3 { font-size: 17px; letter-spacing: -0.4px; }
+  .modal-info p { font-size: 13.5px; color: var(--muted); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .modal-actions a, .modal-actions button { flex: 1; text-align: center; text-decoration: none; }
+  /* Mis planes */
+  .planes-btn { background: none; border: 1px solid var(--border2); color: var(--text); border-radius: 20px; padding: 7px 13px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .planes-btn:hover { border-color: var(--orange); }
+  .planes-btn b { color: var(--orange); }
+  .planes-btn.pulse { animation: pulse .6s ease; }
+  @keyframes pulse { 0% { transform: scale(1); } 40% { transform: scale(1.12); box-shadow: 0 0 0 6px var(--orange-soft); } 100% { transform: scale(1); } }
+  .noche { top: 10px; bottom: auto !important; }
+  .noche.closed { display: none; }
+  .noche-head em { cursor: pointer; font-size: 14px !important; }
+
   /* Mapa */
   .pin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #0D0C0B; box-shadow: 0 0 0 2px rgba(255,255,255,.25); }
   .pin.ev { background: #E9682E; }
@@ -159,8 +195,12 @@
     <button class="tab" data-tab="conciertos">🎤 Conciertos</button>
     <button class="tab" data-tab="teatro">🎭 Teatro y shows</button>
   </nav>
-  <div class="mock">Maqueta · datos de ejemplo</div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <button class="planes-btn" id="planesbtn" onclick="togglePlanes(event)">🗓️ Mis planes <b id="nnum"></b></button>
+    <div class="mock">Maqueta · datos de ejemplo</div>
+  </div>
 </header>
+<div class="modal" id="modal" onclick="if(event.target===this)cerrarModal()"><div class="modal-box" id="modalbox"></div></div>
 
 <div class="app">
   <aside class="side">
@@ -168,9 +208,15 @@
       <span class="label">Ciudad</span>
       <div class="city-row">
         <div class="city">📍 Barcelona</div>
-        <button class="near" id="near" onclick="cercaMio()">◎ Cerca mío</button>
+        <button class="near" id="near" onclick="abrirCerca(event)">◎ Cerca mío</button>
       </div>
-      <div class="near-note" id="nearnote">Usando tu ubicación (simulada: Plaça Catalunya). Ordeno por distancia.</div>
+      <div class="near-pop" id="nearpop">
+        <button class="near-opt" onclick="usarUbicacion()">◎ Usar mi ubicación actual</button>
+        <div class="near-or">o escribí una dirección</div>
+        <input id="diri" placeholder="Ej: Carrer de Blai 30, o un hotel, o un barrio" oninput="sugerir()" autocomplete="off">
+        <div id="sugs"></div>
+      </div>
+      <div class="near-note" id="nearnote"></div>
     </div>
 
     <!-- Filtros de eventos -->
@@ -226,9 +272,7 @@
     </div>
 
     <div class="noche closed" id="noche">
-      <div class="noche-head" onclick="document.getElementById('noche').classList.toggle('closed')">
-        <b>🌙 Tu noche <span id="nnum"></span></b><em id="ntoggle">Ver ▴</em>
-      </div>
+      <div class="noche-head"><b>🗓️ Mis planes · <span>sábado 17</span></b><em onclick="togglePlanes(event)">✕</em></div>
       <div class="noche-body" id="nbody"></div>
     </div>
   </section>
@@ -239,20 +283,20 @@
 // ── DATOS DE EJEMPLO (nombres de bares inventados) ─────────────────────────
 const YO = [41.3870, 2.1700]; // Plaça Catalunya (ubicación simulada)
 const EVENTOS = [
-  { id: 'e1', tipo: 'ev', titulo: 'Razzmatazz presenta: noche techno', who: 'Artista A, Artista B', venue: 'Razzmatazz', barrio: 'Poblenou', hora: '23:59', fin: '06:00', pos: [41.3976, 2.1913], gente: 1240, precio: 'NORMAL · €25', color: '#3b2a55', emoji: '🪩' },
-  { id: 'e2', tipo: 'ev', titulo: 'Nitsa: progressive all night long', who: 'Artista C', venue: 'Sala Apolo', barrio: 'Poble Sec', hora: '00:30', fin: '06:00', pos: [41.3745, 2.1696], gente: 860, precio: 'NORMAL · €20', color: '#2a3d55', emoji: '🪩' },
-  { id: 'e3', tipo: 'ev', titulo: 'Afro House Session', who: 'Artista D, Artista E', venue: 'Laut', barrio: 'Gràcia', hora: '23:00', fin: '05:00', pos: [41.3989, 2.1595], gente: 410, precio: 'BARATO · €12', color: '#4a3020', emoji: '🪩' },
-  { id: 'e4', tipo: 'ev', titulo: 'Disco Inferno — vinilos toda la noche', who: 'Artista F', venue: 'Sala Upload', barrio: 'Montjuïc', hora: '23:30', fin: '05:30', pos: [41.3719, 2.1520], gente: 330, precio: 'GRATIS', color: '#203b30', emoji: '🪩' },
+  { id: 'e1', tipo: 'ev', titulo: 'Razzmatazz presenta: noche techno', who: 'Artista A, Artista B', venue: 'Razzmatazz', dir: 'Carrer dels Almogàvers, 122', barrio: 'Poblenou', hora: '23:59', fin: '06:00', pos: [41.3976, 2.1913], gente: 1240, precio: 'NORMAL · €25', color: '#3b2a55', emoji: '🪩' },
+  { id: 'e2', tipo: 'ev', titulo: 'Nitsa: progressive all night long', who: 'Artista C', venue: 'Sala Apolo', dir: 'Carrer Nou de la Rambla, 113', barrio: 'Poble Sec', hora: '00:30', fin: '06:00', pos: [41.3745, 2.1696], gente: 860, precio: 'NORMAL · €20', color: '#2a3d55', emoji: '🪩' },
+  { id: 'e3', tipo: 'ev', titulo: 'Afro House Session', who: 'Artista D, Artista E', venue: 'Sala Luna', dir: 'Carrer de Verdi, 40 (ejemplo)', barrio: 'Gràcia', hora: '23:00', fin: '05:00', pos: [41.3989, 2.1595], gente: 410, precio: 'BARATO · €12', color: '#4a3020', emoji: '🪩' },
+  { id: 'e4', tipo: 'ev', titulo: 'Disco Inferno — vinilos toda la noche', who: 'Artista F', venue: 'Club del Puerto', dir: 'Avinguda de Montjuïc, 10 (ejemplo)', barrio: 'Montjuïc', hora: '23:30', fin: '05:30', pos: [41.3719, 2.1520], gente: 330, precio: 'GRATIS', color: '#203b30', emoji: '🪩' },
 ];
 const BARES = [
-  { id: 'b1', tipo: 'bar', titulo: 'El Patio Secreto', cat: 'Cócteles', barrio: 'El Born', pos: [41.3842, 2.1832], rating: 4.7, reviews: 1290, abre: '18:00', cierra: '02:30', precio: '€€€', color: '#3a2418', emoji: '🍸', tags: ['Cócteles', 'Terraza'] },
-  { id: 'b2', tipo: 'bar', titulo: 'Vermut & Vinilos', cat: 'Vinos', barrio: 'Poblenou', pos: [41.3990, 2.1965], rating: 4.5, reviews: 640, abre: '19:00', cierra: '01:00', precio: '€€', color: '#3a1d24', emoji: '🍷', tags: ['Vinos', 'Música en vivo'] },
-  { id: 'b3', tipo: 'bar', titulo: 'La Fábrica Cervecera', cat: 'Cervezas', barrio: 'Poblenou', pos: [41.3962, 2.1880], rating: 4.4, reviews: 980, abre: '17:00', cierra: '00:30', precio: '€', color: '#3a3018', emoji: '🍺', tags: ['Cervezas'] },
-  { id: 'b4', tipo: 'bar', titulo: 'Azotea 360', cat: 'Cócteles', barrio: 'Eixample', pos: [41.3905, 2.1650], rating: 4.6, reviews: 2110, abre: '19:30', cierra: '02:00', precio: '€€€', color: '#18303a', emoji: '🌇', tags: ['Cócteles', 'Terraza'] },
-  { id: 'b5', tipo: 'bar', titulo: 'Jazz en el Sótano', cat: 'Música en vivo', barrio: 'Gòtic', pos: [41.3818, 2.1770], rating: 4.8, reviews: 530, abre: '20:00', cierra: '03:00', precio: '€€', color: '#24203a', emoji: '🎷', tags: ['Música en vivo', 'Cócteles'] },
-  { id: 'b6', tipo: 'bar', titulo: 'Bodega del Paralelo', cat: 'Vinos', barrio: 'Poble Sec', pos: [41.3740, 2.1640], rating: 4.5, reviews: 770, abre: '18:30', cierra: '00:30', precio: '€', color: '#3a1d24', emoji: '🍷', tags: ['Vinos', 'Terraza'] },
-  { id: 'b7', tipo: 'bar', titulo: 'Cócteles Nocturnos', cat: 'Cócteles', barrio: 'Poble Sec', pos: [41.3732, 2.1675], rating: 4.6, reviews: 860, abre: '20:00', cierra: '03:00', precio: '€€', color: '#2a1f3a', emoji: '🍸', tags: ['Cócteles'] },
-  { id: 'b8', tipo: 'bar', titulo: 'Terraza Gràcia', cat: 'Cervezas', barrio: 'Gràcia', pos: [41.4005, 2.1570], rating: 4.3, reviews: 450, abre: '17:00', cierra: '01:30', precio: '€', color: '#2d3a18', emoji: '☀️', tags: ['Cervezas', 'Terraza'] },
+  { id: 'b1', tipo: 'bar', dir: 'Carrer de la Princesa, 21 (ejemplo)', titulo: 'El Patio Secreto', cat: 'Cócteles', barrio: 'El Born', pos: [41.3842, 2.1832], rating: 4.7, reviews: 1290, abre: '18:00', cierra: '02:30', precio: '€€€', color: '#3a2418', emoji: '🍸', tags: ['Cócteles', 'Terraza'] },
+  { id: 'b2', tipo: 'bar', dir: 'Carrer de Pujades, 150 (ejemplo)', titulo: 'Vermut & Vinilos', cat: 'Vinos', barrio: 'Poblenou', pos: [41.3990, 2.1965], rating: 4.5, reviews: 640, abre: '19:00', cierra: '01:00', precio: '€€', color: '#3a1d24', emoji: '🍷', tags: ['Vinos', 'Música en vivo'] },
+  { id: 'b3', tipo: 'bar', dir: 'Carrer de Pere IV, 90 (ejemplo)', titulo: 'La Fábrica Cervecera', cat: 'Cervezas', barrio: 'Poblenou', pos: [41.3962, 2.1880], rating: 4.4, reviews: 980, abre: '17:00', cierra: '00:30', precio: '€', color: '#3a3018', emoji: '🍺', tags: ['Cervezas'] },
+  { id: 'b4', tipo: 'bar', dir: 'Passeig de Gràcia, 70 (ejemplo)', titulo: 'Azotea 360', cat: 'Cócteles', barrio: 'Eixample', pos: [41.3905, 2.1650], rating: 4.6, reviews: 2110, abre: '19:30', cierra: '02:00', precio: '€€€', color: '#18303a', emoji: '🌇', tags: ['Cócteles', 'Terraza'] },
+  { id: 'b5', tipo: 'bar', dir: 'Carrer d’Avinyó, 15 (ejemplo)', titulo: 'Jazz en el Sótano', cat: 'Música en vivo', barrio: 'Gòtic', pos: [41.3818, 2.1770], rating: 4.8, reviews: 530, abre: '20:00', cierra: '03:00', precio: '€€', color: '#24203a', emoji: '🎷', tags: ['Música en vivo', 'Cócteles'] },
+  { id: 'b6', tipo: 'bar', dir: 'Carrer de Blai, 30 (ejemplo)', titulo: 'Bodega del Paralelo', cat: 'Vinos', barrio: 'Poble Sec', pos: [41.3740, 2.1640], rating: 4.5, reviews: 770, abre: '18:30', cierra: '00:30', precio: '€', color: '#3a1d24', emoji: '🍷', tags: ['Vinos', 'Terraza'] },
+  { id: 'b7', tipo: 'bar', dir: 'Carrer del Poeta Cabanyes, 25 (ejemplo)', titulo: 'Cócteles Nocturnos', cat: 'Cócteles', barrio: 'Poble Sec', pos: [41.3732, 2.1675], rating: 4.6, reviews: 860, abre: '20:00', cierra: '03:00', precio: '€€', color: '#2a1f3a', emoji: '🍸', tags: ['Cócteles'] },
+  { id: 'b8', tipo: 'bar', dir: 'Carrer de Verdi, 12 (ejemplo)', titulo: 'Terraza Gràcia', cat: 'Cervezas', barrio: 'Gràcia', pos: [41.4005, 2.1570], rating: 4.3, reviews: 450, abre: '17:00', cierra: '01:30', precio: '€', color: '#2d3a18', emoji: '☀️', tags: ['Cervezas', 'Terraza'] },
 ];
 
 // ── ESTADO ─────────────────────────────────────────────────────────────────
@@ -309,10 +353,10 @@ function cardEv(e) {
     <div class="inner">
       <div class="title">${e.titulo}</div>
       <div class="who">${e.who}</div>
-      <div class="facts"><div><span>en:</span> <b>${e.venue}</b> <span>· ${e.barrio}</span></div><div><span>de</span> ${e.hora} <span>a</span> ${e.fin}<span> hs</span></div></div>
+      <div class="facts"><div><span>en:</span> <b>${e.venue}</b> <button class="dir-btn" onclick="verDireccion('${e.id}')">📍 Ver dirección</button></div><div><span>de</span> ${e.hora} <span>a</span> ${e.fin}<span> hs</span></div></div>
       <div class="foot">
         <button class="btn ghost" onclick="previa('${e.id}')">🍸 Previa cerca</button>
-        <button class="btn ${enNoche ? 'added' : ''}" onclick="agregar('${e.id}')">${enNoche ? '✓ En tu noche' : '+ A mi noche'}</button>
+        <button class="btn ${enNoche ? 'added' : ''}" onclick="agregar('${e.id}')">${enNoche ? '✓ En mis planes' : '+ Mis planes'}</button>
       </div>
     </div>
   </article>`;
@@ -328,12 +372,13 @@ function cardBar(b) {
       <div class="title">${b.titulo}</div>
       <div class="facts">
         <div><span class="rating"><i>★</i> ${b.rating}</span> <span>(${b.reviews.toLocaleString('es')}) · ${b.barrio}</span></div>
+        <div class="dir" onclick="verDireccion('${b.id}')">📍 ${b.dir}</div>
         <div><span class="open">Abierto</span> <span>de</span> ${b.abre} <span>a</span> ${b.cierra}<span> hs</span></div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">${b.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
       <div class="foot">
         <button class="btn ghost" onclick="alert('En la versión real abre la reserva (TheFork / OpenTable) o Google Maps')">Reservar</button>
-        <button class="btn ${enNoche ? 'added' : ''}" onclick="agregar('${b.id}')">${enNoche ? '✓ En tu noche' : '+ A mi noche'}</button>
+        <button class="btn ${enNoche ? 'added' : ''}" onclick="agregar('${b.id}')">${enNoche ? '✓ En mis planes' : '+ Mis planes'}</button>
       </div>
     </div>
   </article>`;
@@ -382,13 +427,73 @@ function resaltar(id, on) {
 }
 
 // ── CERCA MÍO / PREVIA ─────────────────────────────────────────────────────
-function cercaMio() {
-  st.cerca = !st.cerca;
+const DIRECCIONES = [
+  ['Plaça de Catalunya', 'Eixample', [41.3870, 2.1700]], ['Carrer de Blai, 30', 'Poble Sec', [41.3738, 2.1643]],
+  ['Passeig de Gràcia, 92', 'Eixample', [41.3950, 2.1618]], ['Carrer de Pujades, 150', 'Poblenou', [41.3995, 2.1960]],
+  ['Plaça del Sol', 'Gràcia', [41.4010, 2.1570]], ['Barceloneta (playa)', 'Ciutat Vella', [41.3784, 2.1925]],
+  ['Sagrada Família', 'Eixample', [41.4036, 2.1744]], ['Hotel W Barcelona', 'Barceloneta', [41.3685, 2.1903]],
+];
+let YO_TXT = '';
+function abrirCerca(ev) {
+  ev.stopPropagation();
+  if (st.cerca) { st.cerca = false; actualizarCerca(); return; }
+  document.getElementById('nearpop').classList.toggle('open');
+  document.getElementById('diri').focus();
+}
+function fijarUbicacion(pos, txt) {
+  YO[0] = pos[0]; YO[1] = pos[1]; YO_TXT = txt; st.cerca = true;
+  document.getElementById('nearpop').classList.remove('open');
+  actualizarCerca();
+}
+function actualizarCerca() {
   document.getElementById('near').classList.toggle('on', st.cerca);
-  document.getElementById('nearnote').classList.toggle('show', st.cerca);
+  document.getElementById('near').textContent = st.cerca ? '✕ Cerca mío' : '◎ Cerca mío';
+  const n = document.getElementById('nearnote');
+  n.classList.toggle('show', st.cerca);
+  n.innerHTML = st.cerca ? `Distancias desde <b style="color:var(--text)">${YO_TXT}</b> · <a href="#" style="color:var(--orange)" onclick="event.preventDefault();event.stopPropagation();document.getElementById('nearpop').classList.add('open')">cambiar</a>` : '';
   document.getElementById('orden').value = st.cerca ? 'dist' : 'pop';
   render();
 }
+function usarUbicacion() { fijarUbicacion([41.3870, 2.1700], 'tu ubicación actual (simulada)'); }
+function sugerir() {
+  const q = document.getElementById('diri').value.toLowerCase().trim();
+  const r = q.length < 2 ? [] : DIRECCIONES.filter(d => (d[0] + ' ' + d[1]).toLowerCase().includes(q)).slice(0, 5);
+  document.getElementById('sugs').innerHTML = (r.length ? r : (q.length >= 2 ? [[document.getElementById('diri').value, 'Barcelona', [41.389, 2.168]]] : []))
+    .map((d, i) => `<div class="sug" data-i="${i}">📍 ${d[0]}<small>${d[1]}, Barcelona</small></div>`).join('');
+  document.querySelectorAll('.sug').forEach((el, i) => el.onclick = (e) => { e.stopPropagation(); const d = (r.length ? r : [[document.getElementById('diri').value, 'Barcelona', [41.389, 2.168]]])[i]; fijarUbicacion(d[2], d[0]); });
+}
+document.addEventListener('click', e => { if (!e.target.closest('#nearpop') && !e.target.closest('#near')) document.getElementById('nearpop').classList.remove('open'); });
+function cercaMio() { if (!st.cerca) fijarUbicacion([41.3870, 2.1700], 'Plaça de Catalunya'); }
+
+// ── DIRECCIÓN EN MAPA ──────────────────────────────────────────────────────
+let miniMapa = null;
+function verDireccion(id) {
+  const x = [...EVENTOS, ...BARES].find(i => i.id === id);
+  const q = encodeURIComponent(`${x.venue || x.titulo}, ${x.dir}, Barcelona`);
+  document.getElementById('modalbox').innerHTML = `
+    <div class="modal-map" id="modalmap"></div>
+    <div class="modal-info">
+      <h3>${x.venue || x.titulo}</h3>
+      <p>📍 ${x.dir} · ${x.barrio}, Barcelona</p>
+      ${st.cerca ? `<p>🚶 ${fmtDist(km(YO, x.pos))} desde ${YO_TXT} · ${aPie(km(YO, x.pos))}</p>` : ''}
+      <div class="modal-actions">
+        <button class="btn ghost" onclick="navigator.clipboard && navigator.clipboard.writeText('${x.dir}, Barcelona')">Copiar dirección</button>
+        <a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Cómo llegar →</a>
+      </div>
+    </div>`;
+  document.getElementById('modal').classList.add('open');
+  if (window.L) {
+    if (miniMapa) { miniMapa.remove(); miniMapa = null; }
+    miniMapa = L.map('modalmap', { zoomControl: false, attributionControl: false }).setView(x.pos, 16);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd' }).addTo(miniMapa);
+    L.marker(x.pos, { icon: L.divIcon({ className: '', html: `<div class="pin ${x.tipo === 'bar' ? 'bar' : 'ev'} big"></div>`, iconSize: [16, 16], iconAnchor: [8, 8] }) }).addTo(miniMapa);
+    setTimeout(() => miniMapa.invalidateSize(), 50);
+  }
+}
+function cerrarModal() { document.getElementById('modal').classList.remove('open'); }
+
+// ── MIS PLANES ─────────────────────────────────────────────────────────────
+function togglePlanes(ev) { if (ev) ev.stopPropagation(); document.getElementById('noche').classList.toggle('closed'); pintarNoche(); }
 function previa(id) {
   st.previaDe = EVENTOS.find(e => e.id === id);
   st.kmBar = 99; cambiarTab('bares', true);
@@ -409,15 +514,15 @@ function agregar(id) {
     noche.push({ item, hora });
   }
   pintarNoche(); render();
-  document.getElementById('noche').classList.remove('closed');
+  const btn = document.getElementById('planesbtn');
+  btn.classList.remove('pulse'); void btn.offsetWidth; btn.classList.add('pulse');
 }
 function orden(h) { const [a, b] = h.split(':').map(Number); return (a < 8 ? a + 24 : a) * 60 + b; }
 function pintarNoche() {
   const n = [...noche].sort((a, b) => orden(a.hora) - orden(b.hora));
-  document.getElementById('nnum').textContent = n.length ? `(${n.length})` : '';
-  document.getElementById('ntoggle').textContent = document.getElementById('noche').classList.contains('closed') ? 'Ver ▴' : 'Ocultar ▾';
+  document.getElementById('nnum').textContent = n.length ? `${n.length}` : '';
   const body = document.getElementById('nbody');
-  if (!n.length) { body.innerHTML = `<div class="noche-empty">Sumá una fiesta y los bares para la previa con <b>+ A mi noche</b>. Te armo el recorrido con horarios y distancias.</div>`; return; }
+  if (!n.length) { body.innerHTML = `<div class="noche-empty">Todavía no armaste nada. Sumá una fiesta y los bares para la previa con <b>+ Mis planes</b> y te armo el recorrido con horarios y distancias.</div>`; return; }
   let html = '';
   n.forEach((s, i) => {
     if (i > 0) { const d = km(n[i - 1].item.pos, s.item.pos); html += `<div class="walk">🚶 ${aPie(d)} · ${fmtDist(d)}</div>`; }
@@ -446,7 +551,7 @@ document.getElementById('tipo').addEventListener('click', e => {
 });
 ['dist-ev', 'dist-bar'].forEach(id => document.getElementById(id).addEventListener('click', e => {
   const c = e.target.closest('.chip'); if (!c) return;
-  if (!st.cerca && !st.previaDe && c.dataset.km !== '99') cercaMio();
+  if (!st.cerca && !st.previaDe && c.dataset.km !== '99') { document.getElementById('nearpop').classList.add('open'); }
   st[id === 'dist-ev' ? 'kmEv' : 'kmBar'] = Number(c.dataset.km);
   document.querySelectorAll(`#${id} .chip`).forEach(x => x.classList.toggle('on', x === c));
   render();
@@ -454,7 +559,7 @@ document.getElementById('tipo').addEventListener('click', e => {
 document.querySelectorAll('#momento .chip').forEach(c => c.addEventListener('click', () => {
   document.querySelectorAll('#momento .chip').forEach(x => x.classList.toggle('on', x === c));
 }));
-document.getElementById('noche').querySelector('.noche-head').addEventListener('click', () => setTimeout(pintarNoche, 0));
+
 
 render(); pintarNoche();
 </script>
