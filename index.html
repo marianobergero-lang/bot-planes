@@ -1333,7 +1333,15 @@ async function masBares() {
   } catch (e) { btn.disabled = false; btn.textContent = 'No pude cargarlos, tocá para reintentar'; }
 }
 const DIAS_OSM = { Mo: 'Lu', Tu: 'Ma', We: 'Mi', Th: 'Ju', Fr: 'Vi', Sa: 'Sá', Su: 'Do', PH: 'Feriados', off: 'cerrado' };
-function horarioEs(h) { return (h || '').replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su|PH|off)\b/g, m => DIAS_OSM[m]).replace(/;\s*/g, ' · '); }
+function horarioEs(h) {
+  return (h || '')
+    .split(/;\s*/)
+    .filter(p => !/unknown|"/i.test(p))   // partes en inglés o con comentarios ("Depends on the holiday") fuera
+    .join('; ')
+    .replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su|PH|off|closed)\b/g, m => DIAS_OSM[m] || 'cerrado')
+    .replace(/24\/7/, 'Abierto 24 hs')
+    .replace(/;\s*/g, ' · ');
+}
 function tarjetaBar(b) {
   EVENTOS[b.id] = b;
   if (b.lugar === 'rest') return tarjetaRest(b);
