@@ -301,15 +301,59 @@
   .res-menu small { display: block; color: var(--dim); font-weight: 400; font-size: 11.5px; margin-top: 2px; }
   .osm-note { font-size: 12px; color: var(--dim); margin-top: 18px; }
 
-  /* CHAT */
-  .chat-dock { border-top: 1px solid var(--border); background: var(--bg); flex-shrink: 0; }
-  .chat-thread { max-height: 0; overflow-y: auto; transition: max-height .25s ease; display: flex; flex-direction: column; gap: 10px; padding: 0 28px; }
-  .chat-dock.open .chat-thread { max-height: 280px; padding: 16px 28px 4px; }
+  /* CHAT FLOTANTE */
+  .chat-dock {
+    position: fixed; right: 22px; bottom: 96px; z-index: 1500; width: 400px; max-width: calc(100vw - 32px); height: min(560px, calc(100vh - 140px));
+    background: var(--card); border: 1px solid var(--border2); border-radius: 18px; box-shadow: 0 24px 60px rgba(0,0,0,.6);
+    display: none !important; flex-direction: column; overflow: hidden;
+  }
+  .chat-dock.abierto { display: flex !important; }
+  .chat-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .chat-head b { font-size: 15px; } .chat-head b span { color: var(--orange); }
+  .chat-head small { display: block; font-size: 11.5px; color: var(--dim); font-weight: 400; }
+  .chat-head .x { margin-left: auto; background: none; border: 1px solid var(--border2); color: var(--text); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+  .chat-head .x:hover { background: var(--orange); border-color: var(--orange); }
+  .chat-thread { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+  .chat-vacio { color: var(--muted); font-size: 13.5px; line-height: 1.5; }
+  .chat-vacio button { display: block; margin-top: 8px; background: var(--surface); border: 1px solid var(--border2); color: var(--text); border-radius: 10px; padding: 8px 12px; font: 500 13px 'Space Grotesk', sans-serif; cursor: pointer; text-align: left; width: 100%; }
+  .chat-vacio button:hover { border-color: var(--orange); }
+  .fab {
+    position: fixed; right: 22px; bottom: 22px; z-index: 1500; display: flex; align-items: center; gap: 10px;
+    background: var(--orange); color: #fff; border: none; border-radius: 30px; padding: 10px 18px 10px 10px;
+    font: 700 14.5px 'Space Grotesk', sans-serif; cursor: pointer; box-shadow: 0 10px 30px rgba(233,104,46,.35); transition: transform .15s;
+  }
+  .fab:hover { transform: translateY(-2px); }
+  .fab i { font-style: normal; width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,.2); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .fab.abierto span { display: none; } .fab.abierto { padding: 10px; }
+
+  /* PANTALLA PRINCIPAL */
+  .landing { position: fixed; inset: 0; z-index: 2500; background: radial-gradient(1200px 600px at 50% -10%, rgba(233,104,46,.16), transparent 60%), var(--bg); overflow-y: auto; display: flex; justify-content: center; }
+  .landing[hidden] { display: none; }
+  .landing-in { width: 100%; max-width: 760px; padding: 64px 20px 40px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .landing .logo { font-size: clamp(46px, 8vw, 84px); font-weight: 800; letter-spacing: -3px; line-height: 1; }
+  .landing .logo span { color: var(--orange); }
+  .landing .tag { color: var(--muted); font-size: 17px; margin: 12px 0 40px; }
+  .landing .paso { width: 100%; text-align: left; }
+  .landing .paso h3 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 12px; }
+  .landing .hero-ask { max-width: none; }
+  .landing .o { width: 100%; display: flex; align-items: center; gap: 14px; color: var(--dim); font-size: 13px; text-transform: uppercase; letter-spacing: 1.4px; margin: 36px 0; }
+  .landing .o::before, .landing .o::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .detectada { font-size: 14px; color: var(--muted); margin-bottom: 12px; min-height: 20px; }
+  .detectada b { color: var(--text); }
+  .ciudad-grande { display: flex; gap: 10px; }
+  .ciudad-grande .city { flex: 1; }
+  .ciudad-grande .city select { font-size: 22px; padding: 16px 44px 16px 48px; border-radius: 16px; }
+  .ciudad-grande .city::before { font-size: 20px; left: 17px; }
+  .entrar { background: var(--orange); color: #fff; border: none; border-radius: 16px; padding: 0 28px; font: 800 18px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; }
+  .entrar:hover { background: var(--orange2); }
+  .ciudades-top { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .landing .powered-l { margin-top: 48px; font-size: 13px; color: var(--dim); text-decoration: none; }
+  .landing .powered-l b { font-size: 17px; } .landing .powered-l .s { color: var(--text); } .landing .powered-l .w { color: var(--orange); }
   .msg { max-width: 75%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; }
   .msg.bot { background: var(--card); border: 1px solid var(--border); border-bottom-left-radius: 3px; align-self: flex-start; }
   .msg.me  { background: var(--orange-soft); border: 1px solid rgba(233,104,46,.3); border-bottom-right-radius: 3px; align-self: flex-end; }
   .msg.typing { color: var(--dim); }
-  .chat-bar { display: flex; gap: 10px; align-items: center; padding: 14px 28px 18px; }
+  .chat-bar { display: flex; gap: 10px; align-items: center; padding: 12px 14px 14px; border-top: 1px solid var(--line); }
   .bot-ico { width: 40px; height: 40px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
   .chat-bar input {
     flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border2); color: var(--text);
@@ -343,8 +387,9 @@
     .main-wrap { min-height: auto; }
     .main { overflow: visible; padding: 18px 16px 30px; }
     .grid { grid-template-columns: 1fr; }
-    .chat-dock { position: sticky; bottom: 0; }
-    .chat-bar, .chat-dock.open .chat-thread { padding-left: 16px; padding-right: 16px; }
+    .chat-dock { right: 12px; left: 12px; width: auto; bottom: 84px; height: calc(100vh - 120px); }
+    .fab { right: 14px; bottom: 14px; }
+    .ciudad-grande { flex-direction: column; } .entrar { padding: 16px; }
     .shortcuts { grid-template-columns: 1fr 1fr; }
     .hello h2 { font-size: 24px; }
     .res-head h2 { font-size: 20px; }
@@ -372,6 +417,35 @@
   </div>
 </header>
 <div class="toast" id="toast"></div>
+<button class="fab" id="fab" onclick="toggleChat()"><i>🤖</i><span>Preguntale a Let's PartIA</span></button>
+
+<div class="landing" id="landing">
+  <div class="landing-in">
+    <div class="logo">Let's <span>Part</span>IA</div>
+    <div class="tag">Many events · Your event</div>
+
+    <div class="paso">
+      <h3>🤖 Contame qué querés y lo busco</h3>
+      <div class="hero-ask">
+        <input id="askl" placeholder="Ej: techno en Barcelona el sábado, algo gratis hoy en Madrid…" onkeydown="if(event.key==='Enter')desdeLanding()">
+        <button class="send" onclick="desdeLanding()" aria-label="Buscar">↑</button>
+      </div>
+    </div>
+
+    <div class="o">o elegí tu ciudad</div>
+
+    <div class="paso">
+      <div class="detectada" id="detectada"></div>
+      <div class="ciudad-grande">
+        <div class="city"><select id="cityl"></select></div>
+        <button class="entrar" onclick="entrarCiudad()">Ver planes →</button>
+      </div>
+      <div class="ciudades-top" id="ciudadestop"></div>
+    </div>
+
+    <a class="powered-l" href="https://stepwiseconsulting.es/eventos" target="_blank" rel="noopener">powered by <b><span class="s">Step</span><span class="w">Wise</span></b></a>
+  </div>
+</div>
 <div class="modal" id="modal" onclick="if(event.target===this)cerrarModal()"><div class="modal-box" id="modalbox"></div></div>
 
 <div class="app">
@@ -449,10 +523,10 @@
   <div class="main-wrap">
     <main class="main" id="main"></main>
     <div class="chat-dock" id="dock">
+      <div class="chat-head"><div class="bot-ico">🤖</div><div><b>Let's <span>Part</span>IA</b><small>Contame qué querés y te lo busco</small></div><button class="x" onclick="toggleChat(false)" aria-label="Cerrar">✕</button></div>
       <div class="chat-thread" id="thread"></div>
       <div class="chat-bar">
-        <div class="bot-ico">🤖</div>
-        <input id="ask" placeholder="¡Hey! Decime acá qué te gustaría y encuentro algo para vos ✨" onkeydown="if(event.key==='Enter')preguntar()">
+        <input id="ask" placeholder="¡Hey! Decime qué te gustaría ✨" onkeydown="if(event.key==='Enter')preguntar()">
         <button class="send" id="sendbtn" onclick="preguntar()" aria-label="Enviar">↑</button>
       </div>
     </div>
@@ -649,7 +723,6 @@ async function buscar() {
 function volver() { return '<button class="back" onclick="inicio()">← Volver a los atajos</button>'; }
 
 function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
-  document.getElementById('dock').style.display = '';
   const main = document.getElementById('main');
   const activos = [st.franja, st.precio, (GENEROS[st.tab] || []).find(g => g[0] === st.genero)?.[1] || st.genero].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join('');
   const n = Math.max(total, eventos.length);
@@ -840,7 +913,6 @@ function setModo(m) {
 }
 
 function renderActual() {
-  document.getElementById('dock').style.display = '';
   const main = document.getElementById('main');
   main.classList.remove('loading');
   let items = actual.items.map(x => ({ ...x, d: ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null }));
@@ -1125,17 +1197,10 @@ document.addEventListener('click', e => { if (!e.target.closest('#nearpop') && !
 function inicio() {
   vista = 'inicio';
   document.getElementById('main').classList.remove('loading');
-  const conChat = document.getElementById('thread').children.length > 0;
-  document.getElementById('dock').style.display = conChat ? '' : 'none';
   document.getElementById('main').innerHTML = `
     <div class="hello">
       <h2>¿Qué hacemos en <span>${esc(ciudadTxt())}</span>?</h2>
-      <p>Contame qué tenés ganas de hacer y te lo busco, o elegí cuándo y afiná con los filtros de la izquierda.</p>
-      <div class="hero-ask">
-        <div class="bot-ico">🤖</div>
-        <input id="ask2" placeholder="Ej: techno el sábado a la noche, algo gratis hoy, cuándo toca Amelie Lens…" onkeydown="if(event.key==='Enter'){preguntar(this.value);this.value=''}">
-        <button class="send" onclick="const i=document.getElementById('ask2');preguntar(i.value);i.value=''" aria-label="Buscar">↑</button>
-      </div>
+      <p>Elegí arriba qué tenés ganas de hacer, decinos cuándo y afiná con los filtros de la izquierda. ¿Preferís contarlo? Tocá 🤖 abajo a la derecha.</p>
       <div class="hero-when">
         <span>¿Cuándo?</span>
         <button class="chip big" onclick="cuandoHome('hoy')">Hoy</button>
@@ -1171,10 +1236,11 @@ function irHome(ev) {
   modoVista = 'lista';
   historial = [];
   document.getElementById('thread').innerHTML = '';
-  document.getElementById('dock').classList.remove('open');
+  toggleChat(false);
   document.getElementById('side').classList.remove('open');
   ubic = puntoCentro(); actualizarNota();
   pintarGeneros(); pintar(); inicio();
+  mostrarLanding();
   document.getElementById('main').scrollTop = 0;
 }
 function atajo(k) {
@@ -1189,7 +1255,22 @@ function atajo(k) {
 }
 
 // ── CHAT ───────────────────────────────────────────────────────────────────
+function toggleChat(abrir) {
+  const d = document.getElementById('dock'), f = document.getElementById('fab');
+  const on = abrir === undefined ? !d.classList.contains('abierto') : abrir;
+  d.classList.toggle('abierto', on); f.classList.toggle('abierto', on);
+  f.querySelector('i').textContent = on ? '✕' : '🤖';
+  if (on) {
+    const t = document.getElementById('thread');
+    if (!t.children.length) t.innerHTML = `<div class="chat-vacio">Pedime lo que quieras, por ejemplo:
+      <button onclick="preguntar(this.textContent)">Techno este sábado a la noche</button>
+      <button onclick="preguntar(this.textContent)">¿Cuándo toca Amelie Lens?</button>
+      <button onclick="preguntar(this.textContent)">Algo tranqui y barato para hoy</button></div>`;
+    setTimeout(() => document.getElementById('ask').focus(), 50);
+  }
+}
 function burbuja(txt, quien) {
+  document.querySelectorAll('.chat-vacio').forEach(x => x.remove());
   const t = document.getElementById('thread');
   const m = document.createElement('div');
   m.className = 'msg ' + quien; m.textContent = txt;
@@ -1221,7 +1302,7 @@ async function preguntar(textoFijo) {
   inp.value = '';
   const btn = document.getElementById('sendbtn');
   btn.disabled = true;
-  document.getElementById('dock').style.display = '';
+  toggleChat(true);
   burbuja(texto, 'me');
   historial.push({ role: 'user', content: texto });
   const esperando = burbuja('…', 'bot typing');
@@ -1255,6 +1336,50 @@ async function preguntar(textoFijo) {
   }
   btn.disabled = false;
   inp.focus();
+}
+
+// ── PANTALLA PRINCIPAL ─────────────────────────────────────────────────────
+const TOP = ['barcelona', 'madrid', 'ibiza', 'london', 'berlin', 'amsterdam', 'paris', 'lisbon', 'buenos aires'];
+function mostrarLanding() {
+  const sel = document.getElementById('cityl');
+  sel.value = ciudad();
+  document.getElementById('landing').hidden = false;
+  detectarCiudad();
+}
+function entrarCiudad(c) {
+  const sel = document.getElementById('city');
+  sel.value = c || document.getElementById('cityl').value;
+  try { localStorage.setItem('lp_ciudad', sel.value); } catch (e) {}
+  preciosCiudad(); apagarCerca(true); pintar();
+  document.getElementById('landing').hidden = true;
+  inicio();
+}
+function desdeLanding() {
+  const i = document.getElementById('askl'), t = i.value.trim();
+  if (!t) return i.focus();
+  i.value = '';
+  document.getElementById('landing').hidden = true;
+  inicio();
+  preguntar(t);
+}
+let detectada = false;
+function detectarCiudad() {
+  const box = document.getElementById('detectada');
+  if (detectada || !navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    detectada = true;
+    let mejor = null, dmin = 1e9;
+    for (const [k, c] of Object.entries(CENTRO)) {
+      const d = distKm([pos.coords.latitude, pos.coords.longitude], [c[0], c[1]]);
+      if (d < dmin) { dmin = d; mejor = k; }
+    }
+    if (mejor && dmin < 80) {
+      document.getElementById('cityl').value = mejor;
+      box.innerHTML = `📍 Parece que estás en <b>${esc(CIUDADES.find(x => x[0] === mejor)?.[1] || mejor)}</b>. Si no, elegí otra.`;
+    } else {
+      box.textContent = 'No tenemos tu ciudad todavía. Elegí la más cercana o a la que viajás 👇';
+    }
+  }, () => {}, { timeout: 8000, maximumAge: 3600000 });
 }
 
 // ── EVENTOS DE LA UI ───────────────────────────────────────────────────────
@@ -1296,8 +1421,11 @@ document.getElementById('city').addEventListener('change', () => {
   let guardada = null;
   try { guardada = localStorage.getItem('lp_ciudad'); } catch (e) {}
   sel.value = CIUDADES.some(c => c[0] === guardada) ? guardada : 'barcelona';
+  document.getElementById('cityl').innerHTML = sel.innerHTML;
+  document.getElementById('ciudadestop').innerHTML = TOP.map(k => `<button class="chip big" onclick="entrarCiudad('${k}')">${CIUDADES.find(x => x[0] === k)[1]}</button>`).join('');
   ubic = puntoCentro(); actualizarNota();
   preciosCiudad(); pintarGeneros(); pintar(); inicio(); contarGuardados();
+  mostrarLanding();
 })();
 </script>
 </body>
