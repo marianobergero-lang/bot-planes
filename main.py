@@ -1741,6 +1741,25 @@ def buscar_equipo(nombre, dias=45):
     out.sort(key=lambda e: (e["fecha"], e["hora"] or "99"))
     return out, equipo.get("name")
 
+@app.route("/debug-duplicados")
+def debug_duplicados():
+    """Eventos que están en Fever y también en RA/Ticketmaster. Uso: /debug-duplicados?ciudad=madrid&dias=30"""
+    ciudad = (request.args.get("ciudad") or "madrid").lower()
+    dias = min(int(request.args.get("dias", 30)), 60)
+    hoy = _hoy()
+    d0, d1 = hoy.strftime("%Y-%m-%d"), (hoy + timedelta(days=dias)).strftime("%Y-%m-%d")
+    out = []
+    for cat in ("clubs", "conciertos", "teatro"):
+        try:
+            otros = (buscar_por_fecha(ciudad, d0, d1, 100000)[0] if cat == "clubs"
+                     else buscar_ticketmaster(ciudad, d0, d1, cat, 100000)[0])
+        except Exception as e:
+            otros = []
+        for e in sin_duplicados(otros + buscar_fever(ciudad, cat, d0, d1)):
+            if e.get("otros_links"):
+                out.append(f"{cat} · {e['fecha']} · {e['titulo']} · también en {', '.join(o['fuente'] for o in e['otros_links'])}")
+    return jsonify({"ciudad": ciudad, "desde": d0, "hasta": d1, "total": len(out), "duplicados": out[:50]})
+
 @app.route("/debug-futbol")
 def debug_futbol():
     """Uso: /debug-futbol?ciudad=barcelona"""
