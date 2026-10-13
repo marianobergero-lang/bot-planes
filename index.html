@@ -124,6 +124,9 @@
   .guia b { display: block; color: var(--text); font-size: 17px; margin-bottom: 2px; }
   .guia .flecha { font-size: 32px; animation: empuje 1.4s ease-in-out infinite; }
   @keyframes empuje { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-8px); } }
+  .guia.chica { margin: 0 0 18px; padding: 12px 16px; font-size: 13px; }
+  .guia.chica b { font-size: 15px; }
+  .guia.chica .flecha { font-size: 24px; }
   .titulo-atajos { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); margin-bottom: 14px; }
 
   .pic.nombre { flex-direction: column; justify-content: flex-end; align-items: flex-start; padding: 14px 16px; text-align: left; }
@@ -618,6 +621,10 @@ function kmClave() { return st.tab === 'bares' ? 'bares' : 'otros'; }
 let modoVista = 'lista';  // 'lista' | 'mapa'
 let actual = { items: [], total: 0, porDia: {}, titulo: null };
 const MAX_MAPA = 20;
+let usoFiltros = false;  // el cartel guía se muestra hasta que tocan el primer filtro del costado
+function cartelGuia() {
+  return usoFiltros ? '' : `<div class="guia chica"><span class="flecha">👈</span><div><b>Afiná con los filtros de la izquierda</b>Cuándo, horario, precio, género o distancia: tocá uno y los resultados se actualizan solos.</div></div>`;
+}
 const cal = { abierto: false, a: null, b: null, mes: null };
 let vista = 'inicio';
 let historial = [];
@@ -760,7 +767,7 @@ function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
   const h2 = titulo || (eventos.length
     ? `${n} ${TAB_TXT[st.tab][n === 1 ? 0 : 1]} en <span>${esc(ciudadTxt())}</span>`
     : `Nada por acá en <span>${esc(ciudadTxt())}</span>`);
-  let html = volver() + `<div class="res-head"><h2>${h2}</h2><div class="head-tools"><div class="active">${titulo ? '' : activos}</div>${titulo ? '' : segVista()}</div></div>${extra}`;
+  let html = volver() + (titulo ? '' : cartelGuia()) + `<div class="res-head"><h2>${h2}</h2><div class="head-tools"><div class="active">${titulo ? '' : activos}</div>${titulo ? '' : segVista()}</div></div>${extra}`;
   if (!eventos.length) {
     const tm = st.tab !== 'clubs' && !titulo;
     html += `<div class="empty"><b>No encontré exactamente lo que buscás 😕</b>
@@ -966,7 +973,7 @@ function mostrarBares(items) {
   const donde = ubic ? `cerca de <span>${esc(ubic.txt)}</span>` : `en <span>${esc(ciudadTxt())}</span>`;
   items.sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
   const total = Math.max(actual.total || 0, items.length);
-  let html = volver() + `<div class="res-head"><h2>${total} ${total === 1 ? 'bar' : 'bares'} ${donde}</h2><div class="head-tools">${segVista()}</div></div>`;
+  let html = volver() + cartelGuia() + `<div class="res-head"><h2>${total} ${total === 1 ? 'bar' : 'bares'} ${donde}</h2><div class="head-tools">${segVista()}</div></div>`;
   if (!items.length) {
     html += `<div class="empty"><b>No encontré bares con esos filtros 😕</b>${st.km !== '99' ? 'Probá ampliando la distancia a "Cerca < 3 km".' : 'Probá con otro tipo de bar.'}</div>`;
   } else {
@@ -1057,10 +1064,43 @@ function resaltar(card, on) {
 }
 
 // ── BARES ──────────────────────────────────────────────────────────────────
+const BARES_LOCALES = {};
+const ETQ = { cocteles: 'Cócteles', vinos: 'Vinos', cervezas: 'Cervezas' };
+async function baresLocales(c) {
+  if (c in BARES_LOCALES) return BARES_LOCALES[c];
+  try {
+    const r = await fetch(`datos/bares/${c.replace(/ /g, '-')}.json`);
+    if (!r.ok) throw new Error('sin archivo');
+    const j = await r.json();
+    BARES_LOCALES[c] = (j.bares || []).map(b => ({
+      id: b.id, tipo: 'bar', titulo: b.n, lat: b.la, lng: b.lo, categoria: b.c, tipos: b.t || [],
+      tags: (b.t || []).filter(x => ETQ[x]).map(x => ETQ[x]), terraza: (b.t || []).includes('terraza'),
+      musica: (b.t || []).includes('musica'), hifi: (b.t || []).includes('hifi'),
+      direccion: b.d, barrio: b.b, horario: b.h, web: b.w, telefono: b.p,
+      info: [b.d, b.h, b.w].filter(Boolean).length,
+    }));
+  } catch (e) { BARES_LOCALES[c] = null; }
+  return BARES_LOCALES[c];
+}
 async function buscarBares() {
   vista = 'resultados';
   const main = document.getElementById('main');
   main.classList.add('loading');
+  const locales = await baresLocales(ciudad());
+  if (locales) {
+    const c = CENTRO[ciudad()];
+    const desde = ubic ? [ubic.lat, ubic.lng] : [c[0], c[1]];
+    const radio = st.km === '99' ? 8 : Number(st.km);
+    const lista = locales
+      .filter(b => !st.tipoBar || b.tipos.includes(st.tipoBar))
+      .map(b => ({ ...b, distancia: distKm(desde, [b.lat, b.lng]) }))
+      .filter(b => b.distancia <= radio)
+      .sort((a, b) => (a.distancia - 0.08 * a.info) - (b.distancia - 0.08 * b.info));
+    actual = { items: modoVista === 'mapa' ? lista : lista.slice(0, 20), todos: lista, total: lista.length, porDia: {}, titulo: null, local: true };
+    renderActual();
+    main.classList.remove('loading');
+    return;
+  }
   const p = new URLSearchParams({ ciudad: ciudad() });
   if (ubic) { p.set('lat', ubic.lat); p.set('lng', ubic.lng); }
   p.set('radio', st.km === '99' ? 5000 : Math.round(Number(st.km) * 1000));
@@ -1082,6 +1122,15 @@ async function buscarBares() {
 }
 async function masBares() {
   const btn = document.getElementById('more-bares');
+  if (actual.local) {
+    const nuevos = actual.todos.slice(actual.items.length, actual.items.length + 20)
+      .map(x => ({ ...x, d: ubic ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null }));
+    actual.items.push(...nuevos);
+    document.getElementById('grid-bares').insertAdjacentHTML('beforeend', nuevos.map(tarjetaBar).join(''));
+    const faltan = actual.total - actual.items.length;
+    if (faltan > 0) btn.textContent = `Ver más bares (${faltan} más) ↓`; else btn.remove();
+    return;
+  }
   btn.disabled = true; btn.textContent = 'Cargando…';
   const p = new URLSearchParams(actual.params);
   p.set('offset', actual.items.length); p.set('limit', 20);
@@ -1267,6 +1316,7 @@ function irHome(ev) {
   Object.assign(st, { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, km: KM_DEFECTO.otros });
   cal.a = cal.b = null; cal.abierto = false; pintarCal();
   modoVista = 'lista';
+  usoFiltros = false;
   historial = [];
   document.getElementById('thread').innerHTML = '';
   toggleChat(false);
@@ -1409,11 +1459,11 @@ function arrancarTipeo() {
   tipeo = setInterval(() => {
     if (document.activeElement === inp || inp.value) return;
     const t = EJEMPLOS[i];
-    j += borrando ? -1 : 1;
-    inp.placeholder = 'Ej: ' + t.slice(0, j);
-    if (!borrando && j >= t.length + 12) borrando = true;
+    j += borrando ? -3 : 1;
+    inp.placeholder = 'Ej: ' + t.slice(0, Math.max(0, j));
+    if (!borrando && j >= t.length + 14) borrando = true;
     if (borrando && j <= 0) { borrando = false; i = (i + 1) % EJEMPLOS.length; }
-  }, 70);
+  }, 38);
 }
 function pararTipeo() { document.getElementById('askl').placeholder = 'Contame qué querés hacer…'; }
 function desdeLanding(fijo) {
@@ -1449,6 +1499,7 @@ document.querySelectorAll('.chips').forEach(g => {
   g.addEventListener('click', e => {
     const b = e.target.closest('.chip'); if (!b) return;
     const k = g.dataset.g, v = b.dataset.v;
+    usoFiltros = true;
     if (v === 'cal') { cal.abierto = !cal.abierto; pintarCal(); if (cal.a) { st.cuando = 'cal'; pintar(); autoBuscar(); } return; }
     if (k === 'cuando') { cal.abierto = false; pintarCal(); }
     if (k === 'km') {
