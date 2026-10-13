@@ -36,7 +36,7 @@
   .tabs { display: flex; gap: 4px; }
   .tab { background: none; border: none; color: var(--muted); font-size: 16px; font-weight: 600; padding: 10px 18px; border-radius: 24px; cursor: pointer; white-space: nowrap; }
   .tab:hover { color: var(--text); background: var(--surface); }
-  .tab.on { color: var(--text); background: rgba(233,104,46,.14); box-shadow: inset 0 0 0 1px rgba(233,104,46,.55); }
+  .tab.on { color: #fff; background: linear-gradient(180deg, #f07a3c, #e0581f); box-shadow: 0 0 0 1px rgba(255,170,120,.6), 0 4px 18px rgba(233,104,46,.55); text-shadow: 0 1px 2px rgba(0,0,0,.25); }
 
   /* LAYOUT */
   .app { flex: 1; display: grid; grid-template-columns: 500px 1fr; min-height: 0; }
@@ -196,6 +196,7 @@
   .peli .sinopsis { color: var(--muted); font-size: 13px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 4px 0; }
   .peli a.fav { text-decoration: none; }
   sup.beta { font-size: 9px; font-weight: 800; letter-spacing: .5px; color: #0D0C0B; background: var(--accent, #E9682E); padding: 1px 5px; border-radius: 6px; vertical-align: top; }
+  .side .chips { flex-wrap: wrap; }
   .pic.vacia { background: linear-gradient(135deg, #1d1b18, #121110); display: flex; align-items: center; justify-content: center; font-size: 34px; opacity: .9; }
   .pic::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, transparent 40%, transparent 70%, rgba(23,22,20,.9) 100%); pointer-events: none; }
   .acciones { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 2; }
@@ -341,6 +342,11 @@
     font: 700 14.5px 'Space Grotesk', sans-serif; cursor: pointer; box-shadow: 0 10px 30px rgba(233,104,46,.35); transition: transform .15s;
   }
   .fab:hover { transform: translateY(-2px); }
+  .fab:not(.abierto) i { animation: robot 7s ease-in-out infinite; }
+  @keyframes robot { 0%, 82%, 100% { transform: rotate(0) scale(1); } 85% { transform: rotate(-16deg) scale(1.15); } 88% { transform: rotate(14deg) scale(1.15); } 91% { transform: rotate(-10deg) scale(1.1); } 94% { transform: rotate(6deg); } }
+  .fab:not(.abierto) span { background: linear-gradient(90deg, #fff 40%, #ffd9c2 50%, #fff 60%); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: brillo 7s ease-in-out infinite; }
+  @keyframes brillo { 0%, 80% { background-position: 100% 0; } 95%, 100% { background-position: 0 0; } }
+  @media (prefers-reduced-motion: reduce) { .fab i, .fab span { animation: none !important; } }
   .fab i { font-style: normal; width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,.2); display: flex; align-items: center; justify-content: center; font-size: 20px; }
   .fab.abierto span { display: none; } .fab.abierto { padding: 10px; }
 
@@ -592,7 +598,13 @@
         <button class="chip" data-v="japonesa">Japonesa</button><button class="chip" data-v="asiatica">Asiática</button><button class="chip" data-v="mexicana">Mexicana</button>
         <button class="chip" data-v="hamburguesas">Hamburguesas</button><button class="chip" data-v="india">India</button><button class="chip" data-v="parrilla">Parrilla</button>
         <button class="chip" data-v="mariscos">Mariscos</button><button class="chip" data-v="mediterranea">Mediterránea</button><button class="chip" data-v="latina">Latina</button>
-        <button class="chip" data-v="veg">🌱 Vegetariana</button><button class="chip" data-v="terraza">☀️ Terraza</button>
+        <button class="chip" data-v="francesa">Francesa</button>
+      </div>
+    </div>
+    <div class="group g-rest" hidden>
+      <h4>Además <em>· se suman a la cocina</em></h4>
+      <div class="chips" data-g="extraRest">
+        <button class="chip" data-v="terraza">☀️ Terraza</button><button class="chip" data-v="veg">🌱 Vegetariana / vegana</button><button class="chip" data-v="llevar">🥡 Para llevar</button>
       </div>
     </div>
     <div class="group" id="group-km">
@@ -667,13 +679,13 @@ const MESES_L = ['enero','febrero','marzo','abril','mayo','junio','julio','agost
 const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
 // ── ESTADO ─────────────────────────────────────────────────────────────────
-const st = { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, km: '99' };
+const st = { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, km: '99' };
 function esLugar() { return st.tab === 'bares' || st.tab === 'restaurantes'; }
-const MULTI = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest'];  // filtros que se pueden combinar
+const MULTI = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest'];  // filtros que se pueden combinar
 const MOVIL = () => matchMedia('(max-width: 820px)').matches;
 function lado() { return MOVIL() ? 'de arriba' : 'de la izquierda'; }
 function valores(x) { return x ? String(x).split(',') : []; }
-function tipoLugar() { return st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar; }
+function tipoLugar() { return st.tab === 'restaurantes' ? (st.tipoRest || st.extraRest) : st.tipoBar; }
 let ubic = null;          // { lat, lng, txt, auto } · auto = punto céntrico de la ciudad
 const KM_DEFECTO = { bares: '1.5', otros: '99' };
 function kmClave() { return esLugar() ? 'bares' : 'otros'; }
@@ -746,7 +758,7 @@ function pintar() {
   todo.disabled = bloqueado;
   todo.title = bloqueado ? (st.tab === 'restaurantes' ? 'Elegí un tipo de cocina para buscar en toda la ciudad' : 'Elegí un tipo de bar para buscar en toda la ciudad') : '';
   const kmTxt = st.km !== '99' && ubic ? `< ${st.km.replace('.', ',')} km` : null;
-  document.getElementById('fsummary').textContent = (esBar ? [tipoLugar(), kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map((x, i, arr) => x === kmTxt ? x : String(x).replace(/,/g, ' + ')).join(' · ');
+  document.getElementById('fsummary').textContent = (esBar ? [st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar, st.tab === 'restaurantes' ? st.extraRest : null, kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map((x, i, arr) => x === kmTxt ? x : String(x).replace(/,/g, ' + ')).join(' · ');
 }
 
 // ── CALENDARIO ─────────────────────────────────────────────────────────────
@@ -1266,7 +1278,9 @@ async function buscarBares() {
     const desde = ubic ? [ubic.lat, ubic.lng] : [c[0], c[1]];
     const radio = st.km === '99' ? 8 : Number(st.km);
     const lista = locales
-      .filter(b => !tipoLugar() || valores(tipoLugar()).some(t => b.tipos.includes(t)))
+      .filter(b => esRest
+        ? (!st.tipoRest || valores(st.tipoRest).some(t => b.tipos.includes(t))) && valores(st.extraRest).every(t => b.tipos.includes(t))
+        : (!st.tipoBar || valores(st.tipoBar).some(t => b.tipos.includes(t))))
       .map(b => ({ ...b, distancia: distKm(desde, [b.lat, b.lng]) }))
       .filter(b => b.distancia <= radio)
       .sort((a, b) => (a.distancia - 0.1 * a.info) - (b.distancia - 0.1 * b.info));
@@ -1513,7 +1527,7 @@ function cuandoHome(v) {
 }
 function irHome(ev) {
   if (ev) ev.preventDefault();
-  Object.assign(st, { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, km: KM_DEFECTO.otros });
+  Object.assign(st, { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, km: KM_DEFECTO.otros });
   cal.a = cal.b = null; cal.abierto = false; pintarCal();
   modoVista = 'lista';
   usoFiltros = false;
@@ -1745,7 +1759,7 @@ document.querySelectorAll('.chips').forEach(g => {
       const l = valores(st[k]);
       st[k] = (l.includes(v) ? l.filter(x => x !== v) : [...l, v]).join(',') || null;
     } else st[k] = st[k] === v && k !== 'cuando' ? null : v;
-    if ((k === 'tipoBar' || k === 'tipoRest') && !st[k] && st.km === '99') st.km = '3';  // sin tipo no se puede "toda la ciudad"
+    if (['tipoBar', 'tipoRest', 'extraRest'].includes(k) && !tipoLugar() && st.km === '99') st.km = '3';  // sin tipo no se puede "toda la ciudad"
     pintar(); autoBuscar();
   });
 });
@@ -1753,7 +1767,7 @@ document.getElementById('tabs').addEventListener('click', e => {
   const t = e.target.closest('.tab'); if (!t) return;
   const antes = kmClave();
   st.tab = t.dataset.tab;
-  if (kmClave() !== antes && (!ubic || ubic.auto)) st.km = KM_DEFECTO[kmClave()];
+  if (kmClave() !== antes) st.km = KM_DEFECTO[kmClave()];
   if (esLugar() && !tipoLugar() && st.km === '99') st.km = '3';
   st.genero = valores(st.genero).filter(x => (GENEROS[st.tab] || []).some(g => g[0] === x)).join(',') || null;
   pintarGeneros(); pintar(); buscar();

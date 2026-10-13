@@ -649,6 +649,8 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
             vistos.add(clave)
 
             ev_fmt = formatear_evento(ev)
+            if ev_fmt.get("fecha") and not (desde <= ev_fmt["fecha"] <= hasta):  # RA a veces trae días fuera del rango
+                continue
             if pasa_filtros(ev_fmt, hora_min, hora_max, gratis, precio_max, precio_min=precio_min):
                 eventos.append(ev_fmt)
 
