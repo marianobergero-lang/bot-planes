@@ -3,7 +3,12 @@ name: Actualizar restaurantes (OpenStreetMap)
 on:
   schedule:
     - cron: "23 2 * * 4"   # jueves 02:23 UTC = ~4:23 en España (después de los bares)
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      ciudades:
+        description: "Ciudades separadas por coma (vacío = todas)"
+        required: false
+        default: ""
   push:
     paths:
       - "tools/bajar_restaurantes.py"
@@ -26,7 +31,9 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install requests
-      - run: python tools/bajar_restaurantes.py
+      - run: |
+          IFS=',' read -ra C <<< "${{ github.event.inputs.ciudades }}"
+          python tools/bajar_restaurantes.py "${C[@]}"
       - name: Guardar cambios
         run: |
           git config user.name "github-actions[bot]"

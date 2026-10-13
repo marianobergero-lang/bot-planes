@@ -8,6 +8,7 @@ import requests
 from bajar_bares import CIUDADES, SERVIDORES, UA
 
 RADIO = 6000  # metros alrededor del centro (más chico que bares: hay muchos más restaurantes)
+RADIO_CIUDAD = {"paris": 4000, "london": 5000, "new york": 4500}  # ciudades muy densas
 
 # Cocina de OpenStreetMap → filtro de la app
 COCINAS = {
@@ -54,14 +55,15 @@ def flags(t):
 
 def bajar(ciudad):
     lat, lng = CIUDADES[ciudad]
-    q = f"""[out:json][timeout:180];
-    (node["amenity"="restaurant"]["name"](around:{RADIO},{lat},{lng});
-     way["amenity"="restaurant"]["name"](around:{RADIO},{lat},{lng}););
+    radio = RADIO_CIUDAD.get(ciudad, RADIO)
+    q = f"""[out:json][timeout:300];
+    (node["amenity"="restaurant"]["name"](around:{radio},{lat},{lng});
+     way["amenity"="restaurant"]["name"](around:{radio},{lat},{lng}););
     out center tags;"""
     for url in SERVIDORES:
-        for intento in range(2):
+        for intento in range(3):
             try:
-                r = requests.post(url, data={"data": q}, headers=UA, timeout=240)
+                r = requests.post(url, data={"data": q}, headers=UA, timeout=330)
                 r.raise_for_status()
                 return r.json().get("elements") or []
             except Exception as e:
@@ -104,7 +106,7 @@ def main():
             continue
         rs = [x for x in (compactar(e) for e in els) if x]
         with open(f"datos/restaurantes/{c.replace(' ', '-')}.json", "w", encoding="utf-8") as f:
-            json.dump({"ciudad": c, "centro": CIUDADES[c], "radio": RADIO, "actualizado": time.strftime("%Y-%m-%d"),
+            json.dump({"ciudad": c, "centro": CIUDADES[c], "radio": RADIO_CIUDAD.get(c, RADIO), "actualizado": time.strftime("%Y-%m-%d"),
                        "etiquetas": ETIQUETA, "restaurantes": rs}, f, ensure_ascii=False, separators=(",", ":"))
         print(f"  {len(rs)} restaurantes guardados (de {len(els)})")
         time.sleep(15)  # respetar a los servidores de OpenStreetMap
