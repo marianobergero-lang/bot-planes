@@ -546,6 +546,32 @@
   .lnk:hover { text-decoration: underline solid; }
   .card .who .lnk { font-weight: 500; }
 </style>
+<script data-goatcounter="https://partia.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script>
+// Métricas (GoatCounter): sin cookies ni datos personales; solo conteos de qué se toca
+function track(path, title) {
+  try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path, title: title || path, event: true }); } catch (e) {}
+}
+let _ultBusq = '';
+function trackBusqueda(tab, ciu) {
+  const k = `busqueda/${tab}/${ciu}`;
+  if (k !== _ultBusq) { _ultBusq = k; track(k); }
+}
+document.addEventListener('click', ev => {
+  const a = ev.target.closest && ev.target.closest('a[href]');
+  if (!a || !/^https?:/.test(a.href) || a.host === location.host) return;
+  const h = a.host.replace(/^www\./, '');
+  const tipo = /(^|\.)(fever|feverup)\.|pxf\.io|sjv\.io|prf\.hn|impact\.com/.test(h) ? 'fever'
+    : /ticketmaster/.test(h) ? 'ticketmaster' : /ra\.co/.test(h) ? 'ra'
+    : /google\..*\/maps|maps\.google|goo\.gl/.test(h + a.pathname) ? 'mapa'
+    : /calendar\.google/.test(h) ? 'calendario'
+    : /wa\.me|whatsapp/.test(h) ? 'compartir-whatsapp'
+    : /google\./.test(h) ? 'google' : /sensacine/.test(h) ? 'cine' : 'otro';
+  let tab = '', ciu = '';
+  try { tab = st.tab; ciu = ciudad(); } catch (e) {}
+  track(`click/${tipo}/${tab}`, `${tipo} · ${tab} · ${ciu} · ${h}`);
+}, true);
+</script>
 </head>
 <body>
 
@@ -1125,6 +1151,7 @@ async function buscar() {
   if (!st.cuando) { st.cuando = [5, 6].includes(new Date().getDay()) ? 'hoy' : 'finde'; pintar(); }
   guardarURL();  // viernes y sábado: esta noche; si no, el finde
   vista = 'resultados';
+  trackBusqueda(st.tab, ciudad());
   const main = document.getElementById('main');
   main.classList.add('loading');
   const [a, b] = rango();
@@ -2258,6 +2285,7 @@ async function preguntar(textoFijo) {
   toggleChat(true);
   burbuja(texto, 'me');
   historial.push({ role: 'user', content: texto });
+  track('chat/mensaje');
   const esperando = burbuja('…', 'bot typing');
   try {
     const r = await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: historial, lang: LANG }) });
