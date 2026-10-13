@@ -306,6 +306,8 @@
   .abierto-si { color: #5fd38d; font-weight: 700; } .abierto-no { color: var(--muted); }
   .share-bus { background: transparent; border: 1px solid var(--border2); color: var(--text); border-radius: 10px; padding: 7px 12px; font: 600 13px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; }
   .share-bus:hover { border-color: var(--orange); }
+  .menu-bus { top: calc(100% + 6px); right: 0; left: auto; min-width: 250px; z-index: 60; }
+  .link-bus { margin-top: 6px; width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--muted); border-radius: 8px; padding: 6px 8px; font-size: 12px; }
   .cal-ops { display: grid; gap: 10px; margin-top: 14px; }
   .cal-ops a { display: block; padding: 12px 14px; border: 1px solid var(--border2); border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 600; }
   .cal-ops a:hover { border-color: var(--orange); }
@@ -1587,14 +1589,32 @@ function leerURL() {
   preciosCiudad(); pintarGeneros(); actualizarNota(); pintar(); buscar();
   return true;
 }
-async function compartirBusqueda() {
+async function compartirBusqueda(ev) {
+  ev.stopPropagation();
   const url = location.origin + urlEstado();
   const texto = `Mirá estos ${TAB_TXT[st.tab][1]} en ${ciudadTxt()} 👀`;
   if (navigator.share && MOVIL()) { try { await navigator.share({ title: "Let's PartIA!", text: texto, url }); } catch (e) {} return; }
-  try { await navigator.clipboard.writeText(url); toast('Link copiado ✓ Pegalo donde quieras'); }
-  catch (e) { prompt('Copiá este link:', url); }
+  cerrarMenus();
+  const m = document.createElement('div');
+  m.className = 'menu-share menu-bus';
+  const msg = encodeURIComponent(`${texto}\n${url}`);
+  m.innerHTML = `<a href="https://wa.me/?text=${msg}" target="_blank" rel="noopener">💬 WhatsApp</a>
+    <button data-copiar>🔗 Copiar link</button>
+    <a href="mailto:?subject=${encodeURIComponent("Let's PartIA!")}&body=${msg}">✉️ Mail</a>
+    <input class="link-bus" value="${esc(url)}" readonly onclick="this.select()">`;
+  m.addEventListener('click', e => e.stopPropagation());
+  m.querySelector('[data-copiar]').onclick = async () => {
+    const inp = m.querySelector('.link-bus');
+    let ok = false;
+    try { await navigator.clipboard.writeText(url); ok = true; } catch (e) {}
+    if (!ok) { inp.focus(); inp.select(); try { ok = document.execCommand('copy'); } catch (e) {} }
+    toast(ok ? '🔗 Link copiado. Pegalo donde quieras' : 'Seleccioná el link de abajo y copialo');
+    if (ok) cerrarMenus();
+  };
+  ev.currentTarget.parentElement.style.position = 'relative';
+  ev.currentTarget.parentElement.appendChild(m);
 }
-function botonCompartir() { return `<button class="share-bus" onclick="compartirBusqueda()">↗ Compartir</button>`; }
+function botonCompartir() { return `<button class="share-bus" onclick="compartirBusqueda(event)">↗ Compartir</button>`; }
 // ── SEGUIR ARTISTAS Y EQUIPOS (se guarda en este navegador) ────────────────
 function leerSeguidos() { try { return JSON.parse(localStorage.getItem('lp_sigo') || '[]'); } catch (e) { return []; } }
 function guardarSeguidos(l) { try { localStorage.setItem('lp_sigo', JSON.stringify(l)); } catch (e) {} }
