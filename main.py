@@ -943,7 +943,10 @@ def eventos():
         por_dia[e.get("fecha", "")] = por_dia.get(e.get("fecha", ""), 0) + 1
     evs = repartir_por_dia(todos, max_ev)
     if request.args.get("coords") == "1":
-        completar_coords(evs, ciudad)
+        completar_coords(evs, ciudad, max_nuevos=0)  # aplica lo que ya está en caché, sin esperar
+        faltan = [dict(e) for e in evs if e.get("lat") is None]
+        if faltan:
+            threading.Thread(target=completar_coords, args=(faltan, ciudad, 40), daemon=True).start()
     return jsonify({"ciudad": ciudad, "categoria": categoria, "desde": desde, "hasta": hasta,
                     "total_ra": len(todos), "total": len(evs), "por_dia": por_dia, "eventos": evs})
 
@@ -1268,13 +1271,13 @@ def overpass_bares(centro, radio):
     c = cache_get(k, 86400)
     if c is not None:
         return c
-    q = f"""[out:json][timeout:60];
+    q = f"""[out:json][timeout:20];
     (node["amenity"~"^(bar|pub|biergarten)$"]["name"](around:{radio},{centro[0]},{centro[1]});
      way["amenity"~"^(bar|pub|biergarten)$"]["name"](around:{radio},{centro[0]},{centro[1]}););
     out center tags;"""
     for url in OVERPASS:  # si un servidor falla, probamos el otro
         try:
-            r = requests.post(url, data={"data": q}, headers=UA, timeout=70)
+            r = requests.post(url, data={"data": q}, headers=UA, timeout=25)
             elementos = r.json().get("elements") or []
             cache_set(k, elementos)
             return elementos
@@ -1288,8 +1291,9 @@ def bares_ciudad(ciudad):
     return overpass_bares(cc, RADIO_CIUDAD) if cc else None
 
 def precargar_bares():
+    # Solo el radio "a pie" alrededor del centro de las ciudades principales (liviano)
     for c in ["barcelona", "madrid"]:
-        bares_ciudad(c)
+        overpass_bares(CENTROS[c], 1500)
         print(f"[BARES] precargados {c}")
 
 import threading
@@ -1303,14 +1307,11 @@ def bares():
     centro = (float(lat), float(lng)) if lat and lng else CENTROS.get(ciudad)
     if not centro:
         return jsonify({"error": "Ciudad sin coordenadas", "bares": []}), 400
-    radio = max(300, min(int(request.args.get("radio", 2500)), 5000))
+    radio = max(300, min(int(request.args.get("radio", 1500)), 5000))
     tipo = request.args.get("tipo")
-    # Si el punto está dentro de la zona precargada de la ciudad, filtramos en memoria (instantáneo)
-    cc = CENTROS.get(ciudad)
-    if cc and dist_km(cc, centro) * 1000 + radio <= RADIO_CIUDAD:
-        elementos = bares_ciudad(ciudad)
-    else:
-        elementos = overpass_bares(centro, radio)
+    offset = max(0, int(request.args.get("offset", 0)))
+    limit = max(1, min(int(request.args.get("limit", 20)), 150))
+    elementos = overpass_bares(centro, radio)
     if elementos is None:
         return jsonify({"error": "No pude traer los bares ahora", "bares": []}), 502
     elementos = [el for el in elementos
@@ -1343,9 +1344,10 @@ def bares():
             "distancia": round(dist_km(centro, (la, lo)), 3),
             "info": sum(1 for x in [calle, t.get("opening_hours"), t.get("website") or t.get("contact:website")] if x),
         })
-    # Primero los que tienen más info cargada y están más cerca
-    out.sort(key=lambda b: (b["distancia"] - 0.25 * b["info"]))
-    return jsonify({"ciudad": ciudad, "centro": centro, "radio": radio, "total": len(out), "bares": out[:120]})
+    # Los más cercanos primero (con un empujoncito a los que tienen más info cargada)
+    out.sort(key=lambda b: (b["distancia"] - 0.08 * b["info"]))
+    return jsonify({"ciudad": ciudad, "centro": centro, "radio": radio, "total": len(out),
+                    "offset": offset, "bares": out[offset:offset + limit]})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
