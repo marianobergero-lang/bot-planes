@@ -618,10 +618,15 @@ def sin_duplicados(eventos):
             continue
         otro = por_clave[k]
         if e.get("fuente") == "Fever" and otro.get("fuente") != "Fever":
-            e = dict(e, asistentes=max(e.get("asistentes") or 0, otro.get("asistentes") or 0))
-            por_clave[k] = e
+            fever, resto = dict(e), otro
         elif otro.get("fuente") == "Fever" and e.get("fuente") != "Fever":
-            otro["asistentes"] = max(otro.get("asistentes") or 0, e.get("asistentes") or 0)
+            fever, resto = dict(otro), e
+        else:
+            continue
+        fever["asistentes"] = max(fever.get("asistentes") or 0, resto.get("asistentes") or 0)
+        if resto.get("url"):  # el link de la otra fuente queda como alternativa
+            fever["otros_links"] = (fever.get("otros_links") or []) + [{"fuente": resto.get("fuente", ""), "url": resto["url"]}]
+        por_clave[k] = fever
     return list(por_clave.values())
 
 def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None, hora_max=None, genero=None, franja=None, precio_min=None):

@@ -536,6 +536,9 @@
   .card .tag + .tag::before { content: '· '; }
   .card .price { background: none !important; padding: 0; font-weight: 700; }
   .card .p-nd { color: var(--dim); } .card .p-gratis { color: #5fd38d; }
+  .otros-links { margin-top: 8px; font-size: 12px; color: var(--dim); text-align: right; }
+  .otros-links a { color: var(--orange); text-decoration: none; font-weight: 600; }
+  .otros-links a:hover { text-decoration: underline; }
   .lnk { color: var(--orange); cursor: pointer; text-decoration: underline dotted rgba(233,104,46,.6); text-underline-offset: 3px; font-weight: 600; }
   .lnk:hover { text-decoration: underline solid; }
   .card .who .lnk { font-weight: 500; }
@@ -795,7 +798,7 @@ const EN = {
   'Aventura': 'Adventure', 'Fantasía': 'Fantasy', 'Suspense': 'Thriller', 'Crimen': 'Crime', 'Misterio': 'Mystery', 'Documental': 'Documentary',
   'Historia': 'History', 'Música': 'Music', 'Bélica': 'War', 'Película de TV': 'TV movie', 'Fútbol americano': 'American football', 'Boxeo': 'Boxing',
   'Béisbol': 'Baseball', 'Artes marciales': 'Martial arts', 'Vóley': 'Volleyball',
-  'Clásica': 'Classical', 'Teatro': 'Theatre', 'Fiesta': 'Party', 'Fiesta temática': 'Themed party', 'Concierto': 'Concert', 'Danza': 'Dance',
+  'Clásica': 'Classical', 'También en:': 'Also on:', 'Teatro': 'Theatre', 'Fiesta': 'Party', 'Fiesta temática': 'Themed party', 'Concierto': 'Concert', 'Danza': 'Dance',
   'Ópera': 'Opera', 'Magia': 'Magic', 'Copas': 'Drinks', 'Inmersivo': 'Immersive',
   'Algunos links de entradas son de afiliado: si comprás, nos llevamos una pequeña comisión sin costo extra para vos.': 'Some ticket links are affiliate links: if you buy, we get a small commission at no extra cost to you.',
   'Tocá un día, o dos para un rango (hasta 7 días)': 'Tap a day, or two for a range (up to 7 days)', 'Tocá otro día para elegir un rango': 'Tap another day to pick a range', 'Listo': 'Done',
@@ -1230,6 +1233,7 @@ function tarjeta(e) {
         <button class="fav ${estaGuardado(id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(id)}')">${estaGuardado(id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
         <a class="tickets" href="${esc(e.url)}" target="_blank" rel="noopener">${e.url_tipo === 'club' ? 'Entradas (web del club) →' : e.url_tipo === 'google' ? 'Buscar entradas →' : 'Ver tickets →'}</a>
       </div>
+      ${(e.otros_links || []).length ? `<div class="otros-links">También en: ${e.otros_links.map(o => `<a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.fuente)} ↗</a>`).join(' · ')}</div>` : ''}
       </div>
     </article>`;
 }
