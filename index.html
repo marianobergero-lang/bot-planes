@@ -73,7 +73,9 @@
   .chip.on { background: var(--orange); border-color: var(--orange); color: #fff; font-weight: 600; }
   .chip:disabled { opacity: .35; cursor: not-allowed; }
   .chip small { opacity: .75; font-weight: 400; margin-left: 4px; font-size: 11px; }
-  .side-powered { margin-top: auto; padding-top: 14px; font-size: 13px; color: var(--dim); text-decoration: none; }
+  .afiliado { margin-top: auto; font-size: 11px; line-height: 1.4; color: var(--dim); }
+  .afiliado + .side-powered { margin-top: 0; }
+  .side-powered { margin-top: auto; padding-top: 10px; font-size: 13px; color: var(--dim); text-decoration: none; }
   .side-powered b { font-size: 16px; } .side-powered .step { color: var(--text); } .side-powered .wise { color: var(--orange); }
   .live { margin-top: auto; font-size: 12px; color: var(--dim); display: flex; align-items: center; gap: 8px; }
   .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 3px var(--orange-soft); }
@@ -497,7 +499,7 @@
     .tabs { order: 3; width: 100%; overflow-x: auto; }
     .app { grid-template-columns: 1fr; overflow-y: auto; }
     .side { border-right: none; border-bottom: 1px solid var(--border); padding: 16px; overflow: visible; }
-    .side .group, .side .live, .side .side-powered { display: none; }
+    .side .group, .side .live, .side .side-powered, .side .afiliado { display: none; }
     .side.open .group { display: block; }
     .side.open .search { display: block; width: 100%; }
     .filters-toggle {
@@ -686,6 +688,7 @@
       </div>
     </div>
 
+    <div class="afiliado">Algunos links de entradas son de afiliado: si comprás, nos llevamos una pequeña comisión sin costo extra para vos.</div>
     <a class="powered side-powered" href="https://stepwiseconsulting.es/eventos" target="_blank" rel="noopener">powered by <b><span class="step">Step</span><span class="wise">Wise</span></b></a>
     <button class="search" onclick="document.getElementById('side').classList.remove('open'); document.body.classList.remove('filtros-abiertos'); buscar(); document.getElementById('main').scrollIntoView({ behavior: 'smooth' })">Ver resultados ↓</button>
   </aside>
@@ -792,6 +795,9 @@ const EN = {
   'Aventura': 'Adventure', 'Fantasía': 'Fantasy', 'Suspense': 'Thriller', 'Crimen': 'Crime', 'Misterio': 'Mystery', 'Documental': 'Documentary',
   'Historia': 'History', 'Música': 'Music', 'Bélica': 'War', 'Película de TV': 'TV movie', 'Fútbol americano': 'American football', 'Boxeo': 'Boxing',
   'Béisbol': 'Baseball', 'Artes marciales': 'Martial arts', 'Vóley': 'Volleyball',
+  'Clásica': 'Classical', 'Teatro': 'Theatre', 'Fiesta': 'Party', 'Fiesta temática': 'Themed party', 'Concierto': 'Concert', 'Danza': 'Dance',
+  'Ópera': 'Opera', 'Magia': 'Magic', 'Copas': 'Drinks', 'Inmersivo': 'Immersive',
+  'Algunos links de entradas son de afiliado: si comprás, nos llevamos una pequeña comisión sin costo extra para vos.': 'Some ticket links are affiliate links: if you buy, we get a small commission at no extra cost to you.',
   'Tocá un día, o dos para un rango (hasta 7 días)': 'Tap a day, or two for a range (up to 7 days)', 'Tocá otro día para elegir un rango': 'Tap another day to pick a range', 'Listo': 'Done',
   // cerca mío
   '◎ Usar mi ubicación actual': '◎ Use my current location', 'o escribí una dirección': 'or type an address', 'Ej: Carrer de Blai 30, un hotel o un barrio': 'e.g. a street, a hotel or a neighbourhood',

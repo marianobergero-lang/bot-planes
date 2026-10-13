@@ -1031,6 +1031,11 @@ def eventos():
             return jsonify({"error": f"Ciudad '{ciudad}' no encontrada"}), 400
         todos, _ = buscar_por_fecha(ciudad, desde, hasta, 100000, hora_min, gratis, precio_max, hora_max,
                                     genero=genero, franja=franja, precio_min=precio_min)
+    if categoria in ("clubs", "conciertos", "teatro"):
+        f_ = normalizar_franja(franja)
+        hmin, hmax = FRANJAS[f_] if f_ else (hora_min, hora_max)
+        todos = todos + [e for e in buscar_fever(ciudad, categoria, desde, hasta)
+                         if pasa_filtros(e, hmin, hmax, gratis, precio_max, genero, precio_min)]
     todos = [e for e in todos if _extra_ok(e)]
     por_dia = {}
     for e in todos:
@@ -1695,6 +1700,61 @@ def debug_futbol():
     evs = buscar_futbol(ciudad, hoy.strftime("%Y-%m-%d"), (hoy + timedelta(days=30)).strftime("%Y-%m-%d"))
     return jsonify({"key": bool(FD_KEY), "ciudad": ciudad, "total": len(evs),
                     "partidos": [f"{e['fecha']} {e['hora']} {e['titulo']} @ {e['venue']}" for e in evs]})
+
+# ── FEVER (catálogo de afiliados de Impact, archivos en datos/fever/) ──────────
+FEVER_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "datos", "fever")
+FEVER_ETIQUETA = {"Classical Concerts": "Clásica", "Stand-Up Comedy": "Stand-up", "Comedy & Shows": "Comedia", "Theater": "Teatro",
+                  "Theatre": "Teatro", "Musicals": "Musical", "Nightlife & Party": "Fiesta", "Night Clubs": "Club",
+                  "Themed Parties": "Fiesta temática", "Halloween": "Halloween", "Jazz": "Jazz", "Concerts": "Concierto",
+                  "Live Shows": "Show", "Festivals": "Festival", "Dance": "Danza", "Opera": "Ópera", "Magic Shows": "Magia",
+                  "Drinks & Happy Hour": "Copas", "Live Music": "Música en vivo", "Immersive Experiences & Exhibits": "Inmersivo"}
+
+def fever_planes(ciudad):
+    k = f"fever-{ciudad}"
+    v = cache_get(k, 6 * 3600)
+    if v is None:
+        try:
+            with open(os.path.join(FEVER_DIR, f"{ciudad.replace(' ', '-')}.json"), encoding="utf-8") as fh:
+                v = json.load(fh).get("planes") or []
+        except Exception:
+            v = []
+        cache_set(k, v)
+    return v
+
+def buscar_fever(ciudad, categoria, desde, hasta):
+    """Un evento por cada día que el plan tiene función dentro del rango."""
+    out = []
+    for p in fever_planes((ciudad or "").lower().strip()):
+        if p.get("c") != categoria:
+            continue
+        fechas = [(f, h) for f, h in p.get("f") or [] if desde <= f <= hasta]
+        if not fechas:
+            continue
+        mon = p.get("m") or "EUR"
+        sym, a_eur = MONEDAS.get(mon, (mon + " ", 1.0))
+        precio = p.get("p")
+        precio_num = None if precio is None else round(precio * a_eur)
+        if precio is None:
+            cat_p, label = "nd", "Precio en web"
+        elif precio == 0:
+            cat_p, label = "gratis", "Gratis"
+        else:
+            cat_p = "barato" if precio_num < 15 else "normal" if precio_num <= 30 else "caro"
+            label = f"{cat_p.capitalize()} · desde {sym}{int(round(precio)):,}".replace(",", ".")
+        etiquetas = (["Candlelight"] if p.get("cl") else []) + [FEVER_ETIQUETA[g] for g in p.get("g") or [] if g in FEVER_ETIQUETA]
+        etiquetas = list(dict.fromkeys(etiquetas))[:2]
+        rel = (5 if p.get("top") else 15) + (0 if p.get("com") else 20) + (25 if p.get("cl") else 0)  # menos Candlelight arriba
+        for f, h in fechas:
+            out.append({
+                "titulo": p.get("n", ""), "fecha": f, "hora": h, "hora_fin": "",
+                "venue": p.get("v", ""), "direccion": p.get("d", ""), "ciudad_venue": "",
+                "artistas": [], "generos": etiquetas, "moneda": mon, "precio_cat": cat_p,
+                "precio": str(precio) if precio is not None else "No especificado", "precio_label": label,
+                "precio_num": precio_num, "gratis": precio == 0, "asistentes": 0, "destacado": "",
+                "url": p.get("u", ""), "imagen": p.get("img"), "lat": p.get("la"), "lng": p.get("lo"),
+                "fuente": "Fever", "categoria": categoria, "relevancia": rel,
+            })
+    return out
 
 # ── SEGUIR ARTISTAS Y EQUIPOS ───────────────────────────────────────────────
 def proximos_artista(nombre):
