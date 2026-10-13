@@ -1,0 +1,36 @@
+name: Actualizar Fever (Impact)
+
+on:
+  schedule:
+    - cron: "7 3 * * 4"   # jueves 03:07 UTC = ~5:07 en España (después de bares y restaurantes)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: datos-osm
+  cancel-in-progress: false
+
+jobs:
+  fever:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - run: python tools/fever_api.py
+        env:
+          IMPACT_SID: ${{ secrets.IMPACT_SID }}
+          IMPACT_TOKEN: ${{ secrets.IMPACT_TOKEN }}
+      - name: Guardar cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add datos/fever
+          git diff --cached --quiet || git commit -m "Actualizar catálogo de Fever"
+          git pull --rebase origin main
+          git push

@@ -1525,6 +1525,18 @@ def url_entradas(eq, local, visitante, fecha):
     return "https://www.google.com/search?q=" + requests.utils.quote(
         f"entradas {local.get('name','')} vs {visitante.get('name','')} {fecha}"), "google"
 
+def semana_martes():
+    """Etiqueta de la "semana de datos": cambia los martes a las 4:00 (hora de España).
+    Fútbol y cine se renuevan una vez por semana: la caché vale hasta el martes siguiente."""
+    try:
+        from zoneinfo import ZoneInfo
+        ahora = datetime.now(ZoneInfo("Europe/Madrid"))
+    except Exception:
+        ahora = datetime.utcnow() + timedelta(hours=2)
+    corte = (ahora - timedelta(hours=4)).date()
+    martes = corte - timedelta(days=(corte.weekday() - 1) % 7)
+    return martes.isoformat()
+
 def fd_get(path):
     r = requests.get(f"https://api.football-data.org/v4/{path}", headers={"X-Auth-Token": FD_KEY}, timeout=15)
     if r.status_code != 200:
@@ -1546,11 +1558,11 @@ def fd_equipos(liga):
 
 def fd_partidos(liga):
     """Partidos de los próximos 30 días. Caché 3 horas."""
-    k = f"fd-pa-{liga}"
-    v = cache_get(k, 3 * 3600)
+    k = f"fd-pa-{liga}-{semana_martes()}"
+    v = cache_get(k, 8 * 86400)
     if v is None:
         hoy = _hoy()
-        d0, d1 = hoy.strftime("%Y-%m-%d"), (hoy + timedelta(days=30)).strftime("%Y-%m-%d")
+        d0, d1 = hoy.strftime("%Y-%m-%d"), (hoy + timedelta(days=38)).strftime("%Y-%m-%d")
         data = fd_get(f"competitions/{liga}/matches?dateFrom={d0}&dateTo={d1}")
         if data is None:
             return []
@@ -1670,8 +1682,8 @@ def buscar_equipo(nombre, dias=45):
     equipo, liga_equipo = encontrar_equipo(nombre)
     if not equipo:
         return [], None
-    k = f"fd-team-{equipo['id']}"
-    partidos = cache_get(k, 3 * 3600)
+    k = f"fd-team-{equipo['id']}-{semana_martes()}"
+    partidos = cache_get(k, 8 * 86400)
     if partidos is None:
         hoy = _hoy()
         data = fd_get(f"teams/{equipo['id']}/matches?dateFrom={hoy.strftime('%Y-%m-%d')}&dateTo={(hoy + timedelta(days=dias)).strftime('%Y-%m-%d')}")
@@ -1891,8 +1903,8 @@ def cine():
     if not TMDB_KEY:
         return jsonify({"error": "Falta TMDB_API_KEY", "peliculas": []}), 200
     nombre_ciudad, pais = TM_CIUDADES.get(ciudad, (ciudad.title(), "ES"))
-    k = f"tmdb-{tipo}-{pais}-{lang}"
-    pelis = cache_get(k, 6 * 3600)
+    k = f"tmdb-{tipo}-{pais}-{lang}-{semana_martes()}"
+    pelis = cache_get(k, 8 * 86400)
     if pelis is None:
         gen = tmdb_generos()
         pelis, vistos = [], set()

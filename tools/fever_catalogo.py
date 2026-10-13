@@ -55,6 +55,10 @@ def main(ruta):
     abre = gzip.open if ruta.endswith(".gz") else open
     with abre(ruta, "rt", encoding="utf-8", errors="replace") as fh:
         filas = list(csv.DictReader(fh))
+    procesar(filas)
+
+def procesar(filas):
+    """filas = dicts con las columnas del CSV de Fever. Devuelve la cantidad total de planes guardados."""
     hoy = datetime.now().date()
     lim = hoy + timedelta(days=DIAS)
     inverso = {n: k for k, ns in CIUDADES.items() for n in ns}
@@ -97,11 +101,16 @@ def main(ruta):
             "com": not tier.startswith("Tier 4"),   # Tier 4 = sin comisión
             "f": sorted(fechas.items())[:MAX_FECHAS],
         })
+    total = sum(len(v) for v in salida.values())
+    if total < 100:
+        print(f"Solo {total} planes: algo salió mal, dejo los archivos anteriores")
+        return total
     os.makedirs("datos/fever", exist_ok=True)
     for ciudad, planes in salida.items():
         with open(f"datos/fever/{ciudad.replace(' ', '-')}.json", "w", encoding="utf-8") as fh:
             json.dump({"ciudad": ciudad, "actualizado": hoy.isoformat(), "planes": planes}, fh, ensure_ascii=False, separators=(",", ":"))
         print(f"{ciudad}: {len(planes)} planes")
+    return sum(len(v) for v in salida.values())
 
 if __name__ == "__main__":
     main(sys.argv[1])
