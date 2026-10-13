@@ -40,7 +40,7 @@
 
   /* LAYOUT */
   .app { flex: 1; display: grid; grid-template-columns: 500px 1fr; min-height: 0; }
-  .side { border-right: 1px solid var(--border); padding: 20px 26px 18px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+  .side { border-right: 1px solid var(--border); padding: 24px 26px 22px; display: flex; flex-direction: column; gap: 22px; overflow-y: auto; }
   .main-wrap { display: flex; flex-direction: column; min-height: 0; }
   .main { flex: 1; overflow-y: auto; padding: 24px 28px 30px; transition: opacity .2s; }
   .main.loading { opacity: .35; pointer-events: none; }
@@ -59,7 +59,9 @@
   .city::after { content: '▾'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
 
   /* FILTROS */
-  .side > .group { padding-top: 15px; border-top: 1px solid var(--line); }
+  .side > .group { padding-top: 22px; border-top: 1px solid var(--line); }
+  .side .group h4 { margin-bottom: 12px; }
+  .side .chips { gap: 8px; }
   .group[hidden] { display: none !important; }
   #chips-genero, #chips-tipo { flex-wrap: wrap; }
   .chips { display: flex; flex-wrap: nowrap; gap: 6px; }
@@ -214,6 +216,9 @@
   .menu-share a, .menu-share button { background: none; border: none; color: var(--text); text-align: left; font-size: 13.5px; padding: 8px 10px; border-radius: 7px; cursor: pointer; text-decoration: none; }
   .menu-share a:hover, .menu-share button:hover { background: var(--surface); }
   .sig-wrap { position: relative; display: inline-block; }
+  .txt-largo.dos { display: inline-flex; flex-direction: column; line-height: 1.05; text-align: left; vertical-align: middle; margin-left: 4px; }
+  .txt-largo.dos small { font-size: 11px; color: var(--muted); }
+  .saved-btn { display: inline-flex; align-items: center; gap: 2px; }
   .sig-pop { display: none; position: absolute; right: 0; top: calc(100% + 8px); width: 360px; max-width: 86vw; background: var(--card); border: 1px solid var(--border2); border-radius: 14px; padding: 10px 12px; z-index: 3000; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
   .sig-pop.open { display: block; }
   .sig-pop .vacio { color: var(--muted); font-size: 13.5px; line-height: 1.45; padding: 4px 2px; }
@@ -391,14 +396,15 @@
   .fondo-lado.izq::after { background: linear-gradient(90deg, rgba(13,12,11,.15), rgba(13,12,11,.45) 100%), linear-gradient(180deg, rgba(233,104,46,.12), rgba(13,12,11,.4)); }
   .fondo-lado.der::after { background: linear-gradient(270deg, rgba(13,12,11,.15), rgba(13,12,11,.45) 100%), linear-gradient(180deg, rgba(233,104,46,.12), rgba(13,12,11,.4)); }
   @media (min-width: 1200px) { .fondo-lado { display: block; } .landing-in { position: relative; z-index: 1; } }
-  .landing-in { width: 100%; max-width: 760px; padding: 64px 20px 40px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .landing-in { width: 100%; max-width: 760px; padding: 64px 20px 40px; margin: auto 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
   .landing .logo { font-size: clamp(46px, 8vw, 84px); font-weight: 800; letter-spacing: -3px; line-height: 1; }
   .landing .logo span { color: var(--orange); }
   .landing .lema { color: var(--muted); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin: 4px 0 44px; }
   .landing .paso { width: 100%; text-align: left; }
+  .landing .o.o-top { margin: 6px 0 22px; }
   .landing .paso h3 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 12px; }
   .landing .hero-ask { max-width: none; }
-  .landing .o { width: 100%; display: flex; align-items: center; gap: 18px; color: var(--text); font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin: 52px 0 40px; }
+  .landing .o { width: 100%; display: flex; align-items: center; gap: 18px; color: var(--text); font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin: 46px 0 22px; }
   .landing .o::before, .landing .o::after { content: ''; flex: 1; height: 2px; background: linear-gradient(90deg, transparent, rgba(233,104,46,.6), transparent); }
   .caja-chat { background: var(--surface); border: 1px solid var(--border2); border-radius: 20px; padding: 12px 12px 14px 20px; transition: border-color .15s, box-shadow .15s; }
   .caja-chat:focus-within { border-color: var(--orange); box-shadow: 0 0 0 4px var(--orange-soft); }
@@ -416,6 +422,7 @@
   .ciudad-grande .city::after { font-size: 22px; right: 18px; color: var(--text); }
   .detectada { font-size: 14px; color: var(--muted); margin-bottom: 12px; min-height: 20px; }
   .detectada b { color: var(--text); }
+  .detectada:empty { display: none; }
   .ciudad-grande { display: flex; gap: 10px; }
   .ciudad-grande .city { flex: 1; }
   .ciudad-grande .city select { font-size: 22px; padding: 16px 44px 16px 48px; border-radius: 16px; }
@@ -527,7 +534,7 @@
     <button class="tab" data-tab="cine" hidden>🎬 Cine <sup class="beta">BETA</sup></button>
   </nav>
   <div style="display:flex;align-items:center;gap:14px">
-    <button class="saved-btn" id="savedbtn" onclick="verGuardados()">♥<span class="txt-largo"> Mis planes favoritos</span> <b id="nguardados"></b></button>
+    <button class="saved-btn" id="savedbtn" onclick="verGuardados()">♥<span class="txt-largo dos">Mis planes<small>favoritos</small></span> <b id="nguardados"></b></button>
     <div class="sig-wrap"><button class="saved-btn" id="sigbtn" onclick="abrirSiguiendo(event)">🔔<span class="txt-largo"> Siguiendo</span> <b id="nsiguiendo"></b></button><div class="sig-pop" id="sigpop"></div></div>
     <a class="powered" href="https://stepwiseconsulting.es/eventos" target="_blank" rel="noopener">powered by <b><span class="step">Step</span><span class="wise">Wise</span></b></a>
   </div>
@@ -543,8 +550,8 @@
     <div class="lema">Todos tus planes, en un solo lugar</div>
     <div class="avisos" id="avisos-l" hidden></div>
 
+    <div class="o o-top">🤖 Contame qué querés y lo busco</div>
     <div class="paso">
-      <h3>🤖 Contame qué querés y lo busco</h3>
       <div class="caja-chat">
         <div class="fila">
           <input id="askl" placeholder="" onkeydown="if(event.key==='Enter')desdeLanding()" onfocus="pararTipeo()">
