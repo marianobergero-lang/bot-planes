@@ -530,6 +530,8 @@
   .card .fav.on { background: var(--orange); border-color: var(--orange); color: #fff; }
   .card .dir-btn { background: #F2EEE8; border-color: #F2EEE8; color: var(--orange); font-weight: 700; }
   .card .dir-btn:hover { background: #fff; color: var(--orange); }
+  .card .en-lugar { line-height: 1.9; }
+  .card .en-lugar .dir-btn { white-space: nowrap; display: inline-block; line-height: 1.5; }
   .card .ico { background: #F2EEE8; border-color: #F2EEE8; color: var(--orange); font-weight: 700; }
   .card .ico:hover { background: #fff; }
   .card .tag { border: none; padding: 0; color: var(--dim); font-size: 11.5px; }
@@ -1223,7 +1225,7 @@ function tarjeta(e) {
       <div class="title">${esc(e.titulo)}</div>
       ${(e.artistas || []).length ? `<div class="who">${e.artistas.slice(0, 5).map(a => `<span class="lnk" title="Ver sus próximas fechas" onclick="verArtista('${esc(a).replace(/'/g, '&#39;')}')">${esc(a)}</span>`).join(', ')}</div>` : ''}
       <div class="facts">
-        ${e.venue ? `<div><span>en:</span> <b class="lnk" title="Ver todo lo que hay en este lugar" onclick="verLugar('${esc(id)}')">${esc(e.venue)}</b> <button class="dir-btn" onclick="verDireccion('${esc(id)}')">📍 Ver dirección</button></div>` : ''}
+        ${e.venue ? `<div class="en-lugar"><span>en:</span> <b class="lnk" title="Ver todo lo que hay en este lugar" onclick="verLugar('${esc(id)}')">${esc(e.venue)}</b> <button class="dir-btn" onclick="verDireccion('${esc(id)}')">📍 Ver dirección</button></div>` : ''}
         ${hora ? `<div><span>de</span> ${hora}${fin ? ` <span>a</span> ${fin}` : ''}<span> hs</span></div>` : ''}
         <div class="people">${gente}</div>
       </div>

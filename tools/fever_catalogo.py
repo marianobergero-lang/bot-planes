@@ -27,10 +27,15 @@ TEATRO = {"Theater", "Theatre", "Live Shows", "Comedy & Shows", "Stand-Up Comedy
 NO_GENERO = {"Gift Cards", "NSW Parents", "Parent's Day", "Father's Day", "Mother's Day", "Festive Season", "Valentine's Day",
              "Black Friday {year}", "On A Budget", "Plans For Two", "Fever Originals", "Other Experiences", "Other", "Family"}
 
-def categoria(subs):
+CENA = re.compile(r"\b(cena|dinner|men[uú]|degustaci[oó]n|jantar|d[iî]ner|supper|tasting)\b", re.I)  # cena con show → shows
+VISITA = re.compile(r"^\s*(visita guiada|guided tour)", re.I)
+
+def categoria(subs, nombre=""):
     s = set(subs)
+    if VISITA.search(nombre or ""):
+        return None
     if s & CLUB and "Family" not in s:
-        return "clubs"
+        return "teatro" if ("Restaurant & Show" in s or CENA.search(nombre or "")) else "clubs"
     if s & CONCIERTO or any(x.startswith("Candlelight") for x in s):
         return "conciertos"
     if s & TEATRO:
@@ -68,7 +73,7 @@ def procesar(filas):
         if not ciudad:
             continue
         subs = [s.strip() for s in (r.get("Subcategory") or "").split(",") if s.strip()]
-        cat = categoria(subs)
+        cat = categoria(subs, r.get("Plan Name"))
         if not cat:
             continue
         fechas = {}
