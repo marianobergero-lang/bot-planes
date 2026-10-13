@@ -1404,21 +1404,41 @@ FD_CIUDAD = {
 }
 
 # Páginas oficiales de entradas de los clubes grandes (si no está, usamos la web del club)
-TICKETS_CLUB = {
-    "FC Barcelona": "https://www.fcbarcelona.com/es/entradas",
-    "Real Madrid CF": "https://www.realmadrid.com/es-ES/entradas",
-    "Club Atlético de Madrid": "https://www.atleticodemadrid.com/entradas",
-    "Arsenal FC": "https://www.arsenal.com/tickets",
-    "Chelsea FC": "https://www.chelseafc.com/en/tickets",
-    "Tottenham Hotspur FC": "https://www.tottenhamhotspur.com/tickets/",
-    "West Ham United FC": "https://www.whufc.com/tickets",
-    "Paris Saint-Germain FC": "https://billetterie.psg.fr/",
+TICKETS_CLUB = {  # se busca por texto dentro del nombre del club (en minúsculas)
+    "fc barcelona": "https://www.fcbarcelona.com/es/entradas",
+    "real madrid": "https://www.realmadrid.com/es-ES/entradas",
+    "atlético de madrid": "https://www.atleticodemadrid.com/entradas",
+    "espanyol": "https://www.rcdespanyol.com/ca/propers-partits",
+    "getafe": "https://www.getafecf.com/entradas",
+    "valencia cf": "https://www.valenciacf.com/entradas",
+    "levante": "https://ticketing.levanteud.com/es",
+    "mallorca": "https://www.rcdmallorca.es/entradas",
+    "arsenal": "https://www.arsenal.com/tickets",
+    "chelsea": "https://www.chelseafc.com/en/tickets",
+    "tottenham": "https://www.tottenhamhotspur.com/tickets/",
+    "west ham": "https://www.whufc.com/tickets",
+    "fulham": "https://www.fulhamfc.com/",
+    "crystal palace": "https://www.cpfc.co.uk/matches/",
+    "benfica": "https://www.slbenfica.pt/pt-pt/loja/bilhetes/futebol-modalidades",
+    "sporting clube de portugal": "https://tickets.sporting.pt/en",
+    "fc porto": "https://bilhetes.fcporto.pt/",
+    "paris saint-germain": "https://billetterie.psg.fr/",
+    "paris fc": "https://billetterie.parisfc.fr/fr/",
+    "bayern": "https://fcbayern.com/es/match-center/matchplan",
+    "as roma": "https://www.asroma.com/en/tickets/",
+    "ac milan": "https://booking.acmilan.com/en/",
+    "internazionale": "https://www.inter.it/en/tickets",
+    "juventus": "https://www.juventus.com/en/tickets/",
+    "lazio": "https://www.sslazio.it/en/biglietteria/matches",
+    "torino": "https://www.torinofc.it/en/biglietteria",
 }
 
 def url_entradas(eq, local, visitante, fecha):
     nombre = eq.get("name") or local.get("name", "")
-    if nombre in TICKETS_CLUB:
-        return TICKETS_CLUB[nombre], "club"
+    n = nombre.lower()
+    for clave in sorted(TICKETS_CLUB, key=len, reverse=True):
+        if clave in n:
+            return TICKETS_CLUB[clave], "club"
     web = (eq.get("website") or "").strip()
     if web:
         return (web if web.startswith("http") else "https://" + web), "club"
