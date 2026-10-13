@@ -538,6 +538,7 @@
   .card .tag + .tag::before { content: '· '; }
   .card .price { background: none !important; padding: 0; font-weight: 700; }
   .card .p-nd { color: var(--dim); } .card .p-gratis { color: #5fd38d; }
+  .tag.aire { color: #F5B83D; }
   .otros-links { margin-top: 8px; font-size: 12px; color: var(--dim); text-align: right; }
   .otros-links a { color: var(--orange); text-decoration: none; font-weight: 600; }
   .otros-links a:hover { text-decoration: underline; }
@@ -653,6 +654,13 @@
         <button class="chip" data-v="bajo">Bajo<small id="p-bajo"></small></button>
         <button class="chip" data-v="medio">Medio<small id="p-medio"></small></button>
         <button class="chip" data-v="alto">Alto<small id="p-alto"></small></button>
+      </div>
+    </div>
+    <div class="group g-ev" id="group-aire">
+      <h4>Ambiente</h4>
+      <div class="chips" data-g="aire">
+        <button class="chip" data-v="abierto">☀️ Aire libre</button>
+        <button class="chip" data-v="cerrado">🏠 Cerrado</button>
       </div>
     </div>
     <div class="group g-ev" id="group-genero">
@@ -787,7 +795,7 @@ const EN = {
   // filtros
   'Ciudad': 'City', '◎ Mi ubicación': '◎ My location', '✕ Mi ubicación': '✕ My location', 'Ubicación exacta:': 'Exact location:', 'Filtros': 'Filters', '✕ Borrar filtros': '✕ Clear filters',
   'Cuándo': 'When', 'Hoy': 'Today', 'Mañana': 'Tomorrow', 'Este finde': 'This weekend', '📅 Elegir fechas': '📅 Pick dates',
-  'Franja': 'Time', '· horario de inicio entre': '· starting between', 'Tarde': 'Afternoon', 'Sunset': 'Sunset', 'Noche': 'Night', 'Afters': 'Afters',
+  'Ambiente': 'Setting', '☀️ Aire libre': '☀️ Open air', '🏠 Cerrado': '🏠 Indoor', 'Aire libre': 'Open air', 'Franja': 'Time', '· horario de inicio entre': '· starting between', 'Tarde': 'Afternoon', 'Sunset': 'Sunset', 'Noche': 'Night', 'Afters': 'Afters',
   'Precio': 'Price', 'Gratis': 'Free', 'Bajo': 'Low', 'Medio': 'Mid', 'Alto': 'High', 'Género': 'Genre', 'Tipo': 'Type',
   '🍸 Cócteles': '🍸 Cocktails', '🍷 Vinos': '🍷 Wine', '🍺 Cervezas': '🍺 Beer', '☀️ Terraza': '☀️ Terrace', '🎷 Música en vivo': '🎷 Live music', '🎧 HiFi': '🎧 HiFi',
   'Cocina': 'Cuisine', 'Tapas': 'Tapas', 'Italiana': 'Italian', 'Pizza': 'Pizza', 'Japonesa': 'Japanese', 'Asiática': 'Asian', 'Mexicana': 'Mexican',
@@ -958,7 +966,7 @@ if (LANG === 'en') {  // fechas y horarios en inglés
   MESES_C.splice(0, 12, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
 }
 const DOW_CORTO = LANG === 'en' ? ['M', 'T', 'W', 'T', 'F', 'S', 'S'] : ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-const EN_CLAVES = { tarde: 'afternoon', sunset: 'sunset', noche: 'night', afters: 'afters', gratis: 'free', bajo: 'low', medio: 'mid', alto: 'high',
+const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afternoon', sunset: 'sunset', noche: 'night', afters: 'afters', gratis: 'free', bajo: 'low', medio: 'mid', alto: 'high',
   cocteles: 'cocktails', vinos: 'wine', cervezas: 'beer', terraza: 'terrace', musica: 'live music', hifi: 'HiFi', tapas: 'tapas', italiana: 'Italian',
   pizza: 'pizza', japonesa: 'Japanese', asiatica: 'Asian', mexicana: 'Mexican', hamburguesas: 'burgers', india: 'Indian', parrilla: 'grill',
   mariscos: 'seafood', mediterranea: 'Mediterranean', latina: 'Latin American', francesa: 'French', veg: 'vegetarian', llevar: 'takeaway',
@@ -976,13 +984,13 @@ function selectorIdioma() {
 
 
 // ── ESTADO ─────────────────────────────────────────────────────────────────
-const st = { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, km: '99' };
+const st = { tab: 'clubs', cuando: null, aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, km: '99' };
 function esLugar() { return st.tab === 'bares' || st.tab === 'restaurantes'; }
 const MULTI = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest'];  // filtros que se pueden combinar
 const MOVIL = () => matchMedia('(max-width: 820px)').matches;
 function lado() { return MOVIL() ? 'de arriba' : 'de la izquierda'; }
 function borrarFiltros() {
-  Object.assign(st, { cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null });
+  Object.assign(st, { cuando: null, aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null });
   cal.a = cal.b = null; cal.abierto = false; pintarCal();
   st.km = KM_DEFECTO[kmClave()];
   ubic = puntoCentro(); actualizarNota();
@@ -1054,7 +1062,7 @@ function pintar() {
   const et = { hoy: tr('Hoy'), manana: tr('Mañana'), finde: tr('Este finde'), cal: textoFechas().replace('📅 ', '') };
   const esBar = esLugar();
   const esCine = st.tab === 'cine';
-  document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (esCine && g.id !== 'group-genero') || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length));
+  document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (esCine && g.id !== 'group-genero') || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length) || (g.id === 'group-aire' && !['clubs', 'conciertos'].includes(st.tab)));
   document.getElementById('group-km').hidden = esCine;
   document.querySelectorAll('.g-bar').forEach(g => g.hidden = st.tab !== 'bares');
   document.querySelectorAll('.g-rest').forEach(g => g.hidden = st.tab !== 'restaurantes');
@@ -1065,10 +1073,10 @@ function pintar() {
   todo.disabled = bloqueado;
   todo.title = bloqueado ? (st.tab === 'restaurantes' ? 'Elegí un tipo de cocina para buscar en toda la ciudad' : 'Elegí un tipo de bar para buscar en toda la ciudad') : '';
   const kmTxt = st.km !== '99' && ubic ? `< ${st.km.replace('.', ',')} km` : null;
-  const hayFiltros = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].some(k => st[k])
+  const hayFiltros = ['aire', 'franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].some(k => st[k])
     || st.cuando === 'cal' || st.km !== KM_DEFECTO[kmClave()] || (ubic && !ubic.auto);
   document.getElementById('resetf').hidden = !hayFiltros;
-  document.getElementById('fsummary').textContent = (esBar ? [st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar, st.tab === 'restaurantes' ? st.extraRest : null, st.abierto ? 'abierto ahora' : null, kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map(x => x === kmTxt ? x : valores(x).map(trClave).join(' + ')).join(' · ');
+  document.getElementById('fsummary').textContent = (esBar ? [st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar, st.tab === 'restaurantes' ? st.extraRest : null, st.abierto ? 'abierto ahora' : null, kmTxt] : [et[st.cuando], st.aire === 'abierto' ? 'aire libre' : st.aire === 'cerrado' ? 'cerrado' : null, st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map(x => x === kmTxt ? x : valores(x).map(trClave).join(' + ')).join(' · ');
 }
 
 // ── CALENDARIO ─────────────────────────────────────────────────────────────
@@ -1124,6 +1132,7 @@ async function buscar() {
   const p = new URLSearchParams({ ciudad: ciudad(), categoria: st.tab, desde: iso(a), hasta: iso(b), max: completo ? 300 : 30 });
   if (completo) p.set('coords', '1');
   if (st.franja) p.set('franja', st.franja);
+  if (st.aire) p.set('ambiente', st.aire);
   if (st.genero) p.set('genero', st.genero);
   if (st.precio) p.set('precios', st.precio);
   if (ctrl) ctrl.abort();
@@ -1230,7 +1239,7 @@ function tarjeta(e) {
         <div class="people">${gente}</div>
       </div>
       <div class="foot">
-        <div class="tags">${(e.generos || []).slice(0, 2).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
+        <div class="tags">${e.aire_libre ? '<span class="tag aire">☀️ Aire libre</span>' : ''}${(e.generos || []).slice(0, 2).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
         <span class="price p-${cat}">${esc(precio)}</span>
         <button class="fav ${estaGuardado(id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(id)}')">${estaGuardado(id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
         ${(e.otros_links || []).length ? `<div class="res-wrap"><button class="tickets" style="cursor:pointer;font-family:inherit" onclick="menuTickets(event, '${esc(id)}')">Ver tickets ▾</button></div>` : `<a class="tickets" href="${esc(e.url)}" target="_blank" rel="noopener">${e.url_tipo === 'club' ? 'Entradas (web del club) →' : e.url_tipo === 'google' ? 'Buscar entradas →' : 'Ver tickets →'}</a>`}
@@ -1854,7 +1863,7 @@ function agregarCalendario(ev, id) {
   document.getElementById('modal').classList.add('open');
 }
 // ── LINKS PARA COMPARTIR BÚSQUEDAS ─────────────────────────────────────────
-const URL_CLAVES = [['cuando', 'w'], ['franja', 'f'], ['precio', 'p'], ['genero', 'g'], ['tipoBar', 'tb'], ['tipoRest', 'k'], ['extraRest', 'x'], ['abierto', 'ab']];
+const URL_CLAVES = [['cuando', 'w'], ['aire', 'a'], ['franja', 'f'], ['precio', 'p'], ['genero', 'g'], ['tipoBar', 'tb'], ['tipoRest', 'k'], ['extraRest', 'x'], ['abierto', 'ab']];
 function urlEstado() {
   const p = new URLSearchParams();
   p.set('c', ciudad()); p.set('t', st.tab);
@@ -2141,7 +2150,7 @@ function cuandoHome(v) {
 }
 function irHome(ev) {
   if (ev) ev.preventDefault();
-  Object.assign(st, { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, km: KM_DEFECTO.otros });
+  Object.assign(st, { tab: 'clubs', cuando: null, aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, km: KM_DEFECTO.otros });
   cal.a = cal.b = null; cal.abierto = false; pintarCal();
   modoVista = 'lista';
   usoFiltros = false;
@@ -2235,6 +2244,7 @@ function aplicarFiltrosDelBot(f) {
   st.franja = ['tarde', 'sunset', 'noche', 'afters'].includes(f.franja) ? f.franja : null;
   st.precio = f.gratis ? 'gratis' : f.precio_max ? (f.precio_max <= 15 ? 'bajo' : f.precio_max <= 30 ? 'medio' : null) : null;
   st.genero = f.genero ? String(f.genero).toLowerCase() : null;
+  st.aire = ['abierto', 'cerrado'].includes(f.ambiente) ? f.ambiente : null;
   preciosCiudad(); pintarGeneros(); pintar();
 }
 

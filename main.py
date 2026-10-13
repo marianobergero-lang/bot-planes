@@ -202,8 +202,9 @@ FORMATO DE TUS MENSAJES:
 
 Cuando tengas los datos, escribí este bloque al final:
 ###FILTROS###
-{"tipo": "fecha", "categoria": "clubs", "ciudad": "barcelona", "cuando": "sabado", "franja": null, "precio_max": null, "gratis": false, "genero": null, "max": 8}
+{"tipo": "fecha", "categoria": "clubs", "ciudad": "barcelona", "cuando": "sabado", "franja": null, "precio_max": null, "gratis": false, "genero": null, "ambiente": null, "max": 8}
 ###FIN###
+"ambiente": "abierto" si pide al aire libre / terraza / rooftop / open air / de día al sol; "cerrado" si pide lugar cerrado / indoor / bajo techo; si no dice nada, null.
 
 Artista:
 ###FILTROS###
@@ -1026,6 +1027,21 @@ def chat():
         "total_ra": total_ra,
     })
 
+# ── AIRE LIBRE ──────────────────────────────────────────────────────────────
+# Lugares/fiestas que son siempre al aire libre + palabras que lo delatan (en el nombre del evento o del lugar)
+AIRE_LIBRE = re.compile(r"\b(" + "|".join([
+    r"la terr+azza", r"brunch[ -]?in(?: the park)?", r"brunch electronik", r"primavera sound", r"sonar by day", r"s[oó]nar de d[ií]a",
+    r"sea ?sea", r"sun ?sea", r"plaza monumental", r"monumental", r"sound ?it", r"output", r"cala mosca", r"ushua[iï]a", r"dc[- ]?10",
+    r"monegros", r"mad cool", r"medusa", r"arenal sound", r"cruïlla", r"cruilla", r"tomorrowland", r"awakenings",
+    r"open[ -]?air", r"outdoor", r"roof ?top", r"azotea", r"terraza", r"terrace", r"terrasse", r"terrassa", r"beach", r"playa", r"platja",
+    r"garden", r"jard[ií]n", r"jardins?", r"parque", r"parc", r"park", r"pool ?party", r"day ?party", r"al aire libre", r"sunset",
+]) + r")\b", re.I)
+
+def es_aire_libre(e):
+    if e.get("aire_libre"):
+        return True
+    return bool(AIRE_LIBRE.search(f"{e.get('titulo', '')} | {e.get('venue', '')}"))
+
 @app.route("/eventos")
 def eventos():
     ciudad    = request.args.get("ciudad", "london").lower().strip()
@@ -1060,7 +1076,12 @@ def eventos():
                    (x == "medio" and p is not None and 15 <= p <= 30) or
                    (x == "alto" and p is not None and p >= 31) for x in precios)
 
+    ambiente = request.args.get("ambiente")  # abierto | cerrado
+
     def _extra_ok(e):
+        e["aire_libre"] = es_aire_libre(e)
+        if ambiente == "abierto" and not e["aire_libre"] or ambiente == "cerrado" and e["aire_libre"]:
+            return False
         if franjas and not any(pasa_filtros(e, *FRANJAS[f]) for f in franjas):
             return False
         return not precios or _precio_ok(e)
@@ -1842,6 +1863,7 @@ def buscar_fever(ciudad, categoria, desde, hasta):
                 "precio_num": precio_num, "gratis": precio == 0, "asistentes": 0, "destacado": "",
                 "url": p.get("u", ""), "imagen": p.get("img"), "lat": p.get("la"), "lng": p.get("lo"),
                 "fuente": "Fever", "categoria": categoria, "relevancia": rel, "comision": bool(p.get("com")),
+                "aire_libre": bool({"Outdoor Activities", "Terraces and Rooftops"} & set(p.get("g") or [])),
             })
     return out
 
