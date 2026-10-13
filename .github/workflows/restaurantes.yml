@@ -2,7 +2,7 @@ name: Actualizar restaurantes (OpenStreetMap)
 
 on:
   schedule:
-    - cron: "41 5 * * 1"   # todos los lunes a las 05:41 UTC (después de los bares)
+    - cron: "23 2 * * 4"   # jueves 02:23 UTC = ~4:23 en España (después de los bares)
   workflow_dispatch: {}
   push:
     paths:
