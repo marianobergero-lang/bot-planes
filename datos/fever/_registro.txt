@@ -1,0 +1,34 @@
+2026-10-13 20:36 UTC
+Files: {"@page": "1", "@numpages": "0", "@pagesize": "100", "@total": "0", "@start": "0", "@end": "0", "@uri": "/Mediapartners/***/Catalogs/15532/Files", "@firstpageuri": "/Mediapartners/***/Catalogs/15532/Files?PageSize=100&Page=1", "@previouspageuri": "", "@nextpageuri": "", "@lastpageuri": "", "Files": []}
+Ejemplo de ítem: {"Id": "product_15532_687596", "CatalogId": "15532", "CampaignId": "16345", "CampaignName": "Fever", "CatalogItemId": "687596", "Name": "FORMULA 1 BELGIAN GRAND PRIX 2027 TICKETS", "Description": "", "MultiPack": "", "Bullets": ["high"], "Labels": [], "Manufacturer": "", "Url": "https://fever.pxf.io/c/7960061/1928078/16345?prodsku=687596&u=https%3A%2F%2Fticketing.formula1.com%2Ftickets%2Fen%2Fbelgium%2Fgeneral-admission-f1-spa-francorchamps&intsrc=APIG_15532", "MobileUrl": "https://fever.pxf.io/c/7960061/1928078/16345?prodsku=687596&u=Route%20du%20Circuit%2055%2C%20Stavelot&intsrc=APIG_15532", "ImageUrl": "", "ProductBid": "", "AdditionalImageUrls": [], "Promotions": [], "CurrentPrice": "", "OriginalPrice": "", "DiscountPercentage": "", "Currency": "EUR", "StockAvailability": "", "EstimatedShipDate": "", "LaunchDate": "", "ExpirationDate": "", "Gtin": "", "GtinType": "", "Asin": "", "Mpn": "", "ShippingRate": "", "ShippingWeight": "", "ShippingWeightUnit": "", "ShippingLength": "", "ShippingWidth": "", "ShippingHeight": "", "ShippingLengthUnit": "", "ShippingLabel": "Route du Circuit 55, Stavelot", "Category": "Tier 5: Restricted Commission Plans", "SubCategory": "", "AdvertiserFormatCategories": "", "OriginalFormatCategory": "", "OriginalFormatCategoryId": "", "ParentName": "", "ParentSku": "", "IsParent": false, "ItemGroupId": "", "Colors": ["https://ticketing.formula1.com/tickets/en/belgium/general-admission-f1-spa-francorchamps"], "Material": "Circuit de Spa-Francorchamps", "Pattern": "(50.4472072; 5.9621339)", "Size": "Belgium", "SizeUnit": "", "Weight": "", "WeightUnit": "", "Condition": "", "AgeGroup": "", "AgeRangeMin": "0", "AgeRangeMax": "0", "AgeRangeUnit": "", "Gender": "", "Adult": "", "Text1": "Belgium", "Text2": "Spa", "Text3": "Top city plan", "Numeric1": "", "Numeric2": "", "Numeric3": "", "Money1": "", "Money2": "", "Money3": "", "Uri": "/Mediapartners/***/Catalogs/15532/Items/product_15532_687596"}
+Página 1: 1000 ítems
+Página 2: 1000 ítems
+Página 3: 1000 ítems
+Página 4: 1000 ítems
+Página 5: 1000 ítems
+Página 6: 1000 ítems
+Página 7: 1000 ítems
+Página 8: 1000 ítems
+Página 9: 1000 ítems
+Página 10: 1000 ítems
+Página 11: 1000 ítems
+Página 12: 1000 ítems
+Página 13: 1000 ítems
+Página 14: 1000 ítems
+Página 15: 1000 ítems
+Página 16: 1000 ítems
+Página 17: 1000 ítems
+Página 18: 1000 ítems
+Página 19: 1000 ítems
+Página 20: 1000 ítems
+Traceback (most recent call last):
+  File "/home/runner/work/bot-planes/bot-planes/tools/fever_api.py", line 126, in <module>
+    main()
+  File "/home/runner/work/bot-planes/bot-planes/tools/fever_api.py", line 100, in main
+    data = get(f"{BASE}/Catalogs/{CATALOGO}/Items", PageSize=1000, Page=pagina)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/bot-planes/bot-planes/tools/fever_api.py", line 23, in get
+    r.raise_for_status()
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/requests/models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.impact.com/Mediapartners/***/Catalogs/15532/Items?PageSize=1000&Page=21
