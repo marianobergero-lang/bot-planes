@@ -22,16 +22,16 @@
 
   /* HEADER */
   header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .brand { font-size: 20px; font-weight: 800; letter-spacing: -0.7px; white-space: nowrap; }
+  .brand { font-size: 26px; font-weight: 800; letter-spacing: -1px; white-space: nowrap; }
   .brand span { color: var(--orange); }
   .brand small { display: block; font-size: 11px; color: var(--dim); font-weight: 500; letter-spacing: 0; }
   .brand { color: var(--text); text-decoration: none; }
   .powered { font-size: 13px; color: var(--dim); white-space: nowrap; text-decoration: none; display: flex; align-items: baseline; gap: 6px; }
   .powered b { font-size: 19px; font-weight: 800; letter-spacing: -0.6px; }
   .powered .step { color: var(--text); } .powered .wise { color: var(--orange); }
-  .powered:hover .step { text-decoration: underline; }
+  .powered:hover b { text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 3px; }
   .tabs { display: flex; gap: 4px; }
-  .tab { background: none; border: none; color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
+  .tab { background: none; border: none; color: var(--muted); font-size: 16px; font-weight: 600; padding: 10px 18px; border-radius: 24px; cursor: pointer; white-space: nowrap; }
   .tab:hover { color: var(--text); background: var(--surface); }
   .tab.on { color: var(--text); background: var(--card); box-shadow: inset 0 0 0 1px var(--border2); }
 
@@ -66,6 +66,7 @@
   }
   .chip:hover { border-color: var(--muted); color: var(--text); }
   .chip.on { background: var(--orange); border-color: var(--orange); color: #fff; font-weight: 600; }
+  .chip:disabled { opacity: .35; cursor: not-allowed; }
   .chip small { opacity: .75; font-weight: 400; margin-left: 4px; font-size: 11px; }
   .live { margin-top: auto; font-size: 12px; color: var(--dim); display: flex; align-items: center; gap: 8px; }
   .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 3px var(--orange-soft); }
@@ -247,6 +248,8 @@
   .mapa-lista .card .people, .mapa-lista .card .tags, .mapa-lista .card .horario, .mapa-lista .card .town, .mapa-lista .card .acciones { display: none; }
   .mapa-lista .card .who { font-size: 11.5px; margin-top: -3px; }
   .mapa-lista .card .title { margin-top: 0; }
+  .fecha-mini { display: none; }
+  .mapa-lista .card .fecha-mini { display: inline-block; align-self: flex-start; font-size: 10.5px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: .8px; border: 1px solid rgba(233,104,46,.45); border-radius: 5px; padding: 2px 6px; }
   .card.sel { border: 2px solid var(--orange) !important; box-shadow: 0 0 0 4px rgba(233,104,46,.25); }
   .mapa-lista .card .facts { font-size: 11.5px; gap: 2px; }
   .mapa-lista .card .dir-btn { display: none; }
@@ -256,7 +259,8 @@
   .mapa-lista .dist { font-size: 10.5px; padding: 3px 6px; left: 6px; top: 6px; }
   .mapa-info { font-size: 12.5px; color: var(--dim); padding: 2px 4px 4px; }
   .leaflet-container { font-family: 'Space Grotesk', sans-serif; background: #1a1916; }
-  .leaflet-tile-pane { filter: grayscale(1) invert(1) brightness(.78) contrast(.9); }
+  .leaflet-tile-pane { opacity: .5; }
+  .leaflet-container { background: #0D0C0B !important; }
 
   .leaflet-tooltip { background: var(--card); color: var(--text); border: 1px solid var(--border2); font-weight: 600; }
   .leaflet-tooltip:before { display: none; }
@@ -562,6 +566,10 @@ function pintar() {
   document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length));
   document.querySelectorAll('.g-bar').forEach(g => g.hidden = !esBar);
   document.getElementById('dist-hint').textContent = ubic ? `· desde ${ubic.txt}` : '';
+  const todo = document.querySelector('.chips[data-g=km] .chip[data-v="99"]');
+  const bloqueado = esBar && !st.tipoBar;
+  todo.disabled = bloqueado;
+  todo.title = bloqueado ? 'Elegí un tipo de bar para buscar en toda la ciudad' : '';
   const kmTxt = st.km !== '99' && ubic ? `< ${st.km.replace('.', ',')} km` : null;
   document.getElementById('fsummary').textContent = (esBar ? [st.tipoBar, kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).join(' · ');
 }
@@ -641,6 +649,7 @@ async function buscar() {
 function volver() { return '<button class="back" onclick="inicio()">← Volver a los atajos</button>'; }
 
 function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
+  document.getElementById('dock').style.display = '';
   const main = document.getElementById('main');
   const activos = [st.franja, st.precio, (GENEROS[st.tab] || []).find(g => g[0] === st.genero)?.[1] || st.genero].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join('');
   const n = Math.max(total, eventos.length);
@@ -689,6 +698,7 @@ async function verDia(dia) {
   }
 }
 
+function fechaMini(f) { const d = deIso(f); return `${DIAS_L[d.getDay()].slice(0, 3).toLowerCase()} ${d.getDate()} ${MESES_C[d.getMonth()]}`; }
 function picNombre(nombre, emoji) {
   let hsh = 0; for (const ch of String(nombre || '')) hsh = (hsh * 31 + ch.charCodeAt(0)) % 360;
   return `<div class="pic vacia nombre" style="background:linear-gradient(135deg, hsl(${hsh} 32% 20%), #121110 75%)"><b>${esc(nombre || '')}</b><i>${emoji}</i></div>`;
@@ -713,6 +723,7 @@ function tarjeta(e) {
       </div>
       <div class="inner">
       <div class="town">📍 ${esc(lugar)}</div>
+      ${e.fecha ? `<div class="fecha-mini">${fechaMini(e.fecha)}</div>` : ''}
       <div class="title">${esc(e.titulo)}</div>
       ${(e.artistas || []).length ? `<div class="who">${esc(e.artistas.slice(0, 5).join(', '))}</div>` : ''}
       <div class="facts">
@@ -829,6 +840,7 @@ function setModo(m) {
 }
 
 function renderActual() {
+  document.getElementById('dock').style.display = '';
   const main = document.getElementById('main');
   main.classList.remove('loading');
   let items = actual.items.map(x => ({ ...x, d: ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null }));
@@ -850,11 +862,13 @@ function mostrarBares(items) {
   const main = document.getElementById('main');
   const donde = ubic ? `cerca de <span>${esc(ubic.txt)}</span>` : `en <span>${esc(ciudadTxt())}</span>`;
   items.sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
-  let html = volver() + `<div class="res-head"><h2>${items.length} ${items.length === 1 ? 'bar' : 'bares'} ${donde}</h2><div class="head-tools">${segVista()}</div></div>`;
+  const total = Math.max(actual.total || 0, items.length);
+  let html = volver() + `<div class="res-head"><h2>${total} ${total === 1 ? 'bar' : 'bares'} ${donde}</h2><div class="head-tools">${segVista()}</div></div>`;
   if (!items.length) {
     html += `<div class="empty"><b>No encontré bares con esos filtros 😕</b>${st.km !== '99' ? 'Probá ampliando la distancia a "Cerca < 3 km".' : 'Probá con otro tipo de bar.'}</div>`;
   } else {
-    html += `<div class="res-sub" style="margin-top:10px">Ordenados por distancia${ubic && ubic.auto ? '. Tocá "◎ Cerca mío" para buscar desde tu ubicación o una dirección' : ''}.</div><div class="grid" style="margin-top:16px">${items.map(tarjetaBar).join('')}</div>`;
+    html += `<div class="res-sub" style="margin-top:10px">Ordenados por distancia${ubic && ubic.auto ? '. Tocá "◎ Cerca mío" para buscar desde tu ubicación o una dirección' : ''}.</div><div class="grid" style="margin-top:16px" id="grid-bares">${items.map(tarjetaBar).join('')}</div>`;
+    if (total > items.length) html += `<button class="more" id="more-bares" onclick="masBares()">Ver más bares (${total - items.length} más) ↓</button>`;
   }
   html += `<div class="osm-note">Datos de bares: © colaboradores de OpenStreetMap.</div>`;
   main.innerHTML = html;
@@ -937,7 +951,8 @@ async function buscarBares() {
   main.classList.add('loading');
   const p = new URLSearchParams({ ciudad: ciudad() });
   if (ubic) { p.set('lat', ubic.lat); p.set('lng', ubic.lng); }
-  p.set('radio', st.km === '99' ? 4000 : Math.round(Number(st.km) * 1000));
+  p.set('radio', st.km === '99' ? 5000 : Math.round(Number(st.km) * 1000));
+  p.set('limit', modoVista === 'mapa' ? 120 : 20);
   if (st.tipoBar) p.set('tipo', st.tipoBar);
   if (ctrl) ctrl.abort();
   ctrl = new AbortController();
@@ -945,13 +960,28 @@ async function buscarBares() {
     const r = await fetch(`${API}/bares?${p}`, { signal: ctrl.signal });
     const data = await r.json();
     if (data.error && !(data.bares || []).length) throw new Error(data.error);
-    actual = { items: data.bares || [], total: (data.bares || []).length, porDia: {}, titulo: null };
+    actual = { items: data.bares || [], total: data.total || (data.bares || []).length, porDia: {}, titulo: null, params: p };
     renderActual();
   } catch (e) {
     if (e.name === 'AbortError') return;
     main.innerHTML = volver() + `<div class="empty"><b>Uy, no pude traer los bares 😅</b>Probá de nuevo en un ratito.</div>`;
   }
   main.classList.remove('loading');
+}
+async function masBares() {
+  const btn = document.getElementById('more-bares');
+  btn.disabled = true; btn.textContent = 'Cargando…';
+  const p = new URLSearchParams(actual.params);
+  p.set('offset', actual.items.length); p.set('limit', 20);
+  try {
+    const r = await fetch(`${API}/bares?${p}`);
+    const data = await r.json();
+    const nuevos = (data.bares || []).map(x => ({ ...x, d: ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null }));
+    actual.items.push(...nuevos);
+    document.getElementById('grid-bares').insertAdjacentHTML('beforeend', nuevos.map(tarjetaBar).join(''));
+    const faltan = (actual.total || 0) - actual.items.length;
+    if (faltan > 0 && nuevos.length) { btn.disabled = false; btn.textContent = `Ver más bares (${faltan} más) ↓`; } else btn.remove();
+  } catch (e) { btn.disabled = false; btn.textContent = 'No pude cargarlos, tocá para reintentar'; }
 }
 const DIAS_OSM = { Mo: 'Lu', Tu: 'Ma', We: 'Mi', Th: 'Ju', Fr: 'Vi', Sa: 'Sá', Su: 'Do', PH: 'Feriados', off: 'cerrado' };
 function horarioEs(h) { return (h || '').replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su|PH|off)\b/g, m => DIAS_OSM[m]).replace(/;\s*/g, ' · '); }
@@ -1239,6 +1269,7 @@ document.querySelectorAll('.chips').forEach(g => {
       return st.tab === 'bares' || (ubic && ubic.auto) ? autoBuscar() : renderActual();
     }
     st[k] = st[k] === v && k !== 'cuando' ? null : v;
+    if (k === 'tipoBar' && !st.tipoBar && st.km === '99') st.km = '3';  // sin tipo no se puede "toda la ciudad"
     pintar(); autoBuscar();
   });
 });
@@ -1247,6 +1278,7 @@ document.getElementById('tabs').addEventListener('click', e => {
   const antes = kmClave();
   st.tab = t.dataset.tab;
   if (kmClave() !== antes && (!ubic || ubic.auto)) st.km = KM_DEFECTO[kmClave()];
+  if (st.tab === 'bares' && !st.tipoBar && st.km === '99') st.km = '3';
   if (!(GENEROS[st.tab] || []).some(g => g[0] === st.genero)) st.genero = null;
   pintarGeneros(); pintar(); buscar();
 });
