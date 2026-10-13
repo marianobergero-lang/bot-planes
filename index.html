@@ -636,6 +636,8 @@ const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','no
 // ── ESTADO ─────────────────────────────────────────────────────────────────
 const st = { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, km: '99' };
 function esLugar() { return st.tab === 'bares' || st.tab === 'restaurantes'; }
+const MULTI = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest'];  // filtros que se pueden combinar
+function valores(x) { return x ? String(x).split(',') : []; }
 function tipoLugar() { return st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar; }
 let ubic = null;          // { lat, lng, txt, auto } · auto = punto céntrico de la ciudad
 const KM_DEFECTO = { bares: '1.5', otros: '99' };
@@ -692,7 +694,7 @@ function pintarGeneros() {
   document.getElementById('chips-genero').innerHTML = lista.map(([v, t]) => `<button class="chip" data-v="${v}">${t}</button>`).join('');
 }
 function pintar() {
-  document.querySelectorAll('.chips').forEach(g => g.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', st[g.dataset.g] === b.dataset.v)));
+  document.querySelectorAll('.chips').forEach(g => g.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', MULTI.includes(g.dataset.g) ? valores(st[g.dataset.g]).includes(b.dataset.v) : st[g.dataset.g] === b.dataset.v)));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === st.tab));
   document.getElementById('chip-cal').textContent = textoFechas();
   const et = { hoy: 'Hoy', manana: 'Mañana', finde: 'Este finde', cal: textoFechas().replace('📅 ', '') };
@@ -708,7 +710,7 @@ function pintar() {
   todo.disabled = bloqueado;
   todo.title = bloqueado ? (st.tab === 'restaurantes' ? 'Elegí un tipo de cocina para buscar en toda la ciudad' : 'Elegí un tipo de bar para buscar en toda la ciudad') : '';
   const kmTxt = st.km !== '99' && ubic ? `< ${st.km.replace('.', ',')} km` : null;
-  document.getElementById('fsummary').textContent = (esBar ? [tipoLugar(), kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).join(' · ');
+  document.getElementById('fsummary').textContent = (esBar ? [tipoLugar(), kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).join(' · ').replace(/,/g, ' + ');
 }
 
 // ── CALENDARIO ─────────────────────────────────────────────────────────────
@@ -764,10 +766,7 @@ async function buscar() {
   if (completo) p.set('coords', '1');
   if (st.franja) p.set('franja', st.franja);
   if (st.genero) p.set('genero', st.genero);
-  if (st.precio === 'gratis') p.set('gratis', 'true');
-  if (st.precio === 'bajo') { p.set('precio_min', 0); p.set('precio_max', 15); }
-  if (st.precio === 'medio') { p.set('precio_min', 15); p.set('precio_max', 30); }
-  if (st.precio === 'alto') p.set('precio_min', 31);
+  if (st.precio) p.set('precios', st.precio);
   if (ctrl) ctrl.abort();
   ctrl = new AbortController();
   ultimaBusqueda = new URLSearchParams(p);
@@ -788,7 +787,7 @@ function volver() { return '<button class="back" onclick="inicio()">← Volver a
 
 function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
   const main = document.getElementById('main');
-  const activos = [st.franja, st.precio, (GENEROS[st.tab] || []).find(g => g[0] === st.genero)?.[1] || st.genero].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join('');
+  const activos = [...valores(st.franja), ...valores(st.precio), ...valores(st.genero).map(x => (GENEROS[st.tab] || []).find(g => g[0] === x)?.[1] || x)].map(x => `<span>${esc(x)}</span>`).join('');
   const n = Math.max(total, eventos.length);
   const h2 = titulo || (eventos.length
     ? `${n} ${TAB_TXT[st.tab][n === 1 ? 0 : 1]} en <span>${esc(ciudadTxt())}</span>`
@@ -917,10 +916,10 @@ function mostrarCine() {
   const main = document.getElementById('main');
   main.classList.remove('loading');
   const todas = cineData[ciudad() + '|' + cineTipo] || [];
-  const pelis = st.genero ? todas.filter(p => (p.generos || []).includes(st.genero)) : todas;
+  const pelis = st.genero ? todas.filter(p => valores(st.genero).some(g => (p.generos || []).includes(g))) : todas;
   const seg = `<div class="seg"><button class="${cineTipo === 'cartelera' ? 'on' : ''}" onclick="setCineTipo('cartelera')">🍿 En cartelera</button><button class="${cineTipo === 'estrenos' ? 'on' : ''}" onclick="setCineTipo('estrenos')">🗓️ Próximos estrenos</button></div>`;
   const h2 = pelis.length ? `${pelis.length} ${TAB_TXT.cine[pelis.length === 1 ? 0 : 1]} ${cineTipo === 'cartelera' ? 'en cartelera' : 'por estrenarse'} en <span>${esc(ciudadTxt())}</span>` : `Nada por acá en <span>${esc(ciudadTxt())}</span>`;
-  let html = volver() + cartelGuia() + `<div class="res-head"><h2>${h2}</h2><div class="head-tools"><div class="active">${st.genero ? `<span>${esc(st.genero)}</span>` : ''}</div>${seg}</div></div>`;
+  let html = volver() + cartelGuia() + `<div class="res-head"><h2>${h2}</h2><div class="head-tools"><div class="active">${valores(st.genero).map(g => `<span>${esc(g)}</span>`).join('')}</div>${seg}</div></div>`;
   if (!pelis.length) {
     html += `<div class="empty"><b>No encontré películas con ese filtro 😕</b>Probá con otro género.</div>`;
   } else {
@@ -1223,7 +1222,7 @@ async function buscarBares() {
     const desde = ubic ? [ubic.lat, ubic.lng] : [c[0], c[1]];
     const radio = st.km === '99' ? 8 : Number(st.km);
     const lista = locales
-      .filter(b => !tipoLugar() || b.tipos.includes(tipoLugar()))
+      .filter(b => !tipoLugar() || valores(tipoLugar()).some(t => b.tipos.includes(t)))
       .map(b => ({ ...b, distancia: distKm(desde, [b.lat, b.lng]) }))
       .filter(b => b.distancia <= radio)
       .sort((a, b) => (a.distancia - 0.08 * a.info) - (b.distancia - 0.08 * b.info));
@@ -1236,7 +1235,7 @@ async function buscarBares() {
   if (ubic) { p.set('lat', ubic.lat); p.set('lng', ubic.lng); }
   p.set('radio', st.km === '99' ? 5000 : Math.round(Number(st.km) * 1000));
   p.set('limit', modoVista === 'mapa' ? 120 : 20);
-  if (st.tipoBar) p.set('tipo', st.tipoBar);
+  if (st.tipoBar) p.set('tipo', valores(st.tipoBar)[0]);
   if (ctrl) ctrl.abort();
   ctrl = new AbortController();
   try {
@@ -1669,7 +1668,10 @@ document.querySelectorAll('.chips').forEach(g => {
       st.km = v; pintar();
       return esLugar() || (ubic && ubic.auto) ? autoBuscar() : renderActual();
     }
-    st[k] = st[k] === v && k !== 'cuando' ? null : v;
+    if (MULTI.includes(k)) {
+      const l = valores(st[k]);
+      st[k] = (l.includes(v) ? l.filter(x => x !== v) : [...l, v]).join(',') || null;
+    } else st[k] = st[k] === v && k !== 'cuando' ? null : v;
     if ((k === 'tipoBar' || k === 'tipoRest') && !st[k] && st.km === '99') st.km = '3';  // sin tipo no se puede "toda la ciudad"
     pintar(); autoBuscar();
   });
@@ -1680,7 +1682,7 @@ document.getElementById('tabs').addEventListener('click', e => {
   st.tab = t.dataset.tab;
   if (kmClave() !== antes && (!ubic || ubic.auto)) st.km = KM_DEFECTO[kmClave()];
   if (esLugar() && !tipoLugar() && st.km === '99') st.km = '3';
-  if (!(GENEROS[st.tab] || []).some(g => g[0] === st.genero)) st.genero = null;
+  st.genero = valores(st.genero).filter(x => (GENEROS[st.tab] || []).some(g => g[0] === x)).join(',') || null;
   pintarGeneros(); pintar(); buscar();
 });
 document.getElementById('city').addEventListener('change', () => {

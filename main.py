@@ -507,7 +507,12 @@ GENEROS_ALIAS = {
 }
 
 def variantes_genero(genero):
-    """Devuelve variantes del nombre del género para el filtro any de RA"""
+    """Devuelve variantes del nombre del género para el filtro any de RA (acepta varios separados por coma)"""
+    if genero and "," in genero:
+        vs = set()
+        for x in genero.split(","):
+            vs.update(variantes_genero(x) or [])
+        return sorted(vs) or None
     g = (genero or "").lower().strip()
     if not g or g in ["todos", "cualquiera", "da igual", "me da igual"]:
         return None
@@ -554,8 +559,8 @@ def pasa_filtros(ev_fmt, hora_min=None, hora_max=None, gratis=False, precio_max=
         if p is None or p < precio_min or (precio_max is not None and p > precio_max):
             return False
     if genero:
-        g = genero.lower()
-        if not any(g in x.lower() or x.lower() in g for x in ev_fmt.get("generos") or []):
+        gs = [g.strip() for g in genero.lower().split(",") if g.strip()]
+        if not any(g in x.lower() or x.lower() in g for g in gs for x in ev_fmt.get("generos") or []):
             return False
     return True
 
@@ -948,6 +953,27 @@ def eventos():
     if not desde or not hasta:
         desde, hasta = finde_proximo()
 
+    # Filtros combinables: franja=tarde,noche · precios=gratis,bajo → vale si cumple cualquiera
+    franjas = [f for f in (normalizar_franja(x) for x in (franja or "").split(",")) if f]
+    precios = [x for x in (request.args.get("precios") or "").split(",") if x in ("gratis", "bajo", "medio", "alto")]
+    if len(franjas) > 1 or precios:
+        franja, hora_min, hora_max = None, None, None
+        gratis, precio_min, precio_max = False, None, None
+    else:
+        franjas = []
+
+    def _precio_ok(e):
+        p = e.get("precio_num")
+        return any((x == "gratis" and e.get("gratis")) or
+                   (x == "bajo" and p is not None and 0 <= p <= 15) or
+                   (x == "medio" and p is not None and 15 <= p <= 30) or
+                   (x == "alto" and p is not None and p >= 31) for x in precios)
+
+    def _extra_ok(e):
+        if franjas and not any(pasa_filtros(e, *FRANJAS[f]) for f in franjas):
+            return False
+        return not precios or _precio_ok(e)
+
     # Traemos TODOS los que pasan los filtros, contamos cuántos hay por día
     # y después elegimos los más destacados repartidos entre los días
     if categoria != "clubs":
@@ -972,6 +998,7 @@ def eventos():
             return jsonify({"error": f"Ciudad '{ciudad}' no encontrada"}), 400
         todos, _ = buscar_por_fecha(ciudad, desde, hasta, 100000, hora_min, gratis, precio_max, hora_max,
                                     genero=genero, franja=franja, precio_min=precio_min)
+    todos = [e for e in todos if _extra_ok(e)]
     por_dia = {}
     for e in todos:
         por_dia[e.get("fecha", "")] = por_dia.get(e.get("fecha", ""), 0) + 1
