@@ -827,7 +827,7 @@ const EN = {
   'Ojo: estos eventos vienen de Ticketmaster, que en algunas ciudades (como Barcelona o Madrid) tiene poca oferta.': 'Heads up: these events come from Ticketmaster, which has few listings in some cities (like Barcelona or Madrid).',
   'Uy, se me cortó algo 😅': 'Oops, something went wrong 😅', 'No pude traer los eventos. Probá de nuevo en un ratito.': 'I couldn’t load the events. Try again in a bit.',
   'Buscando todos…': 'Loading all…', 'No pude traerlos, tocá para reintentar': 'Couldn’t load them, tap to retry',
-  'en:': 'at:', 'de': 'from', 'a': 'to', 'hs': '', 'Ver tickets →': 'Tickets →', '♡ Mis planes': '♡ Save', '♥ En mis planes': '♥ Saved', '📍 Ver dirección': '📍 Directions',
+  'en:': 'at:', 'de': 'from', 'a': 'to', 'hs': '', 'Ver tickets →': 'Tickets →', 'Ver tickets ▾': 'Tickets ▾', '♡ Mis planes': '♡ Save', '♥ En mis planes': '♥ Saved', '📍 Ver dirección': '📍 Directions',
   'PRECIO EN WEB': 'PRICE ON SITE', 'GRATIS': 'FREE', 'Entradas (web del club) →': 'Tickets (club site) →', 'Buscar entradas →': 'Find tickets →',
   'Agregar a mi calendario': 'Add to my calendar', 'Compartir': 'Share', 'Ver sus próximas fechas': 'See upcoming dates', 'Ver todo lo que hay en este lugar': 'See everything at this venue',
   'Los más cercanos primero.': 'Closest first.', 'Tocá "◎ Mi ubicación" para buscar desde tu ubicación o una dirección': 'Tap "◎ My location" to search from your location or an address',
@@ -1233,9 +1233,8 @@ function tarjeta(e) {
         <div class="tags">${(e.generos || []).slice(0, 2).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
         <span class="price p-${cat}">${esc(precio)}</span>
         <button class="fav ${estaGuardado(id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(id)}')">${estaGuardado(id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
-        <a class="tickets" href="${esc(e.url)}" target="_blank" rel="noopener">${e.url_tipo === 'club' ? 'Entradas (web del club) →' : e.url_tipo === 'google' ? 'Buscar entradas →' : 'Ver tickets →'}</a>
+        ${(e.otros_links || []).length ? `<div class="res-wrap"><button class="tickets" style="cursor:pointer;font-family:inherit" onclick="menuTickets(event, '${esc(id)}')">Ver tickets ▾</button></div>` : `<a class="tickets" href="${esc(e.url)}" target="_blank" rel="noopener">${e.url_tipo === 'club' ? 'Entradas (web del club) →' : e.url_tipo === 'google' ? 'Buscar entradas →' : 'Ver tickets →'}</a>`}
       </div>
-      ${(e.otros_links || []).length ? `<div class="otros-links">También en: ${e.otros_links.map(o => `<a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.fuente)} ↗</a>`).join(' · ')}</div>` : ''}
       </div>
     </article>`;
 }
@@ -1767,6 +1766,17 @@ function menuReservar(ev, id) {
   m.innerHTML = `<a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">📍 Ver ficha en Google<small>Fotos, horarios, teléfono y reserva si el lugar la ofrece</small></a>
     ${b.web ? `<a href="${esc(b.web)}" target="_blank" rel="noopener">🌐 Ir a la web del lugar<small>Reservá directo con ellos</small></a>` : ''}
     ${b.telefono ? `<a href="tel:${esc(b.telefono.replace(/\s/g, ''))}">📞 Llamar<small>${esc(b.telefono)}</small></a>` : ''}`;
+  m.addEventListener('click', x => x.stopPropagation());
+  ev.currentTarget.parentElement.appendChild(m);
+}
+function menuTickets(ev, id) {
+  ev.stopPropagation();
+  document.querySelectorAll('.res-menu').forEach(m => m.remove());
+  const e = EVENTOS[id]; if (!e) return;
+  const m = document.createElement('div');
+  m.className = 'res-menu';
+  m.innerHTML = [{ fuente: e.fuente || 'Fever', url: e.url }, ...(e.otros_links || [])]
+    .map(o => `<a href="${esc(o.url)}" target="_blank" rel="noopener">🎟️ ${esc(o.fuente)}</a>`).join('');
   m.addEventListener('click', x => x.stopPropagation());
   ev.currentTarget.parentElement.appendChild(m);
 }
