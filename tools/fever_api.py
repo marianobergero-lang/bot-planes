@@ -89,6 +89,8 @@ def desde_archivo():
             print("No pude bajar", u.split("?")[0], e)
     return None
 
+CRUDOS = []
+
 def main():
     if not SID or not TOKEN:
         print("Faltan IMPACT_SID / IMPACT_TOKEN"); return
@@ -108,12 +110,15 @@ def main():
                 print("Claves:", list(items[0].keys()))
                 print("Ejemplo de ítem:", json.dumps(items[0], ensure_ascii=False)[:9000])
         filas += [aplanar(i) for i in items]
+        CRUDOS.extend(items)
         print(f"Página {pagina}: {len(items)} ítems")
         sig = data.get("@nextpageuri") or ""
         if not items or not sig:
             break
         url, params, pagina = "https://api.impact.com" + sig, {}, pagina + 1
     print(f"Total: {len(filas)} ítems")
+    for x in [i for i in CRUDOS if i.get("Text2") in ("Madrid", "Barcelona")][:3]:
+        print("Madrid/BCN:", json.dumps({k: v for k, v in x.items() if v not in ("", [], None, False, "0")}, ensure_ascii=False)[:3500])
     print("Planes guardados:", procesar(filas))
 
 if __name__ == "__main__":
