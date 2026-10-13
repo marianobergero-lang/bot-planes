@@ -306,8 +306,9 @@
   .abierto-si { color: #5fd38d; font-weight: 700; } .abierto-no { color: var(--muted); }
   .share-bus { background: transparent; border: 1px solid var(--border2); color: var(--text); border-radius: 10px; padding: 7px 12px; font: 600 13px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; }
   .share-bus:hover { border-color: var(--orange); }
-  .reset-f { align-self: flex-start; background: #F2EEE8; color: var(--orange); border: none; border-radius: 10px; padding: 7px 12px; font: 700 13px 'Space Grotesk', sans-serif; cursor: pointer; }
-  .reset-f:hover { background: #fff; }
+  .reset-f { align-self: stretch; background: rgba(255,107,107,.12); color: #ff8f8f; border: 1px solid rgba(255,107,107,.6); border-radius: 10px; padding: 9px 12px; font: 700 13.5px 'Space Grotesk', sans-serif; cursor: pointer; transition: all .15s; }
+  .reset-f:hover:not(:disabled) { background: rgba(255,107,107,.22); color: #ffb3b3; }
+  .reset-f:disabled { opacity: .35; cursor: default; }
   .menu-bus { top: calc(100% + 6px); right: 0; left: auto; min-width: 250px; z-index: 60; }
   .link-bus { margin-top: 6px; width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--muted); border-radius: 8px; padding: 6px 8px; font-size: 12px; }
   .cal-ops { display: grid; gap: 10px; margin-top: 14px; }
@@ -571,6 +572,7 @@
 
 <div class="app">
   <aside class="side" id="side">
+    <button class="reset-f" id="resetf" onclick="borrarFiltros()">✕ Borrar filtros</button>
     <div class="city-block">
       <label class="city-label" for="city">Ciudad</label>
       <div class="city-row">
@@ -591,7 +593,6 @@
       <span>Filtros</span><em id="fsummary"></em>
     </button>
 
-    <button class="reset-f" id="resetf" hidden onclick="borrarFiltros()">✕ Borrar filtros</button>
     <div class="group group-cuando g-ev">
       <h4>Cuándo</h4>
       <div class="chips" data-g="cuando">
@@ -814,7 +815,8 @@ function pintar() {
   const kmTxt = st.km !== '99' && ubic ? `< ${st.km.replace('.', ',')} km` : null;
   const hayFiltros = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].some(k => st[k])
     || st.cuando === 'cal' || st.km !== KM_DEFECTO[kmClave()] || (ubic && !ubic.auto);
-  document.getElementById('resetf').hidden = !hayFiltros;
+  document.getElementById('resetf').disabled = !hayFiltros;
+  document.getElementById('resetf').title = hayFiltros ? 'Volver todo a cero' : 'No hay filtros para borrar';
   document.getElementById('fsummary').textContent = (esBar ? [st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar, st.tab === 'restaurantes' ? st.extraRest : null, st.abierto ? 'abierto ahora' : null, kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map((x, i, arr) => x === kmTxt ? x : String(x).replace(/,/g, ' + ')).join(' · ');
 }
 
