@@ -402,7 +402,26 @@
     .chips { flex-wrap: wrap; }
   }
   @media (max-width: 820px) {
-    header { padding: 12px 16px; flex-wrap: wrap; }
+    header { padding: 10px 14px 0; flex-wrap: wrap; gap: 8px; }
+    .brand { font-size: 21px; } .brand small { display: none; }
+    .txt-largo { display: none; }
+    .saved-btn { padding: 7px 12px !important; font-size: 14px !important; }
+    .tabs { margin: 0 -14px; padding: 0 14px 8px; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { font-size: 14px; padding: 7px 12px; }
+    .city-label { display: none; }
+    .side { gap: 10px; padding: 12px 14px; }
+    .side.open { padding-bottom: 80px; }
+    .side.open .search { position: sticky; bottom: 10px; z-index: 5; box-shadow: 0 8px 24px rgba(0,0,0,.6); }
+    .fab { padding: 9px; right: 14px; bottom: 14px; } .fab span { display: none; }
+    .fab i { width: 40px; height: 40px; font-size: 22px; }
+    .chat-dock { right: 8px; left: 8px; width: auto; top: 8px; bottom: 8px; height: auto; }
+    .fab.abierto, body.filtros-abiertos .fab { display: none; }
+    input, select, textarea { font-size: 16px !important; }  /* iPhone no hace zoom al escribir */
+    .landing-in { padding: 40px 18px 30px; }
+    .landing .lema { margin-bottom: 30px; }
+    .landing .o { margin: 32px 0 22px; font-size: 13px; }
+    .caja-chat input { font-size: 17px !important; }
     .powered { display: none; }
     .pic { height: 160px; }
     .tabs { order: 3; width: 100%; overflow-x: auto; }
@@ -419,8 +438,7 @@
     .main-wrap { min-height: auto; }
     .main { overflow: visible; padding: 18px 16px 30px; }
     .grid { grid-template-columns: 1fr; }
-    .chat-dock { right: 12px; left: 12px; width: auto; bottom: 84px; height: calc(100vh - 120px); }
-    .fab { right: 14px; bottom: 14px; }
+
     .ciudad-grande { flex-direction: column; } .entrar { padding: 16px; }
     .shortcuts { grid-template-columns: 1fr 1fr; }
     .guia .flecha { transform: rotate(90deg); animation: none; }
@@ -447,7 +465,7 @@
     <button class="tab" data-tab="cine" hidden>🎬 Cine <sup class="beta">BETA</sup></button>
   </nav>
   <div style="display:flex;align-items:center;gap:14px">
-    <button class="saved-btn" id="savedbtn" onclick="verGuardados()">♥ Mis planes favoritos <b id="nguardados"></b></button>
+    <button class="saved-btn" id="savedbtn" onclick="verGuardados()">♥<span class="txt-largo"> Mis planes favoritos</span> <b id="nguardados"></b></button>
     <a class="powered" href="https://stepwiseconsulting.es/eventos" target="_blank" rel="noopener">powered by <b><span class="step">Step</span><span class="wise">Wise</span></b></a>
   </div>
 </header>
@@ -511,7 +529,7 @@
       <div class="near-note" id="nearnote"></div>
     </div>
 
-    <button class="filters-toggle" onclick="document.getElementById('side').classList.toggle('open')">
+    <button class="filters-toggle" onclick="document.body.classList.toggle('filtros-abiertos', document.getElementById('side').classList.toggle('open'))">
       <span>Filtros</span><em id="fsummary"></em>
     </button>
 
@@ -572,7 +590,7 @@
     </div>
 
     <div class="live"><i></i>Los resultados se actualizan solos al tocar los filtros</div>
-    <button class="search" onclick="document.getElementById('side').classList.remove('open'); buscar()">Ver planes</button>
+    <button class="search" onclick="document.getElementById('side').classList.remove('open'); document.body.classList.remove('filtros-abiertos'); buscar(); document.getElementById('main').scrollIntoView({ behavior: 'smooth' })">Ver resultados ↓</button>
   </aside>
 
   <div class="main-wrap">
@@ -639,6 +657,8 @@ const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','no
 const st = { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, km: '99' };
 function esLugar() { return st.tab === 'bares' || st.tab === 'restaurantes'; }
 const MULTI = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest'];  // filtros que se pueden combinar
+const MOVIL = () => matchMedia('(max-width: 820px)').matches;
+function lado() { return MOVIL() ? 'de arriba' : 'de la izquierda'; }
 function valores(x) { return x ? String(x).split(',') : []; }
 function tipoLugar() { return st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar; }
 let ubic = null;          // { lat, lng, txt, auto } · auto = punto céntrico de la ciudad
@@ -649,7 +669,7 @@ let actual = { items: [], total: 0, porDia: {}, titulo: null };
 const MAX_MAPA = 20;
 let usoFiltros = false;  // el cartel guía se muestra hasta que tocan el primer filtro del costado
 function cartelGuia() {
-  return usoFiltros ? '' : `<div class="guia chica"><span class="flecha">👈</span><div><b>Afiná con los filtros de la izquierda</b>Cuándo, horario, precio, género o distancia: tocá uno y los resultados se actualizan solos.</div></div>`;
+  return usoFiltros ? '' : `<div class="guia chica"><span class="flecha">👈</span><div><b>Afiná con los filtros ${lado()}</b>Cuándo, horario, precio, género o distancia: tocá uno y los resultados se actualizan solos.</div></div>`;
 }
 const cal = { abierto: false, a: null, b: null, mes: null };
 let vista = 'inicio';
@@ -698,6 +718,7 @@ function pintarGeneros() {
 function pintar() {
   document.querySelectorAll('.chips').forEach(g => g.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', MULTI.includes(g.dataset.g) ? valores(st[g.dataset.g]).includes(b.dataset.v) : st[g.dataset.g] === b.dataset.v)));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === st.tab));
+  if (MOVIL()) document.querySelector('.tab.on')?.scrollIntoView({ inline: 'center', block: 'nearest' });
   document.getElementById('chip-cal').textContent = textoFechas();
   const et = { hoy: 'Hoy', manana: 'Mañana', finde: 'Este finde', cal: textoFechas().replace('📅 ', '') };
   const esBar = esLugar();
@@ -712,7 +733,7 @@ function pintar() {
   todo.disabled = bloqueado;
   todo.title = bloqueado ? (st.tab === 'restaurantes' ? 'Elegí un tipo de cocina para buscar en toda la ciudad' : 'Elegí un tipo de bar para buscar en toda la ciudad') : '';
   const kmTxt = st.km !== '99' && ubic ? `< ${st.km.replace('.', ',')} km` : null;
-  document.getElementById('fsummary').textContent = (esBar ? [tipoLugar(), kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).join(' · ').replace(/,/g, ' + ');
+  document.getElementById('fsummary').textContent = (esBar ? [tipoLugar(), kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map((x, i, arr) => x === kmTxt ? x : String(x).replace(/,/g, ' + ')).join(' · ');
 }
 
 // ── CALENDARIO ─────────────────────────────────────────────────────────────
@@ -758,7 +779,7 @@ function autoBuscar() {
 async function buscar() {
   if (esLugar()) return buscarBares();
   if (st.tab === 'cine') return buscarCine();
-  if (!st.cuando) { st.cuando = 'finde'; pintar(); }  // sin fecha elegida, buscamos el finde
+  if (!st.cuando) { st.cuando = [5, 6].includes(new Date().getDay()) ? 'hoy' : 'finde'; pintar(); }  // viernes y sábado: esta noche; si no, el finde
   vista = 'resultados';
   const main = document.getElementById('main');
   main.classList.add('loading');
@@ -798,7 +819,7 @@ function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
   if (!eventos.length) {
     const tm = st.tab !== 'clubs' && !titulo;
     html += `<div class="empty"><b>No encontré exactamente lo que buscás 😕</b>
-      ${st.franja || st.precio || st.genero ? 'Probá sacando algún filtro de la izquierda, o elegí otras fechas.' : 'Probá con otras fechas o con otra ciudad.'}
+      ${st.franja || st.precio || st.genero ? `Probá sacando algún filtro ${lado()}, o elegí otras fechas.` : 'Probá con otras fechas o con otra ciudad.'}
       ${tm ? '<br><br>Ojo: estos eventos vienen de Ticketmaster, que en algunas ciudades (como Barcelona o Madrid) tiene poca oferta.' : ''}</div>`;
     main.innerHTML = html; return;
   }
@@ -1451,7 +1472,7 @@ function inicio() {
   document.getElementById('main').innerHTML = `
     <div class="hello">
       <h2>¿Qué hacemos en <span>${esc(ciudadTxt())}</span>?</h2>
-      <div class="guia"><span class="flecha">👈</span><div><b>Armá tu plan con los filtros de la izquierda</b>Elegí cuándo, el horario, el precio o el género, y los resultados aparecen acá. Arriba cambiás entre fiestas, bares, conciertos y más.</div></div>
+      <div class="guia"><span class="flecha">👈</span><div><b>Armá tu plan con los filtros ${lado()}</b>Elegí cuándo, el horario, el precio o el género, y los resultados aparecen acá. Arriba cambiás entre fiestas, bares, conciertos y más.</div></div>
       <h3 class="titulo-atajos">O probá un atajo</h3>
       <div class="shortcuts">
         <button class="sc" onclick="atajo('finde')"><i>🗓️</i>Lo mejor de este finde<small>Lo que más gente convoca</small></button>
@@ -1571,9 +1592,10 @@ async function preguntar(textoFijo) {
     if (!f) {
       burbuja(reply || 'Contame un poco más y te busco algo 🙂', 'bot');
     } else if ((f.tipo || 'fecha') === 'fecha') {
-      burbuja('¡Listo! Te dejé los resultados en pantalla 👈 Podés afinarlos con los filtros de la izquierda o seguir preguntándome por acá.', 'bot');
+      burbuja(`¡Listo! Te dejé los resultados en pantalla ${MOVIL() ? '👆' : '👈'} Podés afinarlos con los filtros ${lado()} o seguir preguntándome por acá.`, 'bot');
       aplicarFiltrosDelBot(f);
       buscar();
+      if (MOVIL()) setTimeout(() => toggleChat(false), 1400);
     } else {
       const ev = data.eventos || [];
       burbuja(ev.length ? `${reply || 'Mirá lo que encontré'}\nTe dejé los resultados en pantalla 👈 Podés seguir preguntándome por acá.` : (reply || 'No encontré nada con eso 😕'), 'bot');
@@ -1585,6 +1607,7 @@ async function preguntar(textoFijo) {
           : f.tipo === 'venue' ? `Lo que viene en <span>${esc(nombre)}</span>` : `Resultados para <span>${esc(nombre)}</span>`;
         mostrar(ev, ev.length, titulo);
         vista = 'resultados';
+        if (MOVIL()) setTimeout(() => toggleChat(false), 1400);
       }
     }
   } catch (e) {
