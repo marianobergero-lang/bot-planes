@@ -576,21 +576,53 @@ def pasa_filtros(ev_fmt, hora_min=None, hora_max=None, gratis=False, precio_max=
             return False
     return True
 
+def clave_titulo(t):
+    """Primeras palabras del título, sin acentos ni signos: sirve para detectar el mismo plan."""
+    import unicodedata
+    t = "".join(c for c in unicodedata.normalize("NFD", (t or "").lower()) if unicodedata.category(c) != "Mn")
+    return " ".join(re.findall(r"[a-z0-9]+", t)[:5])
+
 def repartir_por_dia(eventos, max_ev):
-    """Los más populares de cada día, repartidos para que un rango no se llene con el primer día"""
+    """Los más populares de cada día, repartidos para que un rango no se llene con el primer día.
+    En la selección no se repite el mismo plan en varios días (salvo que no haya otros)."""
     hoy = datetime.now().strftime("%Y-%m-%d")
     por_dia = {}
     for e in sorted(eventos, key=lambda x: (-(x.get("asistentes") or 0), x.get("relevancia", 0))):
         if e.get("fecha", "") >= hoy:
             por_dia.setdefault(e.get("fecha", ""), []).append(e)
-    elegidos, ronda = [], 0
-    while len(elegidos) < max_ev and any(len(v) > ronda for v in por_dia.values()):
-        for dia in sorted(por_dia):
-            if ronda < len(por_dia[dia]) and len(elegidos) < max_ev:
-                elegidos.append(por_dia[dia][ronda])
-        ronda += 1
+    elegidos, vistos = [], set()
+    for permitir_repetidos in (False, True):
+        ronda = 0
+        while len(elegidos) < max_ev and any(len(v) > ronda for v in por_dia.values()):
+            for dia in sorted(por_dia):
+                if ronda < len(por_dia[dia]) and len(elegidos) < max_ev:
+                    e = por_dia[dia][ronda]
+                    k = clave_titulo(e.get("titulo"))
+                    if id(e) in {id(x) for x in elegidos} or (not permitir_repetidos and k in vistos):
+                        continue
+                    elegidos.append(e); vistos.add(k)
+            ronda += 1
+        if len(elegidos) >= max_ev:
+            break
     elegidos.sort(key=lambda x: (x.get("fecha", ""), x.get("hora") or "99", -(x.get("asistentes") or 0)))
     return elegidos
+
+def sin_duplicados(eventos):
+    """Mismo evento en dos fuentes (RA/Ticketmaster y Fever) el mismo día: queda uno solo.
+    Se prefiere Fever (link de afiliado) y se le pasan los interesados de RA."""
+    por_clave = {}
+    for e in eventos:
+        k = (e.get("fecha"), clave_titulo(e.get("titulo")))
+        if k not in por_clave:
+            por_clave[k] = e
+            continue
+        otro = por_clave[k]
+        if e.get("fuente") == "Fever" and otro.get("fuente") != "Fever":
+            e = dict(e, asistentes=max(e.get("asistentes") or 0, otro.get("asistentes") or 0))
+            por_clave[k] = e
+        elif otro.get("fuente") == "Fever" and e.get("fuente") != "Fever":
+            otro["asistentes"] = max(otro.get("asistentes") or 0, e.get("asistentes") or 0)
+    return list(por_clave.values())
 
 def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None, hora_max=None, genero=None, franja=None, precio_min=None):
     f = normalizar_franja(franja)
@@ -1036,7 +1068,7 @@ def eventos():
         hmin, hmax = FRANJAS[f_] if f_ else (hora_min, hora_max)
         todos = todos + [e for e in buscar_fever(ciudad, categoria, desde, hasta)
                          if pasa_filtros(e, hmin, hmax, gratis, precio_max, genero, precio_min)]
-    todos = [e for e in todos if _extra_ok(e)]
+    todos = sin_duplicados([e for e in todos if _extra_ok(e)])
     por_dia = {}
     for e in todos:
         por_dia[e.get("fecha", "")] = por_dia.get(e.get("fecha", ""), 0) + 1
