@@ -438,6 +438,7 @@
   <nav class="tabs" id="tabs">
     <button class="tab on" data-tab="clubs">🪩 Fiestas y clubs</button>
     <button class="tab" data-tab="bares">🍸 Bares</button>
+    <button class="tab" data-tab="restaurantes">🍽️ Restaurantes</button>
     <button class="tab" data-tab="conciertos">🎤 Conciertos</button>
     <button class="tab" data-tab="teatro">🎭 Teatro y shows</button>
     <button class="tab" data-tab="deportes">⚽ Deportes</button>
@@ -551,6 +552,16 @@
         <button class="chip" data-v="terraza">☀️ Terraza</button><button class="chip" data-v="musica">🎷 Música en vivo</button><button class="chip" data-v="hifi">🎧 HiFi</button>
       </div>
     </div>
+    <div class="group g-rest" hidden>
+      <h4>Cocina</h4>
+      <div class="chips" data-g="tipoRest" id="chips-rest">
+        <button class="chip" data-v="tapas">Tapas</button><button class="chip" data-v="italiana">Italiana</button><button class="chip" data-v="pizza">Pizza</button>
+        <button class="chip" data-v="japonesa">Japonesa</button><button class="chip" data-v="asiatica">Asiática</button><button class="chip" data-v="mexicana">Mexicana</button>
+        <button class="chip" data-v="hamburguesas">Hamburguesas</button><button class="chip" data-v="india">India</button><button class="chip" data-v="parrilla">Parrilla</button>
+        <button class="chip" data-v="mariscos">Mariscos</button><button class="chip" data-v="mediterranea">Mediterránea</button><button class="chip" data-v="latina">Latina</button>
+        <button class="chip" data-v="veg">🌱 Vegetariana</button><button class="chip" data-v="terraza">☀️ Terraza</button>
+      </div>
+    </div>
     <div class="group" id="group-km">
       <h4>Distancia <em id="dist-hint">· activá "Cerca mío"</em></h4>
       <div class="chips" data-g="km">
@@ -617,16 +628,18 @@ const GENEROS = {
   teatro: [], deportes: [['fútbol', 'Fútbol'], ['básquet', 'Básquet'], ['tenis', 'Tenis'], ['motor', 'Motor']],
   cine: [['Acción', 'Acción'], ['Comedia', 'Comedia'], ['Drama', 'Drama'], ['Terror', 'Terror'], ['Animación', 'Animación'], ['Ciencia ficción', 'Ciencia ficción'], ['Familia', 'Familia'], ['Romance', 'Romance']],
 };
-const TAB_TXT = { bares: ['bar', 'bares'], clubs: ['plan', 'planes'], conciertos: ['concierto', 'conciertos'], teatro: ['show', 'shows'], deportes: ['evento deportivo', 'eventos deportivos'], cine: ['película', 'películas'] };
+const TAB_TXT = { bares: ['bar', 'bares'], restaurantes: ['restaurante', 'restaurantes'], clubs: ['plan', 'planes'], conciertos: ['concierto', 'conciertos'], teatro: ['show', 'shows'], deportes: ['evento deportivo', 'eventos deportivos'], cine: ['película', 'películas'] };
 const DIAS_L = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES_L = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
 // ── ESTADO ─────────────────────────────────────────────────────────────────
-const st = { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, km: '99' };
+const st = { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, km: '99' };
+function esLugar() { return st.tab === 'bares' || st.tab === 'restaurantes'; }
+function tipoLugar() { return st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar; }
 let ubic = null;          // { lat, lng, txt, auto } · auto = punto céntrico de la ciudad
 const KM_DEFECTO = { bares: '1.5', otros: '99' };
-function kmClave() { return st.tab === 'bares' ? 'bares' : 'otros'; }
+function kmClave() { return esLugar() ? 'bares' : 'otros'; }
 let modoVista = 'lista';  // 'lista' | 'mapa'
 let actual = { items: [], total: 0, porDia: {}, titulo: null };
 const MAX_MAPA = 20;
@@ -683,18 +696,19 @@ function pintar() {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === st.tab));
   document.getElementById('chip-cal').textContent = textoFechas();
   const et = { hoy: 'Hoy', manana: 'Mañana', finde: 'Este finde', cal: textoFechas().replace('📅 ', '') };
-  const esBar = st.tab === 'bares';
+  const esBar = esLugar();
   const esCine = st.tab === 'cine';
   document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (esCine && g.id !== 'group-genero') || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length));
   document.getElementById('group-km').hidden = esCine;
-  document.querySelectorAll('.g-bar').forEach(g => g.hidden = !esBar);
+  document.querySelectorAll('.g-bar').forEach(g => g.hidden = st.tab !== 'bares');
+  document.querySelectorAll('.g-rest').forEach(g => g.hidden = st.tab !== 'restaurantes');
   document.getElementById('dist-hint').textContent = ubic ? `· desde ${ubic.txt}` : '';
   const todo = document.querySelector('.chips[data-g=km] .chip[data-v="99"]');
-  const bloqueado = esBar && !st.tipoBar;
+  const bloqueado = esBar && !tipoLugar();
   todo.disabled = bloqueado;
-  todo.title = bloqueado ? 'Elegí un tipo de bar para buscar en toda la ciudad' : '';
+  todo.title = bloqueado ? (st.tab === 'restaurantes' ? 'Elegí un tipo de cocina para buscar en toda la ciudad' : 'Elegí un tipo de bar para buscar en toda la ciudad') : '';
   const kmTxt = st.km !== '99' && ubic ? `< ${st.km.replace('.', ',')} km` : null;
-  document.getElementById('fsummary').textContent = (esBar ? [st.tipoBar, kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).join(' · ');
+  document.getElementById('fsummary').textContent = (esBar ? [tipoLugar(), kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).join(' · ');
 }
 
 // ── CALENDARIO ─────────────────────────────────────────────────────────────
@@ -738,7 +752,7 @@ function autoBuscar() {
 }
 
 async function buscar() {
-  if (st.tab === 'bares') return buscarBares();
+  if (esLugar()) return buscarBares();
   if (st.tab === 'cine') return buscarCine();
   if (!st.cuando) { st.cuando = 'finde'; pintar(); }  // sin fecha elegida, buscamos el finde
   vista = 'resultados';
@@ -975,7 +989,7 @@ function verGuardados() {
   const susBares = todos.filter(e => e.tipo === 'bar');
   if (!lista.length && susBares.length) {
     document.getElementById('main').innerHTML = volver() + `<div class="res-head"><h2>Mis planes <span>favoritos</span></h2></div>
-      <div class="day"><b>Bares</b></div><div class="grid">${susBares.map(tarjetaBar).join('')}</div>`;
+      <div class="day"><b>Bares y restaurantes</b></div><div class="grid">${susBares.map(tarjetaBar).join('')}</div>`;
     return;
   }
   if (!lista.length) {
@@ -984,7 +998,7 @@ function verGuardados() {
     return;
   }
   mostrar(lista, lista.length, `Mis planes <span>favoritos</span>`);
-  if (susBares.length) document.getElementById('main').insertAdjacentHTML('beforeend', `<div class="day"><b>Bares</b></div><div class="grid">${susBares.map(tarjetaBar).join('')}</div>`);
+  if (susBares.length) document.getElementById('main').insertAdjacentHTML('beforeend', `<div class="day"><b>Bares y restaurantes</b></div><div class="grid">${susBares.map(tarjetaBar).join('')}</div>`);
   vista = 'guardados';
 }
 function textoCompartir(e) {
@@ -1035,7 +1049,7 @@ function segVista() {
 function setModo(m) {
   if (m === modoVista) return;
   modoVista = m;
-  if (st.tab === 'bares') renderActual(); else buscar();
+  if (esLugar()) renderActual(); else buscar();
 }
 
 function renderActual() {
@@ -1043,7 +1057,7 @@ function renderActual() {
   const main = document.getElementById('main');
   main.classList.remove('loading');
   let items = actual.items.map(x => ({ ...x, d: ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null }));
-  const esBar = st.tab === 'bares';
+  const esBar = esLugar();
   if (modoVista === 'mapa') return renderMapa(items, esBar);
   let extra = '';
   if (ubic && st.km !== '99') {
@@ -1062,14 +1076,14 @@ function mostrarBares(items) {
   const donde = ubic ? `cerca de <span>${esc(ubic.txt)}</span>` : `en <span>${esc(ciudadTxt())}</span>`;
   items.sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
   const total = Math.max(actual.total || 0, items.length);
-  let html = volver() + cartelGuia() + `<div class="res-head"><h2>${total} ${total === 1 ? 'bar' : 'bares'} ${donde}</h2><div class="head-tools">${segVista()}</div></div>`;
+  let html = volver() + cartelGuia() + `<div class="res-head"><h2>${total} ${TAB_TXT[st.tab][total === 1 ? 0 : 1]} ${donde}</h2><div class="head-tools">${segVista()}</div></div>`;
   if (!items.length) {
-    html += `<div class="empty"><b>No encontré bares con esos filtros 😕</b>${st.km !== '99' ? 'Probá ampliando la distancia a "Cerca < 3 km".' : 'Probá con otro tipo de bar.'}</div>`;
+    html += `<div class="empty"><b>No encontré ${TAB_TXT[st.tab][1]} con esos filtros 😕</b>${st.km !== '99' ? 'Probá ampliando la distancia a "Cerca < 3 km".' : 'Probá con otro tipo.'}</div>`;
   } else {
     html += `<div class="res-sub" style="margin-top:10px">Ordenados por distancia${ubic && ubic.auto ? '. Tocá "◎ Cerca mío" para buscar desde tu ubicación o una dirección' : ''}.</div><div class="grid" style="margin-top:16px" id="grid-bares">${items.map(tarjetaBar).join('')}</div>`;
-    if (total > items.length) html += `<button class="more" id="more-bares" onclick="masBares()">Ver más bares (${total - items.length} más) ↓</button>`;
+    if (total > items.length) html += `<button class="more" id="more-bares" onclick="masBares()">Ver más ${TAB_TXT[st.tab][1]} (${total - items.length} más) ↓</button>`;
   }
-  html += `<div class="osm-note">Datos de bares: © colaboradores de OpenStreetMap.</div>`;
+  html += `<div class="osm-note">Datos de ${TAB_TXT[st.tab][1]}: © colaboradores de OpenStreetMap.</div>`;
   main.innerHTML = html;
   main.scrollTop = 0;
 }
@@ -1083,7 +1097,7 @@ function renderMapa(items, esBar) {
   const main = document.getElementById('main');
   itemsMapa = items.filter(tieneCoords); esBarMapa = esBar;
   const sin = items.length - itemsMapa.length;
-  const que = esBar ? 'bares' : TAB_TXT[st.tab][1];
+  const que = TAB_TXT[st.tab][1];
   main.innerHTML = volver() + `<div class="res-head"><h2>${items.length} ${que} en <span>${esc(ubic ? ubic.txt : ciudadTxt())}</span></h2><div class="head-tools">${segVista()}</div></div>
     <div class="mapa-wrap"><div id="mapa"></div><div class="mapa-lista" id="mapalista"></div></div>
     ${sin ? `<div class="res-sub" style="margin-top:8px">${sin} sin ubicación exacta no aparecen en el mapa (sí en la lista).</div>` : ''}`;
@@ -1108,7 +1122,7 @@ function renderMapa(items, esBar) {
     // En bares: si te alejás, ampliamos la distancia y traemos más (sin mover el mapa)
     if (!esBarMapa) return;
     const z = mapa.getZoom();
-    const nuevo = st.km === '1.5' && z <= 15 ? '3' : (st.km === '3' && z <= 13 && st.tipoBar ? '99' : null);
+    const nuevo = st.km === '1.5' && z <= 15 ? '3' : (st.km === '3' && z <= 13 && tipoLugar() ? '99' : null);
     if (nuevo) { st.km = nuevo; vistaGuardada = { c: mapa.getCenter(), z }; pintar(); buscarBares(); }
   });
   document.getElementById('mapalista').addEventListener('click', e => {
@@ -1171,17 +1185,45 @@ async function baresLocales(c) {
   } catch (e) { BARES_LOCALES[c] = null; }
   return BARES_LOCALES[c];
 }
+const REST_LOCALES = {};
+const COCINA_EMOJI = { tapas: '🥘', italiana: '🍝', pizza: '🍕', japonesa: '🍣', asiatica: '🥢', mexicana: '🌮', hamburguesas: '🍔', india: '🍛', parrilla: '🥩', mariscos: '🦐', mediterranea: '🫒', latina: '🫔', francesa: '🥐' };
+async function restLocales(c) {
+  if (c in REST_LOCALES) return REST_LOCALES[c];
+  try {
+    const r = await fetch(`datos/restaurantes/${c.replace(/ /g, '-')}.json`);
+    if (!r.ok) throw new Error('sin archivo');
+    const j = await r.json(), et = j.etiquetas || {};
+    REST_LOCALES[c] = (j.restaurantes || []).map(b => {
+      const k = b.k || [], t = b.t || [];
+      return {
+        id: 'osm-' + b.id, tipo: 'bar', lugar: 'rest', titulo: b.n, lat: b.la, lng: b.lo,
+        categoria: k.length ? k.map(x => et[x] || x).slice(0, 2).join(' · ') : 'Restaurante',
+        cocinas: k, tipos: [...k, ...t], tags: k.map(x => et[x] || x),
+        terraza: t.includes('terraza'), veg: t.includes('veg'), llevar: t.includes('llevar'),
+        direccion: b.d || '', barrio: b.b || '', horario: b.h || '', web: b.w || '', telefono: b.p || '',
+        info: [b.d, b.h, b.w, k.length].filter(Boolean).length,
+      };
+    });
+  } catch (e) { REST_LOCALES[c] = null; }
+  return REST_LOCALES[c];
+}
 async function buscarBares() {
   vista = 'resultados';
   const main = document.getElementById('main');
   main.classList.add('loading');
-  const locales = await baresLocales(ciudad());
+  const esRest = st.tab === 'restaurantes';
+  const locales = esRest ? await restLocales(ciudad()) : await baresLocales(ciudad());
+  if (esRest && !locales) {
+    main.innerHTML = volver() + `<div class="empty"><b>Todavía no tengo restaurantes de ${esc(ciudadTxt())} 😕</b>Por ahora están Barcelona, Madrid, Valencia, Mallorca, Ibiza, London, Berlin, Amsterdam, Paris, Lisbon, Porto, Buenos Aires, Rio, New York y Mexico City.</div>`;
+    main.classList.remove('loading');
+    return;
+  }
   if (locales) {
     const c = CENTRO[ciudad()];
     const desde = ubic ? [ubic.lat, ubic.lng] : [c[0], c[1]];
     const radio = st.km === '99' ? 8 : Number(st.km);
     const lista = locales
-      .filter(b => !st.tipoBar || b.tipos.includes(st.tipoBar))
+      .filter(b => !tipoLugar() || b.tipos.includes(tipoLugar()))
       .map(b => ({ ...b, distancia: distKm(desde, [b.lat, b.lng]) }))
       .filter(b => b.distancia <= radio)
       .sort((a, b) => (a.distancia - 0.08 * a.info) - (b.distancia - 0.08 * b.info));
@@ -1217,7 +1259,7 @@ async function masBares() {
     actual.items.push(...nuevos);
     document.getElementById('grid-bares').insertAdjacentHTML('beforeend', nuevos.map(tarjetaBar).join(''));
     const faltan = actual.total - actual.items.length;
-    if (faltan > 0) btn.textContent = `Ver más bares (${faltan} más) ↓`; else btn.remove();
+    if (faltan > 0) btn.textContent = `Ver más ${TAB_TXT[st.tab][1]} (${faltan} más) ↓`; else btn.remove();
     return;
   }
   btn.disabled = true; btn.textContent = 'Cargando…';
@@ -1237,6 +1279,7 @@ const DIAS_OSM = { Mo: 'Lu', Tu: 'Ma', We: 'Mi', Th: 'Ju', Fr: 'Vi', Sa: 'Sá', 
 function horarioEs(h) { return (h || '').replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su|PH|off)\b/g, m => DIAS_OSM[m]).replace(/;\s*/g, ' · '); }
 function tarjetaBar(b) {
   EVENTOS[b.id] = b;
+  if (b.lugar === 'rest') return tarjetaRest(b);
   const emoji = (b.tags || []).includes('Vinos') ? '🍷' : (b.tags || []).includes('Cervezas') || b.categoria === 'Pub' ? '🍺' : '🍸';
   return `
     <article class="card" data-id="${esc(b.id)}" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
@@ -1250,6 +1293,31 @@ function tarjetaBar(b) {
         <div class="facts">
           ${b.direccion ? `<div class="dir-link" onclick="verDireccion('${esc(b.id)}')"><span>📍</span> ${esc(b.direccion)}</div>` : `<div><button class="dir-btn" style="margin:0" onclick="verDireccion('${esc(b.id)}')">📍 Ver en el mapa</button></div>`}
           ${b.horario ? `<div class="horario"><span>🕐</span> ${esc(horarioEs(b.horario))}</div>` : ''}
+        </div>
+        <div class="foot">
+          <div class="tags">${(b.tags || []).slice(0, 2).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+          <span></span>
+          <button class="fav ${estaGuardado(b.id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(b.id)}')">${estaGuardado(b.id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
+          <div class="res-wrap"><button class="tickets" style="background:none;cursor:pointer;font-family:inherit" onclick="menuReservar(event, '${esc(b.id)}')">Reservar ▾</button></div>
+        </div>
+      </div>
+    </article>`;
+}
+function tarjetaRest(b) {
+  const emoji = COCINA_EMOJI[(b.cocinas || [])[0]] || '🍽️';
+  return `
+    <article class="card" data-id="${esc(b.id)}" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
+      ${picNombre(b.titulo, emoji)}
+      ${b.d != null ? `<span class="dist">${fmtDist(b.d)} · ${aPie(b.d)}</span>` : ''}
+      <div class="bar-ico">${b.terraza ? '<span title="Terraza">☀️</span>' : ''}${b.veg ? '<span title="Opciones vegetarianas">🌱</span>' : ''}${b.llevar ? '<span title="Para llevar">🥡</span>' : ''}</div>
+      <div class="inner">
+        <div class="town">📍 ${esc(b.barrio || ciudadTxt())}</div>
+        <div class="title">${esc(b.titulo)}</div>
+        <div class="who">${esc(b.categoria)}</div>
+        <div class="facts">
+          ${b.direccion ? `<div class="dir-link" onclick="verDireccion('${esc(b.id)}')"><span>📍</span> ${esc(b.direccion)}</div>` : `<div><button class="dir-btn" style="margin:0" onclick="verDireccion('${esc(b.id)}')">📍 Ver en el mapa</button></div>`}
+          ${b.horario ? `<div class="horario"><span>🕐</span> ${esc(horarioEs(b.horario))}</div>` : ''}
+          <div><a class="dir-btn" style="margin:0;text-decoration:none" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([b.titulo, b.direccion, ciudadTxt()].filter(Boolean).join(', '))}" target="_blank" rel="noopener">⭐ Reseñas y precios en Google</a></div>
         </div>
         <div class="foot">
           <div class="tags">${(b.tags || []).slice(0, 2).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
@@ -1402,7 +1470,7 @@ function cuandoHome(v) {
 }
 function irHome(ev) {
   if (ev) ev.preventDefault();
-  Object.assign(st, { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, km: KM_DEFECTO.otros });
+  Object.assign(st, { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, km: KM_DEFECTO.otros });
   cal.a = cal.b = null; cal.abierto = false; pintarCal();
   modoVista = 'lista';
   usoFiltros = false;
@@ -1541,7 +1609,7 @@ function entrarCiudad(c) {
 function entrarCategoria(tab) {
   entrarCiudad();
   st.tab = tab;
-  st.km = tab === 'bares' ? KM_DEFECTO.bares : KM_DEFECTO.otros;
+  st.km = (tab === 'bares' || tab === 'restaurantes') ? KM_DEFECTO.bares : KM_DEFECTO.otros;
   pintarGeneros(); pintar(); buscar();
 }
 // Texto de fondo que se va escribiendo solo con ejemplos
@@ -1599,10 +1667,10 @@ document.querySelectorAll('.chips').forEach(g => {
     if (k === 'cuando') { cal.abierto = false; pintarCal(); }
     if (k === 'km') {
       st.km = v; pintar();
-      return st.tab === 'bares' || (ubic && ubic.auto) ? autoBuscar() : renderActual();
+      return esLugar() || (ubic && ubic.auto) ? autoBuscar() : renderActual();
     }
     st[k] = st[k] === v && k !== 'cuando' ? null : v;
-    if (k === 'tipoBar' && !st.tipoBar && st.km === '99') st.km = '3';  // sin tipo no se puede "toda la ciudad"
+    if ((k === 'tipoBar' || k === 'tipoRest') && !st[k] && st.km === '99') st.km = '3';  // sin tipo no se puede "toda la ciudad"
     pintar(); autoBuscar();
   });
 });
@@ -1611,7 +1679,7 @@ document.getElementById('tabs').addEventListener('click', e => {
   const antes = kmClave();
   st.tab = t.dataset.tab;
   if (kmClave() !== antes && (!ubic || ubic.auto)) st.km = KM_DEFECTO[kmClave()];
-  if (st.tab === 'bares' && !st.tipoBar && st.km === '99') st.km = '3';
+  if (esLugar() && !tipoLugar() && st.km === '99') st.km = '3';
   if (!(GENEROS[st.tab] || []).some(g => g[0] === st.genero)) st.genero = null;
   pintarGeneros(); pintar(); buscar();
 });
@@ -1619,7 +1687,7 @@ document.getElementById('city').addEventListener('change', () => {
   preciosCiudad();
   apagarCerca(true);
   try { localStorage.setItem('lp_ciudad', ciudad()); } catch (e) {}
-  if (vista === 'resultados' || st.tab === 'bares') autoBuscar(); else inicio();
+  if (vista === 'resultados' || esLugar()) autoBuscar(); else inicio();
 });
 
 // ── ARRANQUE ───────────────────────────────────────────────────────────────
@@ -1631,7 +1699,7 @@ document.getElementById('city').addEventListener('change', () => {
   sel.value = CIUDADES.some(c => c[0] === guardada) ? guardada : 'barcelona';
   document.getElementById('cityl').innerHTML = sel.innerHTML;
   document.getElementById('ciudadestop').innerHTML = `<div class="que">¿Qué buscás?</div>` + [
-    ['clubs', '🪩 Fiestas y clubs'], ['bares', '🍸 Bares'], ['conciertos', '🎤 Conciertos'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'], ...(BETA ? [['cine', '🎬 Cine']] : []),
+    ['clubs', '🪩 Fiestas y clubs'], ['bares', '🍸 Bares'], ['restaurantes', '🍽️ Restaurantes'], ['conciertos', '🎤 Conciertos'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'], ...(BETA ? [['cine', '🎬 Cine']] : []),
   ].map(([t, txt]) => `<button class="chip big" onclick="entrarCategoria('${t}')">${txt}</button>`).join('');
   ubic = puntoCentro(); actualizarNota();
   preciosCiudad(); pintarGeneros(); pintar(); inicio(); contarGuardados();

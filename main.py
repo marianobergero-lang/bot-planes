@@ -1695,7 +1695,8 @@ def cine():
                     "votos": m.get("vote_count") or 0,
                     "popularidad": m.get("popularity") or 0,
                     "generos": [gen.get(g, "") for g in m.get("genre_ids") or [] if gen.get(g)],
-                    "url_horarios": "https://www.google.com/search?q=" + requests.utils.quote(f"{titulo_busqueda} horarios cine {nombre_ciudad}"),
+                    "url_horarios": ("https://www.sensacine.com/buscar/?q=" + requests.utils.quote(m.get("title", ""))) if pais == "ES"
+                                    else "https://www.google.com/search?q=" + requests.utils.quote(f"{titulo_busqueda} horarios cine {nombre_ciudad}"),
                     "url_trailer": "https://www.youtube.com/results?search_query=" + requests.utils.quote(f"{m.get('title','')} tráiler"),
                     "url_ficha": f"https://www.themoviedb.org/movie/{m['id']}?language=es-ES",
                 })
