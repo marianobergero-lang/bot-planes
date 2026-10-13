@@ -588,10 +588,19 @@ def repartir_por_dia(eventos, max_ev):
     En la selección no se repite el mismo plan en varios días (salvo que no haya otros)."""
     hoy = datetime.now().strftime("%Y-%m-%d")
     por_dia = {}
-    # Primero los de Fever que pagan comisión, después el resto por popularidad
-    for e in sorted(eventos, key=lambda x: (0 if x.get("comision") else 1, -(x.get("asistentes") or 0), x.get("relevancia", 0))):
+    for e in eventos:
         if e.get("fecha", "") >= hoy:
             por_dia.setdefault(e.get("fecha", ""), []).append(e)
+    # Cada día intercala: 2 de Fever (comisión), 2 del resto, 2 de Fever… cada grupo por más interesados
+    clave = lambda x: (-(x.get("asistentes") or 0), x.get("relevancia", 0))
+    for dia, lista in por_dia.items():
+        fever = sorted([e for e in lista if e.get("comision")], key=clave)
+        resto = sorted([e for e in lista if not e.get("comision")], key=clave)
+        mezcla = []
+        while fever or resto:
+            mezcla += fever[:2] + resto[:2]
+            fever, resto = fever[2:], resto[2:]
+        por_dia[dia] = mezcla
     elegidos, vistos = [], set()
     for permitir_repetidos in (False, True):
         ronda = 0
@@ -606,8 +615,9 @@ def repartir_por_dia(eventos, max_ev):
             ronda += 1
         if len(elegidos) >= max_ev:
             break
-    # dentro de cada día: primero Fever (comisión), después los de más interesados, después por hora
-    elegidos.sort(key=lambda x: (x.get("fecha", ""), 0 if x.get("comision") else 1, -(x.get("asistentes") or 0), x.get("hora") or "99"))
+    # dentro de cada día se respeta el orden intercalado
+    pos = {id(e): i for v in por_dia.values() for i, e in enumerate(v)}
+    elegidos.sort(key=lambda x: (x.get("fecha", ""), pos.get(id(x), 0)))
     return elegidos
 
 VACIAS = {"the","la","el","los","las","de","del","at","en","in","a","y","and","&","x","b2b","with","con","presents","presenta","party","fiesta","live","tour","night"}
