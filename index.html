@@ -216,9 +216,9 @@
   .menu-share a, .menu-share button { background: none; border: none; color: var(--text); text-align: left; font-size: 13.5px; padding: 8px 10px; border-radius: 7px; cursor: pointer; text-decoration: none; }
   .menu-share a:hover, .menu-share button:hover { background: var(--surface); }
   .sig-wrap { position: relative; display: inline-block; }
-  .txt-largo.dos { display: inline-flex; flex-direction: column; line-height: 1.05; text-align: left; vertical-align: middle; margin-left: 4px; }
-  .txt-largo.dos small { font-size: 11px; color: var(--muted); }
-  .saved-btn { display: inline-flex; align-items: center; gap: 2px; }
+  .txt-largo.dos { display: inline-flex; flex-direction: column; line-height: 1.1; text-align: left; vertical-align: middle; margin-left: 4px; }
+  .txt-largo.dos small { font-size: inherit; color: inherit; font-weight: inherit; }
+  header .saved-btn { display: inline-flex; align-items: center; gap: 6px; height: 46px; padding: 0 16px; font-size: 13.5px; font-weight: 600; color: var(--text); border-radius: 23px; }
   .sig-pop { display: none; position: absolute; right: 0; top: calc(100% + 8px); width: 360px; max-width: 86vw; background: var(--card); border: 1px solid var(--border2); border-radius: 14px; padding: 10px 12px; z-index: 3000; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
   .sig-pop.open { display: block; }
   .sig-pop .vacio { color: var(--muted); font-size: 13.5px; line-height: 1.45; padding: 4px 2px; }
@@ -311,13 +311,16 @@
   .abierto-si { color: #5fd38d; font-weight: 700; } .abierto-no { color: var(--muted); }
   .share-bus { background: transparent; border: 1px solid var(--border2); color: var(--text); border-radius: 10px; padding: 7px 12px; font: 600 13px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; }
   .share-bus:hover { border-color: var(--orange); }
-  .lang-sel { display: inline-flex; border: 1px solid var(--border2); border-radius: 20px; overflow: hidden; vertical-align: middle; }
-  .lang-sel button { background: none; border: none; padding: 5px 9px; font-size: 16px; cursor: pointer; opacity: .45; filter: grayscale(.6); }
-  .lang-sel button.on { opacity: 1; filter: none; background: rgba(233,104,46,.18); }
+  .lang-sel { display: inline-flex; border: 1.5px solid rgba(233,104,46,.7); border-radius: 23px; overflow: hidden; vertical-align: middle; height: 46px; }
+  .lang-sel button { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; padding: 0 13px; font: 800 14px 'Space Grotesk', sans-serif; color: var(--muted); cursor: pointer; }
+  .lang-sel button span { font-size: 19px; line-height: 1; }
+  .lang-sel button:not(.on) span { opacity: .55; filter: grayscale(.5); }
+  .lang-sel button.on { background: var(--orange); color: #fff; }
+  .lang-sel button:not(.on):hover { color: var(--text); }
   .lang-land { position: absolute; top: 16px; right: 18px; z-index: 3; }
-  @media (max-width: 820px) { .txt-largo.dos { display: none; } .lang-land { top: 10px; right: 10px; } .landing-in { padding-top: 62px !important; } .lang-sel button { padding: 4px 7px; font-size: 14px; } }
+  @media (max-width: 820px) { .txt-largo.dos { display: none; } .lang-land { top: 10px; right: 10px; } .landing-in { padding-top: 70px !important; } .lang-sel { height: 38px; } .lang-sel button { padding: 0 10px; font-size: 13px; } header .saved-btn { height: 38px; padding: 0 12px; } }
   @media (max-width: 1700px) and (min-width: 821px) { .tab { font-size: 14.5px; padding: 9px 11px; } header { gap: 10px; } .powered { font-size: 12px; } }
-  @media (max-width: 1450px) and (min-width: 821px) { .powered { display: none; } }
+  @media (max-width: 1780px) and (min-width: 821px) { header .powered { display: none; } }
   .reset-f { align-self: flex-start; background: #F2EEE8; color: var(--orange); border: none; border-radius: 10px; padding: 7px 12px; font: 700 13px 'Space Grotesk', sans-serif; cursor: pointer; }
   .reset-f:hover { background: #fff; }
   .menu-bus { top: calc(100% + 6px); right: 0; left: auto; min-width: 250px; z-index: 60; }
@@ -591,7 +594,7 @@
       <label class="city-label" for="city">Ciudad</label>
       <div class="city-row">
         <div class="city"><select id="city"></select></div>
-        <button class="near" id="near" onclick="abrirCerca(event)">◎ Cerca mío</button>
+        <button class="near" id="near" onclick="abrirCerca(event)">◎ Mi ubicación</button>
       </div>
       <div class="near-pop" id="nearpop">
         <button class="cerrar-x" onclick="event.stopPropagation();document.getElementById('nearpop').classList.remove('open')" aria-label="Cerrar">✕</button>
@@ -668,7 +671,7 @@
       <div class="chips" data-g="abierto"><button class="chip" data-v="si">🟢 Abierto ahora</button></div>
     </div>
     <div class="group" id="group-km">
-      <h4>Distancia <em id="dist-hint">· activá "Cerca mío"</em></h4>
+      <h4>Distancia <em id="dist-hint">· activá "Mi ubicación"</em></h4>
       <div class="chips" data-g="km">
         <button class="chip" data-v="1.5">A pie<small>&lt; 1,5 km</small></button><button class="chip" data-v="3">Cerca<small>&lt; 3 km</small></button><button class="chip on" data-v="99">Toda la ciudad</button>
       </div>
@@ -763,7 +766,7 @@ const EN = {
   'No tenemos tu ciudad todavía. Elegí la más cercana o a la que viajás 👇': 'We don’t have your city yet. Pick the closest one or where you’re traveling 👇',
   '📍 Parece que estás en': '📍 Looks like you’re in', '. Si no, elegí otra.': '. If not, pick another one.',
   // filtros
-  'Ciudad': 'City', '◎ Cerca mío': '◎ Near me', '✕ Cerca mío': '✕ Near me', 'Filtros': 'Filters', '✕ Borrar filtros': '✕ Clear filters',
+  'Ciudad': 'City', '◎ Mi ubicación': '◎ My location', '✕ Mi ubicación': '✕ My location', 'Ubicación exacta:': 'Exact location:', 'Filtros': 'Filters', '✕ Borrar filtros': '✕ Clear filters',
   'Cuándo': 'When', 'Hoy': 'Today', 'Mañana': 'Tomorrow', 'Este finde': 'This weekend', '📅 Elegir fechas': '📅 Pick dates',
   'Franja': 'Time', '· horario de inicio entre': '· starting between', 'Tarde': 'Afternoon', 'Sunset': 'Sunset', 'Noche': 'Night', 'Afters': 'Afters',
   'Precio': 'Price', 'Gratis': 'Free', 'Bajo': 'Low', 'Medio': 'Mid', 'Alto': 'High', 'Género': 'Genre', 'Tipo': 'Type',
@@ -772,7 +775,7 @@ const EN = {
   'Hamburguesas': 'Burgers', 'India': 'Indian', 'Parrilla': 'Grill', 'Mariscos': 'Seafood', 'Mediterránea': 'Mediterranean', 'Latina': 'Latin American', 'Francesa': 'French',
   'Además': 'Also', '· se suman a la cocina': '· combined with cuisine', '🌱 Vegetariana / vegana': '🌱 Vegetarian / vegan', '🥡 Para llevar': '🥡 Takeaway',
   'Ahora': 'Now', '🟢 Abierto ahora': '🟢 Open now', 'Distancia': 'Distance', 'A pie': 'Walking', 'Cerca': 'Nearby', 'Toda la ciudad': 'Whole city',
-  '· activá "Cerca mío"': '· turn on "Near me"', 'Los resultados se actualizan solos al tocar los filtros': 'Results update as soon as you tap a filter',
+  '· activá "Mi ubicación"': '· turn on "My location"', 'Los resultados se actualizan solos al tocar los filtros': 'Results update as soon as you tap a filter',
   'Ver resultados ↓': 'See results ↓', 'Fútbol': 'Football', 'Básquet': 'Basketball', 'Tenis': 'Tennis', 'Motor': 'Motorsport',
   'Acción': 'Action', 'Comedia': 'Comedy', 'Drama': 'Drama', 'Terror': 'Horror', 'Animación': 'Animation', 'Ciencia ficción': 'Sci-fi', 'Familia': 'Family', 'Romance': 'Romance',
   'Aventura': 'Adventure', 'Fantasía': 'Fantasy', 'Suspense': 'Thriller', 'Crimen': 'Crime', 'Misterio': 'Mystery', 'Documental': 'Documentary',
@@ -805,8 +808,8 @@ const EN = {
   'en:': 'at:', 'de': 'from', 'a': 'to', 'hs': '', 'Ver tickets →': 'Tickets →', '♡ Mis planes': '♡ Save', '♥ En mis planes': '♥ Saved', '📍 Ver dirección': '📍 Directions',
   'PRECIO EN WEB': 'PRICE ON SITE', 'GRATIS': 'FREE', 'Entradas (web del club) →': 'Tickets (club site) →', 'Buscar entradas →': 'Find tickets →',
   'Agregar a mi calendario': 'Add to my calendar', 'Compartir': 'Share', 'Ver sus próximas fechas': 'See upcoming dates', 'Ver todo lo que hay en este lugar': 'See everything at this venue',
-  'Los más cercanos primero.': 'Closest first.', 'Tocá "◎ Cerca mío" para buscar desde tu ubicación o una dirección': 'Tap "◎ Near me" to search from your location or an address',
-  'Los más cercanos primero. Tocá "◎ Cerca mío" para buscar desde tu ubicación o una dirección.': 'Closest first. Tap "◎ Near me" to search from your location or an address.',
+  'Los más cercanos primero.': 'Closest first.', 'Tocá "◎ Mi ubicación" para buscar desde tu ubicación o una dirección': 'Tap "◎ My location" to search from your location or an address',
+  'Los más cercanos primero. Tocá "◎ Mi ubicación" para buscar desde tu ubicación o una dirección.': 'Closest first. Tap "◎ My location" to search from your location or an address.',
   'Probá ampliando la distancia a "Cerca < 3 km".': 'Try widening the distance to "Nearby < 3 km".', 'Probá con otro tipo.': 'Try another type.',
   'Bar': 'Bar', 'Pub': 'Pub', 'Cervecería al aire libre': 'Beer garden', 'Restaurante': 'Restaurant', 'Cócteles': 'Cocktails', 'Vinos': 'Wine', 'Cervezas': 'Beer',
   'Abierto ahora': 'Open now', 'Cerrado ahora': 'Closed now', 'Abierto 24 hs': 'Open 24/7', '📍 Ver en el mapa': '📍 See on map', 'Ver en el mapa': 'See on map',
@@ -946,7 +949,7 @@ function cambiarIdioma(l) {
   const u = new URL(location.href); u.searchParams.set('lang', l); location.href = u.toString();
 }
 function selectorIdioma() {
-  return `<div class="lang-sel"><button class="${LANG === 'es' ? 'on' : ''}" onclick="cambiarIdioma('es')" title="Español">🇪🇸</button><button class="${LANG === 'en' ? 'on' : ''}" onclick="cambiarIdioma('en')" title="English">🇬🇧</button></div>`;
+  return `<div class="lang-sel"><button class="${LANG === 'es' ? 'on' : ''}" onclick="cambiarIdioma('es')" aria-label="Español"><span>🇪🇸</span>ES</button><button class="${LANG === 'en' ? 'on' : ''}" onclick="cambiarIdioma('en')" aria-label="English"><span>🇬🇧</span>EN</button></div>`;
 }
 
 
@@ -1424,7 +1427,7 @@ function mostrarBares(items) {
   if (!items.length) {
     html += `<div class="empty"><b>No encontré ${TAB_TXT[st.tab][1]} con esos filtros 😕</b>${st.km !== '99' ? 'Probá ampliando la distancia a "Cerca < 3 km".' : 'Probá con otro tipo.'}</div>`;
   } else {
-    html += `<div class="res-sub" style="margin-top:10px">Los más cercanos primero${ubic && ubic.auto ? '. Tocá "◎ Cerca mío" para buscar desde tu ubicación o una dirección' : ''}.</div><div class="grid" style="margin-top:16px" id="grid-bares">${items.map(tarjetaBar).join('')}</div>`;
+    html += `<div class="res-sub" style="margin-top:10px">Los más cercanos primero${ubic && ubic.auto ? '. Tocá "◎ Mi ubicación" para buscar desde tu ubicación o una dirección' : ''}.</div><div class="grid" style="margin-top:16px" id="grid-bares">${items.map(tarjetaBar).join('')}</div>`;
     if (total > items.length) html += `<button class="more" id="more-bares" onclick="masBares()">Ver más ${TAB_TXT[st.tab][1]} (${total - items.length} más) ↓</button>`;
   }
   html += `<div class="osm-note">Datos de ${TAB_TXT[st.tab][1]}: © colaboradores de OpenStreetMap.</div>`;
@@ -2055,9 +2058,9 @@ function actualizarNota() {
   const b = document.getElementById('near'), n = document.getElementById('nearnote');
   const manual = ubic && !ubic.auto;
   b.classList.toggle('on', !!manual);
-  b.textContent = manual ? '✕ Cerca mío' : '◎ Cerca mío';
+  b.textContent = manual ? '✕ Mi ubicación' : '◎ Mi ubicación';
   n.classList.toggle('show', !!ubic);
-  n.innerHTML = ubic ? `${manual ? 'Desde' : 'Desde el centro:'} <b>${esc(ubic.txt)}</b> · <a href="#" onclick="event.preventDefault();event.stopPropagation();document.getElementById('nearpop').classList.add('open')">cambiar</a>` : '';
+  n.innerHTML = ubic ? `Ubicación exacta: <b>${esc(ubic.txt)}</b>` : '';
 }
 document.addEventListener('click', e => { if (!e.target.closest('#nearpop') && !e.target.closest('#near')) document.getElementById('nearpop').classList.remove('open'); });
 
