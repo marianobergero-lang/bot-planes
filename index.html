@@ -191,6 +191,8 @@
   .pic.escudos { background: radial-gradient(circle at 50% 120%, #2a5a2e, #121110 75%); display: flex; align-items: center; justify-content: center; gap: 22px; }
   .pic.escudos img { width: 64px; height: 64px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,.5)); }
   .pic.escudos i { font-style: normal; font-weight: 800; color: var(--muted, #9a948c); font-size: 15px; letter-spacing: 1px; }
+  .peli .sinopsis { color: var(--muted); font-size: 13px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 4px 0; }
+  .peli a.fav { text-decoration: none; }
   .pic.vacia { background: linear-gradient(135deg, #1d1b18, #121110); display: flex; align-items: center; justify-content: center; font-size: 34px; opacity: .9; }
   .pic::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, transparent 40%, transparent 70%, rgba(23,22,20,.9) 100%); pointer-events: none; }
   .acciones { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 2; }
@@ -438,6 +440,7 @@
     <button class="tab" data-tab="conciertos">🎤 Conciertos</button>
     <button class="tab" data-tab="teatro">🎭 Teatro y shows</button>
     <button class="tab" data-tab="deportes">⚽ Deportes</button>
+    <button class="tab" data-tab="cine">🎬 Cine</button>
   </nav>
   <div style="display:flex;align-items:center;gap:14px">
     <button class="saved-btn" id="savedbtn" onclick="verGuardados()">♥ Mis planes favoritos <b id="nguardados"></b></button>
@@ -547,7 +550,7 @@
         <button class="chip" data-v="terraza">☀️ Terraza</button><button class="chip" data-v="musica">🎷 Música en vivo</button><button class="chip" data-v="hifi">🎧 HiFi</button>
       </div>
     </div>
-    <div class="group">
+    <div class="group" id="group-km">
       <h4>Distancia <em id="dist-hint">· activá "Cerca mío"</em></h4>
       <div class="chips" data-g="km">
         <button class="chip" data-v="1.5">A pie<small>&lt; 1,5 km</small></button><button class="chip" data-v="3">Cerca<small>&lt; 3 km</small></button><button class="chip on" data-v="99">Toda la ciudad</button>
@@ -611,8 +614,9 @@ const GENEROS = {
   clubs: [['techno', 'Techno'], ['house', 'House'], ['tech house', 'Tech House'], ['progressive house', 'Progressive'], ['melodic', 'Melodic'], ['disco', 'Disco']],
   conciertos: [['rock', 'Rock'], ['pop', 'Pop'], ['latin', 'Latino'], ['hip-hop', 'Hip-Hop'], ['alternative', 'Alternativo'], ['jazz', 'Jazz']],
   teatro: [], deportes: [['fútbol', 'Fútbol'], ['básquet', 'Básquet'], ['tenis', 'Tenis'], ['motor', 'Motor']],
+  cine: [['Acción', 'Acción'], ['Comedia', 'Comedia'], ['Drama', 'Drama'], ['Terror', 'Terror'], ['Animación', 'Animación'], ['Ciencia ficción', 'Ciencia ficción'], ['Familia', 'Familia'], ['Romance', 'Romance']],
 };
-const TAB_TXT = { bares: ['bar', 'bares'], clubs: ['plan', 'planes'], conciertos: ['concierto', 'conciertos'], teatro: ['show', 'shows'], deportes: ['evento deportivo', 'eventos deportivos'] };
+const TAB_TXT = { bares: ['bar', 'bares'], clubs: ['plan', 'planes'], conciertos: ['concierto', 'conciertos'], teatro: ['show', 'shows'], deportes: ['evento deportivo', 'eventos deportivos'], cine: ['película', 'películas'] };
 const DIAS_L = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES_L = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -679,7 +683,9 @@ function pintar() {
   document.getElementById('chip-cal').textContent = textoFechas();
   const et = { hoy: 'Hoy', manana: 'Mañana', finde: 'Este finde', cal: textoFechas().replace('📅 ', '') };
   const esBar = st.tab === 'bares';
-  document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length));
+  const esCine = st.tab === 'cine';
+  document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (esCine && g.id !== 'group-genero') || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length));
+  document.getElementById('group-km').hidden = esCine;
   document.querySelectorAll('.g-bar').forEach(g => g.hidden = !esBar);
   document.getElementById('dist-hint').textContent = ubic ? `· desde ${ubic.txt}` : '';
   const todo = document.querySelector('.chips[data-g=km] .chip[data-v="99"]');
@@ -732,6 +738,7 @@ function autoBuscar() {
 
 async function buscar() {
   if (st.tab === 'bares') return buscarBares();
+  if (st.tab === 'cine') return buscarCine();
   if (!st.cuando) { st.cuando = 'finde'; pintar(); }  // sin fecha elegida, buscamos el finde
   vista = 'resultados';
   const main = document.getElementById('main');
@@ -858,6 +865,72 @@ function tarjeta(e) {
     </article>`;
 }
 
+// ── CINE ───────────────────────────────────────────────────────────────────
+let cineTipo = 'cartelera', cineData = {};
+async function buscarCine() {
+  vista = 'resultados';
+  const main = document.getElementById('main');
+  const k = ciudad() + '|' + cineTipo;
+  if (!cineData[k]) {
+    main.classList.add('loading');
+    if (ctrl) ctrl.abort();
+    ctrl = new AbortController();
+    try {
+      const r = await fetch(`${API}/cine?ciudad=${encodeURIComponent(ciudad())}&tipo=${cineTipo}`, { signal: ctrl.signal });
+      const data = await r.json();
+      if (data.error) throw new Error(data.error);
+      cineData[k] = data.peliculas || [];
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+      main.classList.remove('loading');
+      main.innerHTML = volver() + `<div class="empty"><b>Uy, se me cortó algo 😅</b>No pude traer la cartelera. Probá de nuevo en un ratito.</div>`;
+      return;
+    }
+  }
+  mostrarCine();
+}
+function setCineTipo(t) { if (t !== cineTipo) { cineTipo = t; buscarCine(); } }
+function mostrarCine() {
+  const main = document.getElementById('main');
+  main.classList.remove('loading');
+  const todas = cineData[ciudad() + '|' + cineTipo] || [];
+  const pelis = st.genero ? todas.filter(p => (p.generos || []).includes(st.genero)) : todas;
+  const seg = `<div class="seg"><button class="${cineTipo === 'cartelera' ? 'on' : ''}" onclick="setCineTipo('cartelera')">🍿 En cartelera</button><button class="${cineTipo === 'estrenos' ? 'on' : ''}" onclick="setCineTipo('estrenos')">🗓️ Próximos estrenos</button></div>`;
+  const h2 = pelis.length ? `${pelis.length} ${TAB_TXT.cine[pelis.length === 1 ? 0 : 1]} ${cineTipo === 'cartelera' ? 'en cartelera' : 'por estrenarse'} en <span>${esc(ciudadTxt())}</span>` : `Nada por acá en <span>${esc(ciudadTxt())}</span>`;
+  let html = volver() + cartelGuia() + `<div class="res-head"><h2>${h2}</h2><div class="head-tools"><div class="active">${st.genero ? `<span>${esc(st.genero)}</span>` : ''}</div>${seg}</div></div>`;
+  if (!pelis.length) {
+    html += `<div class="empty"><b>No encontré películas con ese filtro 😕</b>Probá con otro género.</div>`;
+  } else {
+    html += `<div class="res-sub" style="margin-top:10px">Ordenadas por popularidad. Tocá "Ver horarios" para ver cines y sesiones cerca tuyo.</div>`;
+    html += `<div class="grid">${pelis.map(tarjetaPeli).join('')}</div>`;
+  }
+  main.innerHTML = html;
+  main.scrollTop = 0;
+}
+function tarjetaPeli(p) {
+  const d = p.estreno ? deIso(p.estreno) : null;
+  const estreno = d ? `${d.getDate()} ${MESES_C[d.getMonth()]} ${d.getFullYear()}` : '';
+  return `
+    <article class="card peli">
+      <div class="pic" style="background-image:url('${esc(p.fondo || p.poster)}')"></div>
+      <div class="inner">
+      <div class="town">🎬 ${cineTipo === 'cartelera' ? 'En cines' : 'Estreno'}${estreno ? ` · ${estreno}` : ''}</div>
+      <div class="title">${esc(p.titulo)}</div>
+      ${p.original && p.original !== p.titulo ? `<div class="who">${esc(p.original)}</div>` : ''}
+      <div class="facts">
+        ${p.puntuacion && p.votos > 20 ? `<div>⭐ <b>${p.puntuacion}</b><span> /10 · ${p.votos} votos</span></div>` : ''}
+        ${p.sinopsis ? `<div class="sinopsis">${esc(p.sinopsis)}</div>` : ''}
+        <div class="people">vía TMDB</div>
+      </div>
+      <div class="foot">
+        <div class="tags">${(p.generos || []).slice(0, 2).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
+        <a class="fav" href="${esc(p.url_trailer)}" target="_blank" rel="noopener">▶ Tráiler</a>
+        <a class="tickets" href="${esc(p.url_horarios)}" target="_blank" rel="noopener">Ver horarios →</a>
+      </div>
+      </div>
+    </article>`;
+}
+
 // ── GUARDADOS Y COMPARTIR ──────────────────────────────────────────────────
 const EVENTOS = {};
 function idEvento(e) { return e.url || `${e.titulo}|${e.fecha}`; }
@@ -957,6 +1030,7 @@ function setModo(m) {
 }
 
 function renderActual() {
+  if (st.tab === 'cine') return mostrarCine();
   const main = document.getElementById('main');
   main.classList.remove('loading');
   let items = actual.items.map(x => ({ ...x, d: ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null }));
@@ -1542,7 +1616,7 @@ document.getElementById('city').addEventListener('change', () => {
   sel.value = CIUDADES.some(c => c[0] === guardada) ? guardada : 'barcelona';
   document.getElementById('cityl').innerHTML = sel.innerHTML;
   document.getElementById('ciudadestop').innerHTML = `<div class="que">¿Qué buscás?</div>` + [
-    ['clubs', '🪩 Fiestas y clubs'], ['bares', '🍸 Bares'], ['conciertos', '🎤 Conciertos'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'],
+    ['clubs', '🪩 Fiestas y clubs'], ['bares', '🍸 Bares'], ['conciertos', '🎤 Conciertos'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'], ['cine', '🎬 Cine'],
   ].map(([t, txt]) => `<button class="chip big" onclick="entrarCategoria('${t}')">${txt}</button>`).join('');
   ubic = puntoCentro(); actualizarNota();
   preciosCiudad(); pintarGeneros(); pintar(); inicio(); contarGuardados();

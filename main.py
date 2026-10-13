@@ -1501,5 +1501,75 @@ def debug_futbol():
     return jsonify({"key": bool(FD_KEY), "ciudad": ciudad, "total": len(evs),
                     "partidos": [f"{e['fecha']} {e['hora']} {e['titulo']} @ {e['venue']}" for e in evs]})
 
+# ── CINE (TMDB, gratis) ─────────────────────────────────────────────────────
+TMDB_KEY = os.environ.get("TMDB_API_KEY", "")
+HABLA_ES = {"ES", "AR", "MX", "CL", "CO"}
+
+def tmdb_get(path, **params):
+    headers = {"accept": "application/json"}
+    if len(TMDB_KEY) > 60:  # token de lectura (v4)
+        headers["Authorization"] = f"Bearer {TMDB_KEY}"
+    else:                   # API key (v3)
+        params["api_key"] = TMDB_KEY
+    r = requests.get(f"https://api.themoviedb.org/3/{path}", params=params, headers=headers, timeout=15)
+    if r.status_code != 200:
+        print(f"[TMDB ERROR] {path} status={r.status_code} {r.text[:200]}")
+        return None
+    return r.json()
+
+def tmdb_generos():
+    v = cache_get("tmdb-gen", 7 * 86400)
+    if v is None:
+        data = tmdb_get("genre/movie/list", language="es-ES") or {}
+        v = {g["id"]: g["name"] for g in data.get("genres") or []}
+        if v:
+            cache_set("tmdb-gen", v)
+    return v or {}
+
+@app.route("/cine")
+def cine():
+    """Películas en cartelera en el país de la ciudad. Uso: /cine?ciudad=barcelona&tipo=cartelera|estrenos"""
+    ciudad = (request.args.get("ciudad") or "barcelona").lower().strip()
+    tipo = "upcoming" if request.args.get("tipo") == "estrenos" else "now_playing"
+    if not TMDB_KEY:
+        return jsonify({"error": "Falta TMDB_API_KEY", "peliculas": []}), 200
+    nombre_ciudad, pais = TM_CIUDADES.get(ciudad, (ciudad.title(), "ES"))
+    k = f"tmdb-{tipo}-{pais}"
+    pelis = cache_get(k, 6 * 3600)
+    if pelis is None:
+        gen = tmdb_generos()
+        pelis, vistos = [], set()
+        for page in (1, 2, 3):
+            data = tmdb_get(f"movie/{tipo}", region=pais, language="es-ES", page=page)
+            if not data:
+                break
+            for m in data.get("results") or []:
+                if m["id"] in vistos or not m.get("poster_path"):
+                    continue
+                vistos.add(m["id"])
+                titulo_busqueda = m.get("title") if pais in HABLA_ES else (m.get("original_title") or m.get("title"))
+                pelis.append({
+                    "id": m["id"],
+                    "titulo": m.get("title", ""),
+                    "original": m.get("original_title", ""),
+                    "sinopsis": (m.get("overview") or "")[:400],
+                    "poster": f"https://image.tmdb.org/t/p/w342{m['poster_path']}",
+                    "fondo": f"https://image.tmdb.org/t/p/w780{m['backdrop_path']}" if m.get("backdrop_path") else None,
+                    "estreno": m.get("release_date", ""),
+                    "puntuacion": round(m.get("vote_average") or 0, 1),
+                    "votos": m.get("vote_count") or 0,
+                    "popularidad": m.get("popularity") or 0,
+                    "generos": [gen.get(g, "") for g in m.get("genre_ids") or [] if gen.get(g)],
+                    "url_horarios": "https://www.google.com/search?q=" + requests.utils.quote(f"{titulo_busqueda} horarios cine {nombre_ciudad}"),
+                    "url_trailer": "https://www.youtube.com/results?search_query=" + requests.utils.quote(f"{m.get('title','')} tráiler"),
+                    "url_ficha": f"https://www.themoviedb.org/movie/{m['id']}?language=es-ES",
+                })
+            if page >= (data.get("total_pages") or 1):
+                break
+        pelis.sort(key=lambda p: -p["popularidad"])
+        if pelis:
+            cache_set(k, pelis)
+    return jsonify({"ciudad": ciudad, "pais": pais, "tipo": tipo, "total": len(pelis), "peliculas": pelis})
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
