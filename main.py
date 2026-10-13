@@ -183,6 +183,7 @@ DATOS:
 - NO hay filtro de aire libre/cubierto todavía. Si lo pide, decí en una línea que viene pronto y buscá igual sin ese filtro.
 
 ARTISTA/DJ: alcanza con el nombre (corregí errores de tipeo). Ciudad opcional: si no la dio, usá "todas". No preguntes nada más.
+EQUIPO DE FÚTBOL: si pregunta cuándo juega un equipo, sus próximos partidos o "el próximo partido de X", usá tipo "equipo" con el nombre del club (ej: "Inter de Milán" → "internazionale", "Barça" → "fc barcelona", "Atleti" → "atlético de madrid"). NO preguntes fecha ni ciudad: se buscan sus próximos partidos de local y de visitante.
 VENUE/DISCO: nombre del venue y ciudad; si no dijo cuándo, usá "todo".
 Si el usuario responde "sí" a una confirmación, se refiere al dato anterior.
 
@@ -200,6 +201,11 @@ Cuando tengas los datos, escribí este bloque al final:
 Artista:
 ###FILTROS###
 {"tipo": "artista", "artista": "amelie lens", "ciudad": "todas", "cuando": "todo", "max": 8}
+###FIN###
+
+Equipo de fútbol:
+###FILTROS###
+{"tipo": "equipo", "equipo": "internazionale"}
 ###FIN###
 
 Venue/disco:
@@ -744,7 +750,16 @@ def chat():
         if ciudad_corregida != ciudad_raw.lower():
             pass
 
-        if tipo == "fecha":
+        if tipo == "equipo":
+            eventos_out, nombre_eq = buscar_equipo(filtros.get("equipo", ""))
+            total_ra = len(eventos_out)
+            if nombre_eq:
+                filtros["equipo"] = nombre_eq
+            if not eventos_out:
+                clean = ("No encontré ese equipo 😕 Por ahora tengo las ligas grandes de Europa (LaLiga, Premier, Serie A, Bundesliga, Ligue 1, Portugal, Holanda), Champions y Brasileirão. ¿Probamos con otro?"
+                         if not nombre_eq else f"No encontré partidos de {nombre_eq} en las próximas semanas 😕")
+
+        elif tipo == "fecha":
             desde, hasta = calc_fechas(filtros.get("cuando", "todo"))
             n_dias = (datetime.strptime(hasta, "%Y-%m-%d") - datetime.strptime(desde, "%Y-%m-%d")).days + 1
             if n_dias > 1:  # rango: hasta 4 eventos por día (tope 20)
@@ -1478,17 +1493,61 @@ def fd_partidos(liga):
         cache_set(k, v)
     return v
 
+TZ_LIGA = {"PD": "Europe/Madrid", "PL": "Europe/London", "ELC": "Europe/London", "SA": "Europe/Rome",
+           "BL1": "Europe/Berlin", "FL1": "Europe/Paris", "PPL": "Europe/Lisbon", "DED": "Europe/Amsterdam",
+           "BSA": "America/Sao_Paulo", "CL": "Europe/Madrid"}
+
+def _zona(tz):
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo(tz)
+    except Exception:
+        return None
+
+def formatear_partido(m, liga, eq, zona, equipo_buscado=None):
+    """Partido de football-data → formato de evento. eq = datos del club local (estadio, dirección, web)."""
+    from datetime import timezone
+    loc, vis = m.get("homeTeam") or {}, m.get("awayTeam") or {}
+    utc = datetime.strptime(m["utcDate"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    local = utc.astimezone(zona) if zona else utc
+    fecha = local.strftime("%Y-%m-%d")
+    hora = local.strftime("%H:%M") if m.get("status") == "TIMED" else ""
+    l, v = loc.get("shortName") or loc.get("name", ""), vis.get("shortName") or vis.get("name", "")
+    nombre_liga = FD_NOMBRE_LIGA.get(liga, (m.get("competition") or {}).get("name", ""))
+    jornada = f" · Jornada {m['matchday']}" if m.get("matchday") and liga != "CL" else ""
+    condicion = ""
+    if equipo_buscado:
+        condicion = " · De local" if loc.get("id") == equipo_buscado else " · De visitante"
+    url, tipo_url = url_entradas(eq, loc, vis, fecha)
+    return {
+        "titulo": f"{l} vs {v}",
+        "fecha": fecha, "hora": hora, "hora_fin": "",
+        "venue": eq.get("venue") or "", "direccion": eq.get("address") or "",
+        "ciudad_venue": "",
+        "artistas": [],
+        "generos": ["Fútbol", nombre_liga],
+        "moneda": "EUR", "precio_cat": "nd", "precio": "No especificado", "precio_label": "Precio en web",
+        "precio_num": None, "gratis": False, "asistentes": 0,
+        "destacado": f"{nombre_liga}{jornada}{condicion}" + ("" if hora else " · Horario a confirmar"),
+        "url": url + ("#" + str(m.get("id")) if tipo_url == "club" else ""),
+        "url_tipo": tipo_url,
+        "web_club": eq.get("website") or "",
+        "equipo_local": loc.get("name", "") or l,
+        "imagen": None,
+        "escudos": [loc.get("crest") or "", vis.get("crest") or ""],
+        "lat": None, "lng": None,
+        "fuente": nombre_liga,
+        "categoria": "Fútbol",
+        "relevancia": -1 if liga in ("CL", "PD", "PL") else 0,
+    }
+
 def buscar_futbol(ciudad, desde, hasta):
     """Partidos que se juegan en la ciudad (el club local tiene la dirección en esa ciudad)."""
     info = FD_CIUDAD.get((ciudad or "").lower().strip())
     if not FD_KEY or not info:
         return []
     pais, nombres, tz = info
-    try:
-        from zoneinfo import ZoneInfo
-        zona = ZoneInfo(tz)
-    except Exception:
-        zona = None
+    zona = _zona(tz)
     out = []
     for liga in FD_LIGAS.get(pais, []):
         try:
@@ -1499,45 +1558,74 @@ def buscar_futbol(ciudad, desde, hasta):
         for m in partidos:
             if m.get("status") not in ("SCHEDULED", "TIMED"):
                 continue
-            loc, vis = m.get("homeTeam") or {}, m.get("awayTeam") or {}
-            eq = equipos.get(loc.get("id")) or {}
+            eq = equipos.get((m.get("homeTeam") or {}).get("id")) or {}
             if not any(n in (eq.get("address") or "").lower() for n in nombres):
                 continue
-            utc = datetime.strptime(m["utcDate"], "%Y-%m-%dT%H:%M:%SZ")
-            if zona:
-                from datetime import timezone
-                local = utc.replace(tzinfo=timezone.utc).astimezone(zona)
-            else:
-                local = utc
-            fecha = local.strftime("%Y-%m-%d")
-            if not (desde <= fecha <= hasta):
-                continue
-            hora = local.strftime("%H:%M") if m.get("status") == "TIMED" else ""
-            l, v = loc.get("shortName") or loc.get("name", ""), vis.get("shortName") or vis.get("name", "")
-            nombre_liga = FD_NOMBRE_LIGA.get(liga, (m.get("competition") or {}).get("name", ""))
-            jornada = f" · Jornada {m['matchday']}" if m.get("matchday") and liga != "CL" else ""
-            out.append({
-                "titulo": f"{l} vs {v}",
-                "fecha": fecha, "hora": hora, "hora_fin": "",
-                "venue": eq.get("venue") or "", "direccion": eq.get("address") or "",
-                "ciudad_venue": "",
-                "artistas": [],
-                "generos": ["Fútbol", nombre_liga],
-                "moneda": "EUR", "precio_cat": "nd", "precio": "No especificado", "precio_label": "Precio en web",
-                "precio_num": None, "gratis": False, "asistentes": 0,
-                "destacado": f"{nombre_liga}{jornada}" + ("" if hora else " · Horario a confirmar"),
-                "url": url_entradas(eq, loc, vis, fecha)[0] + ("#" + str(m.get("id")) if url_entradas(eq, loc, vis, fecha)[1] == "club" else ""),
-                "url_tipo": url_entradas(eq, loc, vis, fecha)[1],
-                "web_club": eq.get("website") or "",
-                "equipo_local": loc.get("name", "") or l,
-                "imagen": None,
-                "escudos": [loc.get("crest") or "", vis.get("crest") or ""],
-                "lat": None, "lng": None,
-                "fuente": nombre_liga,
-                "categoria": "Fútbol",
-                "relevancia": -1 if liga in ("CL", "PD", "PL") else 0,
-            })
+            ev = formatear_partido(m, liga, eq, zona)
+            if desde <= ev["fecha"] <= hasta:
+                out.append(ev)
     return out
+
+# Apodos comunes → texto que aparece en el nombre oficial
+APODOS_EQUIPO = {"inter": "internazionale", "inter de milan": "internazionale", "inter de milán": "internazionale",
+                 "milan": "ac milan", "barça": "fc barcelona", "barca": "fc barcelona", "barsa": "fc barcelona",
+                 "atleti": "atlético de madrid", "atletico": "atlético de madrid", "atlético": "atlético de madrid",
+                 "real": "real madrid", "madrid": "real madrid", "psg": "paris saint-germain", "spurs": "tottenham",
+                 "united": "manchester united", "city": "manchester city", "bayern munich": "bayern", "bayern múnich": "bayern",
+                 "juve": "juventus", "betis": "real betis", "athletic": "athletic club", "la real": "real sociedad"}
+ORDEN_LIGAS = ["PD", "PL", "SA", "BL1", "FL1", "PPL", "DED", "CL", "ELC", "BSA"]
+
+def _norm(t):
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFD", (t or "").lower()) if unicodedata.category(c) != "Mn").strip()
+
+def encontrar_equipo(nombre):
+    """Busca el club en las ligas gratis. Devuelve (equipo, liga) o (None, None)."""
+    q = _norm(APODOS_EQUIPO.get((nombre or "").lower().strip(), nombre))
+    if not q:
+        return None, None
+    mejor = (0, None, None)
+    for liga in ORDEN_LIGAS:
+        for t in fd_equipos(liga).values():
+            nombres = [_norm(t.get("name")), _norm(t.get("shortName")), _norm(t.get("tla"))]
+            if q in nombres:
+                return t, liga
+            if any(q in n for n in nombres if n):
+                pts = 2 if q in nombres[0] else 1
+                if pts > mejor[0]:
+                    mejor = (pts, t, liga)
+        if mejor[1] and mejor[0] == 2:
+            break
+    return mejor[1], mejor[2]
+
+def buscar_equipo(nombre, dias=45):
+    """Próximos partidos de un club (de local y de visitante)."""
+    if not FD_KEY:
+        return [], None
+    equipo, liga_equipo = encontrar_equipo(nombre)
+    if not equipo:
+        return [], None
+    k = f"fd-team-{equipo['id']}"
+    partidos = cache_get(k, 3 * 3600)
+    if partidos is None:
+        hoy = _hoy()
+        data = fd_get(f"teams/{equipo['id']}/matches?dateFrom={hoy.strftime('%Y-%m-%d')}&dateTo={(hoy + timedelta(days=dias)).strftime('%Y-%m-%d')}")
+        partidos = (data or {}).get("matches") or []
+        cache_set(k, partidos)
+    out = []
+    for m in partidos:
+        if m.get("status") not in ("SCHEDULED", "TIMED"):
+            continue
+        liga = (m.get("competition") or {}).get("code") or liga_equipo
+        eq_local = {}
+        if liga in FD_NOMBRE_LIGA:
+            try:
+                eq_local = fd_equipos(liga).get((m.get("homeTeam") or {}).get("id")) or {}
+            except Exception:
+                pass
+        out.append(formatear_partido(m, liga, eq_local, _zona(TZ_LIGA.get(liga_equipo, "Europe/Madrid")), equipo["id"]))
+    out.sort(key=lambda e: (e["fecha"], e["hora"] or "99"))
+    return out, equipo.get("name")
 
 @app.route("/debug-futbol")
 def debug_futbol():

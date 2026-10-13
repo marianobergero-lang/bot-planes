@@ -1458,7 +1458,11 @@ function burbuja(txt, quien) {
 }
 
 function aplicarFiltrosDelBot(f) {
-  if (f.ciudad && CIUDADES.some(c => c[0] === f.ciudad)) document.getElementById('city').value = f.ciudad;
+  if (f.ciudad && CIUDADES.some(c => c[0] === f.ciudad) && f.ciudad !== ciudad()) {
+    document.getElementById('city').value = f.ciudad;
+    try { localStorage.setItem('lp_ciudad', f.ciudad); } catch (e) {}
+    if (!ubic || ubic.auto) { ubic = puntoCentro(); actualizarNota(); }
+  }
   st.tab = GENEROS[f.categoria] ? f.categoria : 'clubs';
   if (f.desde && f.hasta) {
     const H = hoy0(), a = deIso(f.desde), b = deIso(f.hasta), [fa, fb] = rangoFinde();
@@ -1501,8 +1505,10 @@ async function preguntar(textoFijo) {
       const ev = data.eventos || [];
       burbuja(ev.length ? `${reply || 'Mirá lo que encontré'}\nTe dejé los resultados en pantalla 👈 Podés seguir preguntándome por acá.` : (reply || 'No encontré nada con eso 😕'), 'bot');
       if (ev.length) {
-        const nombre = f.artista || f.venue || f.query || '';
-        const titulo = f.tipo === 'artista' ? `Próximas fechas de <span>${esc(nombre)}</span>`
+        const nombre = f.artista || f.venue || f.equipo || f.query || '';
+        if (f.tipo === 'equipo') { st.tab = 'deportes'; pintarGeneros(); pintar(); }
+        const titulo = f.tipo === 'equipo' ? `Próximos partidos de <span>${esc(nombre)}</span>`
+          : f.tipo === 'artista' ? `Próximas fechas de <span>${esc(nombre)}</span>`
           : f.tipo === 'venue' ? `Lo que viene en <span>${esc(nombre)}</span>` : `Resultados para <span>${esc(nombre)}</span>`;
         mostrar(ev, ev.length, titulo);
         vista = 'resultados';
