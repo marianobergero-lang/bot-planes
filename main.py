@@ -1759,7 +1759,7 @@ def buscar_fever(ciudad, categoria, desde, hasta):
         for f, h in fechas:
             out.append({
                 "titulo": p.get("n", ""), "fecha": f, "hora": h, "hora_fin": "",
-                "venue": p.get("v", ""), "direccion": p.get("d", ""), "ciudad_venue": "",
+                "venue": p.get("v", ""), "direccion": re.sub(r"\s*//\s*", ", ", p.get("d", "")), "ciudad_venue": "",
                 "artistas": [], "generos": etiquetas, "moneda": mon, "precio_cat": cat_p,
                 "precio": str(precio) if precio is not None else "No especificado", "precio_label": label,
                 "precio_num": precio_num, "gratis": precio == 0, "asistentes": 0, "destacado": "",
