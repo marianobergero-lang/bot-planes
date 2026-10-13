@@ -608,27 +608,47 @@ def repartir_por_dia(eventos, max_ev):
     elegidos.sort(key=lambda x: (x.get("fecha", ""), x.get("hora") or "99", -(x.get("asistentes") or 0)))
     return elegidos
 
+VACIAS = {"the","la","el","los","las","de","del","at","en","in","a","y","and","&","x","b2b","with","con","presents","presenta","party","fiesta","live","tour","night"}
+
+def palabras(t):
+    return set(clave_titulo_full(t)) - VACIAS
+
+def clave_titulo_full(t):
+    import unicodedata
+    t = "".join(c for c in unicodedata.normalize("NFD", (t or "").lower()) if unicodedata.category(c) != "Mn")
+    return re.findall(r"[a-z0-9]+", t)
+
+def mismo_plan(a, b):
+    """Mismo día y (mismo comienzo de título, o mismo lugar y títulos casi iguales)."""
+    if a.get("fecha") != b.get("fecha"):
+        return False
+    if clave_titulo(a.get("titulo")) == clave_titulo(b.get("titulo")):
+        return True
+    va, vb = palabras(a.get("venue")), palabras(b.get("venue"))
+    if not va or not vb or not (va & vb):
+        return False
+    ta, tb = palabras(a.get("titulo")) - va, palabras(b.get("titulo")) - vb
+    if not ta or not tb:
+        return False
+    return len(ta & tb) / min(len(ta), len(tb)) >= 0.6
+
 def sin_duplicados(eventos):
     """Mismo evento en dos fuentes (RA/Ticketmaster y Fever) el mismo día: queda uno solo.
     Se prefiere Fever (link de afiliado) y se le pasan los interesados de RA."""
-    por_clave = {}
+    salida = []
     for e in eventos:
-        k = (e.get("fecha"), clave_titulo(e.get("titulo")))
-        if k not in por_clave:
-            por_clave[k] = e
+        i = next((j for j, o in enumerate(salida)
+                  if o.get("fuente") != e.get("fuente") and "Fever" in (o.get("fuente"), e.get("fuente")) and mismo_plan(o, e)), None)
+        if i is None:
+            salida.append(e)
             continue
-        otro = por_clave[k]
-        if e.get("fuente") == "Fever" and otro.get("fuente") != "Fever":
-            fever, resto = dict(e), otro
-        elif otro.get("fuente") == "Fever" and e.get("fuente") != "Fever":
-            fever, resto = dict(otro), e
-        else:
-            continue
+        otro = salida[i]
+        fever, resto = (dict(e), otro) if e.get("fuente") == "Fever" else (dict(otro), e)
         fever["asistentes"] = max(fever.get("asistentes") or 0, resto.get("asistentes") or 0)
         if resto.get("url"):  # el link de la otra fuente queda como alternativa
             fever["otros_links"] = (fever.get("otros_links") or []) + [{"fuente": resto.get("fuente", ""), "url": resto["url"]}]
-        por_clave[k] = fever
-    return list(por_clave.values())
+        salida[i] = fever
+    return salida
 
 def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False, precio_max=None, hora_max=None, genero=None, franja=None, precio_min=None):
     f = normalizar_franja(franja)
