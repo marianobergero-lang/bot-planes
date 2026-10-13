@@ -755,6 +755,11 @@ def chat():
                     ciudad_corregida, desde, hasta, categoria, filtros.get("max", 8),
                     filtros.get("hora_min"), filtros.get("hora_max"), filtros.get("franja"),
                     filtros.get("gratis", False), filtros.get("precio_max"), filtros.get("genero"))
+                if categoria == "deportes":
+                    fut = [e for e in buscar_futbol(ciudad_corregida, desde, hasta)
+                           if pasa_filtros(e, genero=filtros.get("genero"))]
+                    eventos_out = repartir_por_dia(fut + eventos_out, filtros.get("max", 8))
+                    total_ra += len(fut)
             else:
               eventos_out, total_ra = buscar_por_fecha(
                 ciudad     = ciudad_corregida,
@@ -933,6 +938,16 @@ def eventos():
     if categoria != "clubs":
         todos, _ = buscar_ticketmaster(ciudad, desde, hasta, categoria, 100000, hora_min, hora_max,
                                        franja, gratis, precio_max, genero, precio_min)
+        if categoria == "deportes":
+            f = normalizar_franja(franja)
+            hmin, hmax = FRANJAS[f] if f else (hora_min, hora_max)
+            futbol = [e for e in buscar_futbol(ciudad, desde, hasta)
+                      if pasa_filtros(e, hmin, hmax, gratis, precio_max, genero, precio_min)]
+            # sacamos de Ticketmaster los partidos que ya vienen de football-data
+            def _mismo(tm):
+                t = tm["titulo"].lower()
+                return any(tm["fecha"] == f2["fecha"] and max(f2["equipo_local"].lower().split(), key=len) in t for f2 in futbol)
+            todos = futbol + [e for e in todos if not _mismo(e)]
     else:
         if ciudad not in AREAS_RA:
             return jsonify({"error": f"Ciudad '{ciudad}' no encontrada"}), 400
@@ -1015,6 +1030,10 @@ def _num(x):
     except (TypeError, ValueError):
         return None
 
+DEPORTES_ES = {"Soccer": "Fútbol", "Football": "Fútbol americano", "Basketball": "Básquet", "Tennis": "Tenis",
+               "Motorsports/Racing": "Motor", "Hockey": "Hockey", "Rugby": "Rugby", "Boxing": "Boxeo",
+               "Golf": "Golf", "Baseball": "Béisbol", "Martial Arts": "Artes marciales", "Volleyball": "Vóley"}
+
 def formatear_tm(ev):
     """Evento de Ticketmaster → mismo formato que formatear_evento (RA)"""
     st = (ev.get("dates") or {}).get("start", {})
@@ -1023,6 +1042,7 @@ def formatear_tm(ev):
     cls = (ev.get("classifications") or [{}])[0]
     generos = []
     for x in [(cls.get("genre") or {}).get("name"), (cls.get("subGenre") or {}).get("name")]:
+        x = DEPORTES_ES.get(x, x)
         if x and x not in ("Undefined", "Other", "Music") and x not in generos:
             generos.append(x)
     pr = (ev.get("priceRanges") or [None])[0]
@@ -1348,6 +1368,138 @@ def bares():
     out.sort(key=lambda b: (b["distancia"] - 0.08 * b["info"]))
     return jsonify({"ciudad": ciudad, "centro": centro, "radio": radio, "total": len(out),
                     "offset": offset, "bares": out[offset:offset + limit]})
+
+# ── FÚTBOL (football-data.org, plan gratis) ────────────────────────────────
+FD_KEY = os.environ.get("FOOTBALL_DATA_KEY", "")
+FD_LIGAS = {"ES": ["PD", "CL"], "GB": ["PL", "ELC", "CL"], "DE": ["BL1", "CL"], "FR": ["FL1", "CL"],
+            "PT": ["PPL", "CL"], "NL": ["DED", "CL"], "IT": ["SA", "CL"], "BR": ["BSA"]}
+FD_NOMBRE_LIGA = {"PD": "LaLiga", "CL": "Champions League", "PL": "Premier League", "ELC": "Championship",
+                  "BL1": "Bundesliga", "FL1": "Ligue 1", "PPL": "Primeira Liga", "DED": "Eredivisie",
+                  "SA": "Serie A", "BSA": "Brasileirão"}
+# ciudad → (país, textos que aparecen en la dirección del club local, zona horaria)
+FD_CIUDAD = {
+    "barcelona": ("ES", ["barcelona", "cornellà", "cornella"], "Europe/Madrid"),
+    "madrid": ("ES", ["madrid", "getafe", "leganés", "leganes"], "Europe/Madrid"),
+    "valencia": ("ES", ["valència", "valencia"], "Europe/Madrid"),
+    "mallorca": ("ES", ["palma"], "Europe/Madrid"),
+    "sevilla": ("ES", ["sevilla"], "Europe/Madrid"),
+    "bilbao": ("ES", ["bilbao"], "Europe/Madrid"),
+    "london": ("GB", ["london"], "Europe/London"),
+    "berlin": ("DE", ["berlin"], "Europe/Berlin"),
+    "munich": ("DE", ["münchen", "munich"], "Europe/Berlin"),
+    "hamburg": ("DE", ["hamburg"], "Europe/Berlin"),
+    "paris": ("FR", ["paris"], "Europe/Paris"),
+    "lisbon": ("PT", ["lisboa", "lisbon"], "Europe/Lisbon"),
+    "porto": ("PT", ["porto"], "Europe/Lisbon"),
+    "amsterdam": ("NL", ["amsterdam"], "Europe/Amsterdam"),
+    "rome": ("IT", ["roma", "rome"], "Europe/Rome"),
+    "milan": ("IT", ["milano", "milan"], "Europe/Rome"),
+    "turin": ("IT", ["torino", "turin"], "Europe/Rome"),
+    "rio de janeiro": ("BR", ["rio de janeiro"], "America/Sao_Paulo"),
+    "sao paulo": ("BR", ["são paulo", "sao paulo"], "America/Sao_Paulo"),
+}
+
+def fd_get(path):
+    r = requests.get(f"https://api.football-data.org/v4/{path}", headers={"X-Auth-Token": FD_KEY}, timeout=15)
+    if r.status_code != 200:
+        print(f"[FD ERROR] {path} status={r.status_code} {r.text[:200]}")
+        return None
+    return r.json()
+
+def fd_equipos(liga):
+    """Equipos de una liga (dirección, estadio, escudo). Caché 7 días."""
+    k = f"fd-eq-{liga}"
+    v = cache_get(k, 7 * 86400)
+    if v is None:
+        data = fd_get(f"competitions/{liga}/teams")
+        if data is None:
+            return {}
+        v = {t["id"]: t for t in data.get("teams") or []}
+        cache_set(k, v)
+    return v
+
+def fd_partidos(liga):
+    """Partidos de los próximos 30 días. Caché 3 horas."""
+    k = f"fd-pa-{liga}"
+    v = cache_get(k, 3 * 3600)
+    if v is None:
+        hoy = _hoy()
+        d0, d1 = hoy.strftime("%Y-%m-%d"), (hoy + timedelta(days=30)).strftime("%Y-%m-%d")
+        data = fd_get(f"competitions/{liga}/matches?dateFrom={d0}&dateTo={d1}")
+        if data is None:
+            return []
+        v = data.get("matches") or []
+        cache_set(k, v)
+    return v
+
+def buscar_futbol(ciudad, desde, hasta):
+    """Partidos que se juegan en la ciudad (el club local tiene la dirección en esa ciudad)."""
+    info = FD_CIUDAD.get((ciudad or "").lower().strip())
+    if not FD_KEY or not info:
+        return []
+    pais, nombres, tz = info
+    try:
+        from zoneinfo import ZoneInfo
+        zona = ZoneInfo(tz)
+    except Exception:
+        zona = None
+    out = []
+    for liga in FD_LIGAS.get(pais, []):
+        try:
+            equipos, partidos = fd_equipos(liga), fd_partidos(liga)
+        except Exception as e:
+            print(f"[FD ERROR] {liga} {e}")
+            continue
+        for m in partidos:
+            if m.get("status") not in ("SCHEDULED", "TIMED"):
+                continue
+            loc, vis = m.get("homeTeam") or {}, m.get("awayTeam") or {}
+            eq = equipos.get(loc.get("id")) or {}
+            if not any(n in (eq.get("address") or "").lower() for n in nombres):
+                continue
+            utc = datetime.strptime(m["utcDate"], "%Y-%m-%dT%H:%M:%SZ")
+            if zona:
+                from datetime import timezone
+                local = utc.replace(tzinfo=timezone.utc).astimezone(zona)
+            else:
+                local = utc
+            fecha = local.strftime("%Y-%m-%d")
+            if not (desde <= fecha <= hasta):
+                continue
+            hora = local.strftime("%H:%M") if m.get("status") == "TIMED" else ""
+            l, v = loc.get("shortName") or loc.get("name", ""), vis.get("shortName") or vis.get("name", "")
+            nombre_liga = FD_NOMBRE_LIGA.get(liga, (m.get("competition") or {}).get("name", ""))
+            jornada = f" · Jornada {m['matchday']}" if m.get("matchday") and liga != "CL" else ""
+            out.append({
+                "titulo": f"{l} vs {v}",
+                "fecha": fecha, "hora": hora, "hora_fin": "",
+                "venue": eq.get("venue") or "", "direccion": eq.get("address") or "",
+                "ciudad_venue": "",
+                "artistas": [],
+                "generos": ["Fútbol", nombre_liga],
+                "moneda": "EUR", "precio_cat": "nd", "precio": "No especificado", "precio_label": "Precio en web",
+                "precio_num": None, "gratis": False, "asistentes": 0,
+                "destacado": f"{nombre_liga}{jornada}" + ("" if hora else " · Horario a confirmar"),
+                "url": "https://www.google.com/search?q=" + requests.utils.quote(f"entradas {loc.get('name','')} vs {vis.get('name','')} {fecha}"),
+                "web_club": eq.get("website") or "",
+                "equipo_local": loc.get("name", "") or l,
+                "imagen": None,
+                "escudos": [loc.get("crest") or "", vis.get("crest") or ""],
+                "lat": None, "lng": None,
+                "fuente": nombre_liga,
+                "categoria": "Fútbol",
+                "relevancia": -1 if liga in ("CL", "PD", "PL") else 0,
+            })
+    return out
+
+@app.route("/debug-futbol")
+def debug_futbol():
+    """Uso: /debug-futbol?ciudad=barcelona"""
+    ciudad = request.args.get("ciudad", "barcelona")
+    hoy = _hoy()
+    evs = buscar_futbol(ciudad, hoy.strftime("%Y-%m-%d"), (hoy + timedelta(days=30)).strftime("%Y-%m-%d"))
+    return jsonify({"key": bool(FD_KEY), "ciudad": ciudad, "total": len(evs),
+                    "partidos": [f"{e['fecha']} {e['hora']} {e['titulo']} @ {e['venue']}" for e in evs]})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
