@@ -351,7 +351,7 @@
   .fondo-lado { display: none; position: fixed; top: 0; bottom: 0; width: calc((100vw - 760px) / 2); overflow: hidden; pointer-events: none; z-index: 0; }
   .fondo-lado.izq { left: 0; -webkit-mask-image: linear-gradient(90deg, #000 45%, transparent); mask-image: linear-gradient(90deg, #000 45%, transparent); }
   .fondo-lado.der { right: 0; -webkit-mask-image: linear-gradient(270deg, #000 45%, transparent); mask-image: linear-gradient(270deg, #000 45%, transparent); }
-  .fondo-lado video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.6s ease;
+  .fondo-lado video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.1s ease;
     filter: grayscale(.35) saturate(1.25) brightness(.5) contrast(1.05) blur(1.5px); }
   .fondo-lado video.on { opacity: .75; }
   .fondo-lado::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13,12,11,.55), rgba(233,104,46,.10) 50%, rgba(13,12,11,.75)); }
@@ -1634,13 +1634,13 @@ async function preguntar(textoFijo) {
 // ── PANTALLA PRINCIPAL ─────────────────────────────────────────────────────
 const TOP = ['barcelona', 'madrid', 'ibiza', 'london', 'berlin', 'amsterdam'];
 // Videos de fondo: se cargan después de mostrar la portada, solo en pantallas anchas y sin "reducir movimiento"
-const VIDEOS_FONDO = { izq: ['fiesta', 'brindis', 'estadio'], der: ['cine', 'multitud', 'comida'] };
+const VIDEOS_FONDO = { izq: ['fiesta', 'brindis', 'estadio'], der: ['multitud', 'comida', 'cine'] };
 let fondoListo = false;
 function arrancarFondo() {
   if (fondoListo || !matchMedia('(min-width: 1200px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches
       || (navigator.connection && navigator.connection.saveData)) return;
   fondoListo = true;
-  Object.entries(VIDEOS_FONDO).forEach(([lado, lista], k) => {
+  const lados = Object.entries(VIDEOS_FONDO).map(([lado, lista]) => {
     const cont = document.getElementById('fondo-' + lado);
     const vids = lista.map(n => {
       const v = document.createElement('video');
@@ -1648,11 +1648,16 @@ function arrancarFondo() {
       v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
       cont.appendChild(v); return v;
     });
-    let i = 0;
-    const mostrar = () => { vids.forEach((v, j) => { v.classList.toggle('on', j === i); if (j === i) v.play().catch(() => {}); }); };
-    mostrar();
-    setInterval(() => { if (document.getElementById('landing').hidden) return; i = (i + 1) % vids.length; mostrar(); }, 6500 + k * 1700);
+    return { vids, i: 0 };
   });
+  const mostrar = l => l.vids.forEach((v, j) => { v.classList.toggle('on', j === l.i); if (j === l.i) { v.currentTime = 0; v.play().catch(() => {}); } });
+  lados.forEach(mostrar);
+  // Cambia un lado por vez, alternando izquierda y derecha cada 2,8 segundos
+  let turno = 0;
+  setInterval(() => {
+    if (document.getElementById('landing').hidden) return;
+    const l = lados[turno % 2]; l.i = (l.i + 1) % l.vids.length; mostrar(l); turno++;
+  }, 2800);
 }
 function mostrarLanding() {
   setTimeout(arrancarFondo, 700);
