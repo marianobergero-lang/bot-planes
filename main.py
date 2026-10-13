@@ -947,6 +947,10 @@ def eventos():
             def _mismo(tm):
                 t = tm["titulo"].lower()
                 return any(tm["fecha"] == f2["fecha"] and max(f2["equipo_local"].lower().split(), key=len) in t for f2 in futbol)
+            for tm in todos:
+                for f2 in futbol:
+                    if tm["fecha"] == f2["fecha"] and max(f2["equipo_local"].lower().split(), key=len) in tm["titulo"].lower():
+                        f2["url"], f2["url_tipo"] = tm["url"], "ticketmaster"
             todos = futbol + [e for e in todos if not _mismo(e)]
     else:
         if ciudad not in AREAS_RA:
@@ -1399,6 +1403,28 @@ FD_CIUDAD = {
     "sao paulo": ("BR", ["são paulo", "sao paulo"], "America/Sao_Paulo"),
 }
 
+# Páginas oficiales de entradas de los clubes grandes (si no está, usamos la web del club)
+TICKETS_CLUB = {
+    "FC Barcelona": "https://www.fcbarcelona.com/es/entradas",
+    "Real Madrid CF": "https://www.realmadrid.com/es-ES/entradas",
+    "Club Atlético de Madrid": "https://www.atleticodemadrid.com/entradas",
+    "Arsenal FC": "https://www.arsenal.com/tickets",
+    "Chelsea FC": "https://www.chelseafc.com/en/tickets",
+    "Tottenham Hotspur FC": "https://www.tottenhamhotspur.com/tickets/",
+    "West Ham United FC": "https://www.whufc.com/tickets",
+    "Paris Saint-Germain FC": "https://billetterie.psg.fr/",
+}
+
+def url_entradas(eq, local, visitante, fecha):
+    nombre = eq.get("name") or local.get("name", "")
+    if nombre in TICKETS_CLUB:
+        return TICKETS_CLUB[nombre], "club"
+    web = (eq.get("website") or "").strip()
+    if web:
+        return (web if web.startswith("http") else "https://" + web), "club"
+    return "https://www.google.com/search?q=" + requests.utils.quote(
+        f"entradas {local.get('name','')} vs {visitante.get('name','')} {fecha}"), "google"
+
 def fd_get(path):
     r = requests.get(f"https://api.football-data.org/v4/{path}", headers={"X-Auth-Token": FD_KEY}, timeout=15)
     if r.status_code != 200:
@@ -1480,7 +1506,8 @@ def buscar_futbol(ciudad, desde, hasta):
                 "moneda": "EUR", "precio_cat": "nd", "precio": "No especificado", "precio_label": "Precio en web",
                 "precio_num": None, "gratis": False, "asistentes": 0,
                 "destacado": f"{nombre_liga}{jornada}" + ("" if hora else " · Horario a confirmar"),
-                "url": "https://www.google.com/search?q=" + requests.utils.quote(f"entradas {loc.get('name','')} vs {vis.get('name','')} {fecha}"),
+                "url": url_entradas(eq, loc, vis, fecha)[0] + ("#" + str(m.get("id")) if url_entradas(eq, loc, vis, fecha)[1] == "club" else ""),
+                "url_tipo": url_entradas(eq, loc, vis, fecha)[1],
                 "web_club": eq.get("website") or "",
                 "equipo_local": loc.get("name", "") or l,
                 "imagen": None,

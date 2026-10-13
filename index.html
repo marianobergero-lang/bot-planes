@@ -860,7 +860,7 @@ function tarjeta(e) {
         <div class="tags">${(e.generos || []).slice(0, 2).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
         <span class="price p-${cat}">${esc(precio)}</span>
         <button class="fav ${estaGuardado(id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(id)}')">${estaGuardado(id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
-        <a class="tickets" href="${esc(e.url)}" target="_blank" rel="noopener">Ver tickets →</a>
+        <a class="tickets" href="${esc(e.url)}" target="_blank" rel="noopener">${e.url_tipo === 'club' ? 'Entradas (web del club) →' : e.url_tipo === 'google' ? 'Buscar entradas →' : 'Ver tickets →'}</a>
       </div>
       </div>
     </article>`;
