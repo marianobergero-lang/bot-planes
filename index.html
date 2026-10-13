@@ -230,6 +230,7 @@
   .mapa-lista .dist { font-size: 10.5px; padding: 3px 6px; left: 6px; top: 6px; }
   .mapa-info { font-size: 12.5px; color: var(--dim); padding: 2px 4px 4px; }
   .leaflet-container { font-family: 'Space Grotesk', sans-serif; background: #1a1916; }
+  .leaflet-tile-pane { filter: grayscale(1) invert(1) brightness(.78) contrast(.9); }
 
   .leaflet-tooltip { background: var(--card); color: var(--text); border: 1px solid var(--border2); font-weight: 600; }
   .leaflet-tooltip:before { display: none; }
@@ -831,10 +832,8 @@ function mostrarBares(items) {
 
 let mapa = null, capaPines = null, pines = {}, itemsMapa = [], esBarMapa = false;
 function capaBase(m) {
-  // Mapa gris oscuro sin comercios ni íconos (Esri), con nombres de calles encima
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Esri, HERE, Garmin, © OpenStreetMap', maxZoom: 16 }).addTo(m);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }).addTo(m);
+  // OpenStreetMap (gratis); se ve en gris oscuro con CSS para que los comercios no compitan con los pines
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(m);
 }
 function renderMapa(items, esBar) {
   const main = document.getElementById('main');
