@@ -1236,9 +1236,10 @@ def completar_coords(eventos, ciudad, max_nuevos=20):
             e["lat"], e["lng"] = r[0]["lat"], r[0]["lng"]
 
 # Tipos de bar → cómo reconocerlos en las etiquetas de OpenStreetMap
-RE_VINO = re.compile(r"vin|vino|wine|bodega|celler|vermut|vermout", re.I)
+RE_VINO = re.compile(r"\bvin(o|os|s|oteca|acoteca)?\b|wine|bodega|celler|vermut|vermout", re.I)
 RE_CERVEZA = re.compile(r"cervec|cerves|beer|brew|craft|pub|taproom|birra", re.I)
 RE_COCTEL = re.compile(r"cocktail|c[oó]ctel|gin\b|speakeasy|mixolog", re.I)
+RE_HIFI = re.compile(r"hi-?fi|listening|vinyl|vinilo|vinil|record bar|audiophile|soundsystem|sound system|disc bar|kissa", re.I)
 
 def tipos_bar(t):
     nombre = t.get("name", "")
@@ -1253,9 +1254,11 @@ def tipos_bar(t):
         tipos.append("terraza")
     if t.get("live_music") == "yes":
         tipos.append("musica")
+    if RE_HIFI.search(nombre) or RE_HIFI.search(t.get("description", "")):
+        tipos.append("hifi")
     return tipos
 
-ETIQUETA_TIPO = {"cocteles": "Cócteles", "vinos": "Vinos", "cervezas": "Cervezas", "terraza": "Terraza", "musica": "Música en vivo"}
+ETIQUETA_TIPO = {"cocteles": "Cócteles", "vinos": "Vinos", "cervezas": "Cervezas", "terraza": "Terraza", "musica": "Música en vivo", "hifi": "HiFi"}
 
 @app.route("/bares")
 def bares():
@@ -1297,7 +1300,8 @@ def bares():
             "tipo": "bar",
             "titulo": t["name"],
             "categoria": {"pub": "Pub", "biergarten": "Cervecería al aire libre"}.get(t.get("amenity"), "Bar"),
-            "tags": [ETIQUETA_TIPO[x] for x in tipos][:3],
+            "tags": [ETIQUETA_TIPO[x] for x in tipos if x not in ("terraza", "musica", "hifi")][:3],
+            "terraza": "terraza" in tipos, "musica": "musica" in tipos, "hifi": "hifi" in tipos,
             "direccion": calle,
             "barrio": t.get("addr:suburb") or t.get("addr:district") or "",
             "horario": t.get("opening_hours", ""),

@@ -213,13 +213,24 @@
   .seg button { background: none; border: none; color: var(--muted); padding: 7px 13px; font: 600 13px 'Space Grotesk', sans-serif; cursor: pointer; }
   .seg button.on { background: var(--text); color: var(--bg); }
   .head-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .mapa-wrap { display: grid; grid-template-columns: 1fr 360px; gap: 0; height: calc(100vh - 290px); min-height: 420px; margin-top: 14px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .mapa-wrap { display: grid; grid-template-columns: 1fr 430px; gap: 0; height: calc(100vh - 290px); min-height: 440px; margin-top: 14px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
   #mapa { height: 100%; background: #1a1916; }
-  .mapa-lista { overflow-y: auto; padding: 10px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
-  .mapa-lista .card .pic { height: 100px; }
+  .mapa-lista { overflow-y: auto; padding: 10px; border-left: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start; }
+  .mapa-info { grid-column: 1 / -1; }
+  .mapa-lista .card { flex-shrink: 0; min-height: 0; }
+  .mapa-lista .card .pic { height: 64px; font-size: 22px; }
+  .mapa-lista .card .inner { padding: 9px 10px 10px; gap: 5px; }
+  .mapa-lista .card .title { font-size: 13px; -webkit-line-clamp: 2; }
+  .mapa-lista .card .who, .mapa-lista .card .people, .mapa-lista .card .tags, .mapa-lista .card .horario, .mapa-lista .card .town, .mapa-lista .card .acciones { display: none; }
+  .mapa-lista .card .facts { font-size: 11.5px; gap: 2px; }
+  .mapa-lista .card .dir-btn { display: none; }
+  .mapa-lista .card .foot { grid-template-columns: 1fr; row-gap: 6px; padding-top: 8px; }
+  .mapa-lista .card .price, .mapa-lista .card .tickets, .mapa-lista .card .fav, .mapa-lista .card .res-wrap { justify-self: stretch; text-align: center; font-size: 11.5px; padding: 5px 6px; }
+  .mapa-lista .card .res-wrap > button { width: 100%; }
+  .mapa-lista .dist { font-size: 10.5px; padding: 3px 6px; left: 6px; top: 6px; }
   .mapa-info { font-size: 12.5px; color: var(--dim); padding: 2px 4px 4px; }
   .leaflet-container { font-family: 'Space Grotesk', sans-serif; background: #1a1916; }
-  .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.6); }
+
   .leaflet-tooltip { background: var(--card); color: var(--text); border: 1px solid var(--border2); font-weight: 600; }
   .leaflet-tooltip:before { display: none; }
   .pin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #0D0C0B; box-shadow: 0 0 0 2px rgba(255,255,255,.25); transition: transform .12s; }
@@ -235,8 +246,12 @@
   .dir-link:hover { text-decoration: underline; }
   .modal { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.6); align-items: center; justify-content: center; padding: 16px; }
   .modal.open { display: flex; }
-  .modal-box { width: 460px; max-width: 100%; background: var(--card); border: 1px solid var(--border2); border-radius: 14px; overflow: hidden; }
-  .modal-map { height: 230px; background: #1a1916; }
+  .modal-box { width: 620px; max-width: 100%; background: var(--card); border: 1px solid var(--border2); border-radius: 16px; overflow: hidden; position: relative; }
+  .modal-map { height: 340px; background: #1a1916; }
+  .cerrar-x { position: absolute; top: 12px; right: 12px; z-index: 1000; width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); background: rgba(13,12,11,.8); color: #fff; font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .cerrar-x:hover { background: var(--orange); border-color: var(--orange); }
+  .near-pop .cerrar-x { width: 30px; height: 30px; font-size: 16px; top: 8px; right: 8px; }
+  .near-pop { padding-top: 46px !important; }
   .modal-info { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
   .modal-info h3 { font-size: 17px; letter-spacing: -0.4px; }
   .modal-info p { font-size: 13.5px; color: var(--muted); }
@@ -245,6 +260,9 @@
 
   /* BARES */
   .horario { font-size: 12px; color: var(--muted); }
+  .bar-ico { position: absolute; right: 10px; top: 10px; display: flex; gap: 5px; z-index: 2; }
+  .bar-ico span { height: 28px; min-width: 28px; padding: 0 6px; border-radius: 14px; background: rgba(13,12,11,.75); border: 1px solid rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .bar-ico .hifi { font-size: 11px; font-weight: 800; letter-spacing: .5px; color: var(--orange); }
   .res-wrap { position: relative; justify-self: end; }
   .res-menu { position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 50; width: 260px; background: var(--card); border: 1px solid var(--border2); border-radius: 10px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.6); }
   .res-menu a { display: block; color: var(--text); text-decoration: none; font-size: 13.5px; font-weight: 600; padding: 8px 10px; border-radius: 7px; }
@@ -334,6 +352,7 @@
         <button class="near" id="near" onclick="abrirCerca(event)">◎ Cerca mío</button>
       </div>
       <div class="near-pop" id="nearpop">
+        <button class="cerrar-x" onclick="event.stopPropagation();document.getElementById('nearpop').classList.remove('open')" aria-label="Cerrar">✕</button>
         <button class="near-opt" onclick="usarUbicacion()">◎ Usar mi ubicación actual</button>
         <div class="near-or">o escribí una dirección</div>
         <input id="diri" placeholder="Ej: Carrer de Blai 30, un hotel o un barrio" oninput="sugerirDir()" autocomplete="off">
@@ -382,7 +401,7 @@
       <h4>Tipo</h4>
       <div class="chips" data-g="tipoBar" id="chips-tipo">
         <button class="chip" data-v="cocteles">🍸 Cócteles</button><button class="chip" data-v="vinos">🍷 Vinos</button><button class="chip" data-v="cervezas">🍺 Cervezas</button>
-        <button class="chip" data-v="terraza">☀️ Terraza</button><button class="chip" data-v="musica">🎷 Música en vivo</button>
+        <button class="chip" data-v="terraza">☀️ Terraza</button><button class="chip" data-v="musica">🎷 Música en vivo</button><button class="chip" data-v="hifi">🎧 HiFi</button>
       </div>
     </div>
     <div class="group">
@@ -423,6 +442,21 @@ const CIUDADES = [
   ['bogota', 'Bogotá'], ['santiago', 'Santiago'], ['new york', 'New York'], ['los angeles', 'Los Angeles'], ['miami', 'Miami'],
   ['chicago', 'Chicago'], ['toronto', 'Toronto'], ['montreal', 'Montreal'], ['tokyo', 'Tokio'], ['sydney', 'Sydney'], ['melbourne', 'Melbourne'],
 ];
+// Punto céntrico de referencia de cada ciudad (cuando no hay dirección cargada)
+const CENTRO = {
+  barcelona: [41.3870, 2.1700, 'Plaça de Catalunya'], madrid: [40.4169, -3.7035, 'Puerta del Sol'], ibiza: [38.9089, 1.4329, 'Vara de Rey (Eivissa)'],
+  valencia: [39.4697, -0.3774, 'Plaza del Ayuntamiento'], mallorca: [39.5752, 2.6503, 'Plaça d’Espanya (Palma)'], berlin: [52.5219, 13.4132, 'Alexanderplatz'],
+  london: [51.5113, -0.1281, 'Leicester Square'], amsterdam: [52.3731, 4.8926, 'Plaza Dam'], paris: [48.8584, 2.3470, 'Châtelet'],
+  lisbon: [38.7139, -9.1394, 'Rossio'], porto: [41.1496, -8.6109, 'Avenida dos Aliados'], rome: [41.8962, 12.4823, 'Piazza Venezia'],
+  milan: [45.4642, 9.1900, 'Duomo'], munich: [48.1374, 11.5755, 'Marienplatz'], hamburg: [53.5503, 9.9930, 'Rathausmarkt'],
+  vienna: [48.2085, 16.3731, 'Stephansplatz'], brussels: [50.8467, 4.3525, 'Grand-Place'], prague: [50.0875, 14.4213, 'Plaza de la Ciudad Vieja'],
+  budapest: [47.4979, 19.0544, 'Deák Ferenc tér'], stockholm: [59.3326, 18.0649, 'Sergels torg'], 'buenos aires': [-34.6037, -58.3816, 'Obelisco'],
+  'rio de janeiro': [-22.9133, -43.1797, 'Lapa'], 'sao paulo': [-23.5614, -46.6559, 'Avenida Paulista'], 'mexico city': [19.4326, -99.1332, 'Zócalo'],
+  bogota: [4.6667, -74.0525, 'Zona T'], santiago: [-33.4378, -70.6505, 'Plaza de Armas'], 'new york': [40.7580, -73.9855, 'Times Square'],
+  'los angeles': [34.0430, -118.2673, 'Downtown LA'], miami: [25.7907, -80.1300, 'South Beach'], chicago: [41.8827, -87.6233, 'The Loop'],
+  toronto: [43.6561, -79.3802, 'Yonge-Dundas Square'], montreal: [45.5080, -73.5664, 'Place des Arts'], tokyo: [35.6595, 139.7005, 'Shibuya'],
+  sydney: [-33.8688, 151.2093, 'CBD'], melbourne: [-37.8180, 144.9691, 'Federation Square'],
+};
 // Moneda local: símbolo y cotización aproximada a euros (umbrales: bajo < 15€, medio 15–30€, alto > 30€)
 const MONEDA = {
   london: ['£', 1.17], 'new york': ['US$', 0.92], 'los angeles': ['US$', 0.92], chicago: ['US$', 0.92], miami: ['US$', 0.92],
@@ -442,7 +476,9 @@ const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','no
 
 // ── ESTADO ─────────────────────────────────────────────────────────────────
 const st = { tab: 'clubs', cuando: 'finde', franja: null, precio: null, genero: null, tipoBar: null, km: '99' };
-let ubic = null;          // { lat, lng, txt } cuando "Cerca mío" está activo
+let ubic = null;          // { lat, lng, txt, auto } · auto = punto céntrico de la ciudad
+const KM_DEFECTO = { bares: '1.5', otros: '99' };
+function kmClave() { return st.tab === 'bares' ? 'bares' : 'otros'; }
 let modoVista = 'lista';  // 'lista' | 'mapa'
 let actual = { items: [], total: 0, porDia: {}, titulo: null };
 const MAX_MAPA = 20;
@@ -498,7 +534,7 @@ function pintar() {
   const esBar = st.tab === 'bares';
   document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length));
   document.querySelectorAll('.g-bar').forEach(g => g.hidden = !esBar);
-  document.getElementById('dist-hint').textContent = ubic ? '' : '· activá "Cerca mío"';
+  document.getElementById('dist-hint').textContent = ubic ? `· desde ${ubic.txt}` : '';
   const kmTxt = st.km !== '99' && ubic ? `< ${st.km.replace('.', ',')} km` : null;
   document.getElementById('fsummary').textContent = (esBar ? [st.tipoBar, kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).join(' · ');
 }
@@ -549,7 +585,7 @@ async function buscar() {
   const main = document.getElementById('main');
   main.classList.add('loading');
   const [a, b] = rango();
-  const completo = !!ubic || modoVista === 'mapa';
+  const completo = (ubic && (!ubic.auto || st.km !== '99')) || modoVista === 'mapa';
   const p = new URLSearchParams({ ciudad: ciudad(), categoria: st.tab, desde: iso(a), hasta: iso(b), max: completo ? 300 : 30 });
   if (completo) p.set('coords', '1');
   if (st.franja) p.set('franja', st.franja);
@@ -591,7 +627,8 @@ function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
       ${tm ? '<br><br>Ojo: estos eventos vienen de Ticketmaster, que en algunas ciudades (como Barcelona o Madrid) tiene poca oferta.' : ''}</div>`;
     main.innerHTML = html; return;
   }
-  html += `<div class="res-sub" style="margin-top:10px">${ubic ? `Ordenados por día y por cercanía a ${esc(ubic.txt)}.` : `${total > eventos.length ? `Te muestro los ${eventos.length} más destacados.` : ''} Ordenados por día.`}</div>`;
+  const porCercania = ubic && (!ubic.auto || st.km !== '99');
+  html += `<div class="res-sub" style="margin-top:10px">${porCercania ? `Ordenados por día y por cercanía a ${esc(ubic.txt)}.` : `${total > eventos.length ? `Te muestro los ${eventos.length} más destacados.` : ''} Ordenados por día.`}</div>`;
   const dias = [...new Set(eventos.map(e => e.fecha))];
   dias.forEach(dia => {
     const delDia = eventos.filter(e => e.fecha === dia);
@@ -599,7 +636,7 @@ function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
     html += `<div class="day"><b>${DIAS_L[d.getDay()]} ${d.getDate()}</b> ${MESES_L[d.getMonth()]}</div>`;
     html += `<div class="grid" id="grid-${dia}">${delDia.map(tarjeta).join('')}</div>`;
     const hay = porDia[dia] || 0;
-    if (!titulo && !ubic && hay > delDia.length) {
+    if (!titulo && !porCercania && hay > delDia.length) {
       html += `<button class="more" id="more-${dia}" onclick="verDia('${dia}')">Ver los ${hay} ${TAB_TXT[st.tab][1]} del ${DIAS_L[d.getDay()].toLowerCase()} ${d.getDate()} ↓</button>`;
     }
   });
@@ -773,18 +810,19 @@ function renderActual() {
     if (!esBar && sinCoords) extra = `<div class="res-sub" style="margin-top:10px">${sinCoords} de ${antes} sin ubicación exacta no entran en el filtro de distancia.</div>`;
   }
   if (esBar) return mostrarBares(items);
-  if (ubic) items.sort((a, b) => a.fecha.localeCompare(b.fecha) || ((a.d ?? 999) - (b.d ?? 999)));
+  if (ubic && (!ubic.auto || st.km !== '99')) items.sort((a, b) => a.fecha.localeCompare(b.fecha) || ((a.d ?? 999) - (b.d ?? 999)));
   mostrar(items, ubic && st.km !== '99' ? items.length : actual.total, null, actual.porDia, extra);
 }
 
 function mostrarBares(items) {
   const main = document.getElementById('main');
   const donde = ubic ? `cerca de <span>${esc(ubic.txt)}</span>` : `en <span>${esc(ciudadTxt())}</span>`;
+  items.sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
   let html = volver() + `<div class="res-head"><h2>${items.length} ${items.length === 1 ? 'bar' : 'bares'} ${donde}</h2><div class="head-tools">${segVista()}</div></div>`;
   if (!items.length) {
-    html += `<div class="empty"><b>No encontré bares con esos filtros 😕</b>${ubic ? 'Probá con "Cerca < 3 km" o "Toda la ciudad".' : 'Probá con otro tipo o activá "Cerca mío" para buscar en tu zona.'}</div>`;
+    html += `<div class="empty"><b>No encontré bares con esos filtros 😕</b>${st.km !== '99' ? 'Probá ampliando la distancia a "Cerca < 3 km".' : 'Probá con otro tipo de bar.'}</div>`;
   } else {
-    html += `<div class="res-sub" style="margin-top:10px">${ubic ? 'Ordenados por distancia.' : 'Bares del centro de la ciudad. Activá "Cerca mío" para ver los de tu zona.'}</div><div class="grid" style="margin-top:16px">${items.map(tarjetaBar).join('')}</div>`;
+    html += `<div class="res-sub" style="margin-top:10px">Ordenados por distancia${ubic && ubic.auto ? '. Tocá "◎ Cerca mío" para buscar desde tu ubicación o una dirección' : ''}.</div><div class="grid" style="margin-top:16px">${items.map(tarjetaBar).join('')}</div>`;
   }
   html += `<div class="osm-note">Datos de bares: © colaboradores de OpenStreetMap.</div>`;
   main.innerHTML = html;
@@ -792,6 +830,12 @@ function mostrarBares(items) {
 }
 
 let mapa = null, capaPines = null, pines = {}, itemsMapa = [], esBarMapa = false;
+function capaBase(m) {
+  // Mapa gris oscuro sin comercios ni íconos (Esri), con nombres de calles encima
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Esri, HERE, Garmin, © OpenStreetMap', maxZoom: 16 }).addTo(m);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }).addTo(m);
+}
 function renderMapa(items, esBar) {
   const main = document.getElementById('main');
   itemsMapa = items.filter(tieneCoords); esBarMapa = esBar;
@@ -803,12 +847,12 @@ function renderMapa(items, esBar) {
   if (!window.L) { document.getElementById('mapalista').innerHTML = '<div class="mapa-info">No pude cargar el mapa. Probá recargar la página.</div>'; return; }
   if (mapa) { mapa.remove(); mapa = null; }
   mapa = L.map('mapa', { zoomControl: true });
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(mapa);
+  capaBase(mapa);
   capaPines = L.layerGroup().addTo(mapa);
   if (ubic) {
     L.marker([ubic.lat, ubic.lng], { icon: L.divIcon({ className: '', html: '<div class="pin me"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }) })
-      .addTo(mapa).bindTooltip('Vos', { permanent: true, direction: 'top', offset: [0, -10] });
-    mapa.setView([ubic.lat, ubic.lng], st.km === '1.5' ? 15 : 14);
+      .addTo(mapa).bindTooltip(ubic.auto ? ubic.txt : 'Vos', { permanent: true, direction: 'top', offset: [0, -10] });
+    mapa.setView([ubic.lat, ubic.lng], 15);
   } else if (itemsMapa.length) {
     mapa.fitBounds(itemsMapa.map(x => [x.lat, x.lng]), { padding: [30, 30], maxZoom: 14 });
   } else {
@@ -847,8 +891,8 @@ async function buscarBares() {
   const main = document.getElementById('main');
   main.classList.add('loading');
   const p = new URLSearchParams({ ciudad: ciudad() });
-  if (ubic) { p.set('lat', ubic.lat); p.set('lng', ubic.lng); p.set('radio', st.km === '99' ? 3000 : Math.round(Number(st.km) * 1000)); }
-  else p.set('radio', 2500);
+  if (ubic) { p.set('lat', ubic.lat); p.set('lng', ubic.lng); }
+  p.set('radio', st.km === '99' ? 4000 : Math.round(Number(st.km) * 1000));
   if (st.tipoBar) p.set('tipo', st.tipoBar);
   if (ctrl) ctrl.abort();
   ctrl = new AbortController();
@@ -873,6 +917,7 @@ function tarjetaBar(b) {
     <article class="card" data-id="${esc(b.id)}" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
       <div class="pic vacia">${emoji}</div>
       ${b.d != null ? `<span class="dist">${fmtDist(b.d)} · ${aPie(b.d)}</span>` : ''}
+      <div class="bar-ico">${b.terraza ? '<span title="Terraza">☀️</span>' : ''}${b.musica ? '<span title="Música en vivo">🎷</span>' : ''}${b.hifi ? '<span title="HiFi / listening bar" class="hifi">HiFi</span>' : ''}</div>
       <div class="inner">
         <div class="town">📍 ${esc(b.barrio || ciudadTxt())}</div>
         <div class="title">${esc(b.titulo)}</div>
@@ -915,6 +960,7 @@ function verDireccion(id) {
   const destino = tieneCoords(x) ? `${x.lat},${x.lng}` : [nombre, dir, lugar].filter(Boolean).join(', ');
   const d = ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null;
   document.getElementById('modalbox').innerHTML = `
+    <button class="cerrar-x" onclick="cerrarModal()" aria-label="Cerrar">✕</button>
     ${tieneCoords(x) ? '<div class="modal-map" id="modalmap"></div>' : ''}
     <div class="modal-info">
       <h3>${esc(nombre)}</h3>
@@ -931,8 +977,8 @@ function verDireccion(id) {
   document.getElementById('modal').classList.add('open');
   if (tieneCoords(x) && window.L) {
     if (miniMapa) { miniMapa.remove(); miniMapa = null; }
-    miniMapa = L.map('modalmap', { zoomControl: false, attributionControl: false }).setView([x.lat, x.lng], 16);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMapa);
+    miniMapa = L.map('modalmap', { zoomControl: true, attributionControl: false }).setView([x.lat, x.lng], 16);
+    capaBase(miniMapa);
     L.marker([x.lat, x.lng], { icon: L.divIcon({ className: '', html: `<div class="pin ${x.tipo === 'bar' ? 'bar' : 'ev'} big"></div>`, iconSize: [16, 16], iconAnchor: [8, 8] }) }).addTo(miniMapa);
     setTimeout(() => miniMapa.invalidateSize(), 60);
   }
@@ -943,7 +989,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(
 // ── CERCA MÍO ──────────────────────────────────────────────────────────────
 function abrirCerca(ev) {
   ev.stopPropagation();
-  if (ubic) return apagarCerca();
+  if (ubic && !ubic.auto) return apagarCerca();
   document.getElementById('nearpop').classList.toggle('open');
   document.getElementById('diri').focus();
 }
@@ -975,22 +1021,28 @@ function sugerirDir() {
   }, 350);
 }
 function fijarUbic(lat, lng, txt) {
-  ubic = { lat, lng, txt };
+  ubic = { lat, lng, txt, auto: false };
   st.km = '1.5';
   document.getElementById('nearpop').classList.remove('open');
   actualizarNota(); pintar(); buscar();
 }
+function puntoCentro() {
+  const c = CENTRO[ciudad()];
+  return c ? { lat: c[0], lng: c[1], txt: c[2], auto: true } : null;
+}
 function apagarCerca(silencioso) {
-  ubic = null; st.km = '99';
+  ubic = puntoCentro();
+  st.km = KM_DEFECTO[kmClave()];
   actualizarNota(); pintar();
   if (!silencioso) buscar();
 }
 function actualizarNota() {
   const b = document.getElementById('near'), n = document.getElementById('nearnote');
-  b.classList.toggle('on', !!ubic);
-  b.textContent = ubic ? '✕ Cerca mío' : '◎ Cerca mío';
+  const manual = ubic && !ubic.auto;
+  b.classList.toggle('on', !!manual);
+  b.textContent = manual ? '✕ Cerca mío' : '◎ Cerca mío';
   n.classList.toggle('show', !!ubic);
-  n.innerHTML = ubic ? `Distancias desde <b>${esc(ubic.txt)}</b> · <a href="#" onclick="event.preventDefault();event.stopPropagation();document.getElementById('nearpop').classList.add('open')">cambiar</a>` : '';
+  n.innerHTML = ubic ? `${manual ? 'Desde' : 'Desde el centro:'} <b>${esc(ubic.txt)}</b> · <a href="#" onclick="event.preventDefault();event.stopPropagation();document.getElementById('nearpop').classList.add('open')">cambiar</a>` : '';
 }
 document.addEventListener('click', e => { if (!e.target.closest('#nearpop') && !e.target.closest('#near')) document.getElementById('nearpop').classList.remove('open'); });
 
@@ -1100,8 +1152,8 @@ document.querySelectorAll('.chips').forEach(g => {
     if (v === 'cal') { cal.abierto = !cal.abierto; pintarCal(); if (cal.a) { st.cuando = 'cal'; pintar(); autoBuscar(); } return; }
     if (k === 'cuando') { cal.abierto = false; pintarCal(); }
     if (k === 'km') {
-      if (!ubic && v !== '99') { e.stopPropagation(); document.getElementById('nearpop').classList.add('open'); document.getElementById('diri').focus(); return; }
-      st.km = v; pintar(); return ubic ? (st.tab === 'bares' ? autoBuscar() : renderActual()) : null;
+      st.km = v; pintar();
+      return st.tab === 'bares' || (ubic && ubic.auto) ? autoBuscar() : renderActual();
     }
     st[k] = st[k] === v && k !== 'cuando' ? null : v;
     pintar(); autoBuscar();
@@ -1109,13 +1161,15 @@ document.querySelectorAll('.chips').forEach(g => {
 });
 document.getElementById('tabs').addEventListener('click', e => {
   const t = e.target.closest('.tab'); if (!t) return;
+  const antes = kmClave();
   st.tab = t.dataset.tab;
+  if (kmClave() !== antes && (!ubic || ubic.auto)) st.km = KM_DEFECTO[kmClave()];
   if (!(GENEROS[st.tab] || []).some(g => g[0] === st.genero)) st.genero = null;
   pintarGeneros(); pintar(); buscar();
 });
 document.getElementById('city').addEventListener('change', () => {
   preciosCiudad();
-  if (ubic) apagarCerca(true);
+  apagarCerca(true);
   try { localStorage.setItem('lp_ciudad', ciudad()); } catch (e) {}
   if (vista === 'resultados' || st.tab === 'bares') autoBuscar(); else inicio();
 });
@@ -1127,6 +1181,7 @@ document.getElementById('city').addEventListener('change', () => {
   let guardada = null;
   try { guardada = localStorage.getItem('lp_ciudad'); } catch (e) {}
   sel.value = CIUDADES.some(c => c[0] === guardada) ? guardada : 'barcelona';
+  ubic = puntoCentro(); actualizarNota();
   preciosCiudad(); pintarGeneros(); pintar(); inicio(); contarGuardados();
 })();
 </script>
