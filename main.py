@@ -1260,6 +1260,41 @@ def tipos_bar(t):
 
 ETIQUETA_TIPO = {"cocteles": "Cócteles", "vinos": "Vinos", "cervezas": "Cervezas", "terraza": "Terraza", "musica": "Música en vivo", "hifi": "HiFi"}
 
+RADIO_CIUDAD = 6000  # metros alrededor del centro que se precargan por ciudad
+OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]
+
+def overpass_bares(centro, radio):
+    k = ("bares", round(centro[0], 3), round(centro[1], 3), radio)
+    c = cache_get(k, 86400)
+    if c is not None:
+        return c
+    q = f"""[out:json][timeout:60];
+    (node["amenity"~"^(bar|pub|biergarten)$"]["name"](around:{radio},{centro[0]},{centro[1]});
+     way["amenity"~"^(bar|pub|biergarten)$"]["name"](around:{radio},{centro[0]},{centro[1]}););
+    out center tags;"""
+    for url in OVERPASS:  # si un servidor falla, probamos el otro
+        try:
+            r = requests.post(url, data={"data": q}, headers=UA, timeout=70)
+            elementos = r.json().get("elements") or []
+            cache_set(k, elementos)
+            return elementos
+        except Exception as e:
+            print(f"[OVERPASS ERROR] {url}: {e}")
+    return None
+
+def bares_ciudad(ciudad):
+    """Todos los bares de la zona céntrica de la ciudad (se piden una vez y quedan 24 h en memoria)"""
+    cc = CENTROS.get(ciudad)
+    return overpass_bares(cc, RADIO_CIUDAD) if cc else None
+
+def precargar_bares():
+    for c in ["barcelona", "madrid"]:
+        bares_ciudad(c)
+        print(f"[BARES] precargados {c}")
+
+import threading
+threading.Thread(target=precargar_bares, daemon=True).start()
+
 @app.route("/bares")
 def bares():
     """Bares de OpenStreetMap. Uso: /bares?ciudad=barcelona[&lat=..&lng=..][&radio=1500][&tipo=cocteles]"""
@@ -1270,20 +1305,17 @@ def bares():
         return jsonify({"error": "Ciudad sin coordenadas", "bares": []}), 400
     radio = max(300, min(int(request.args.get("radio", 2500)), 5000))
     tipo = request.args.get("tipo")
-    k = ("bares", round(centro[0], 3), round(centro[1], 3), radio)
-    elementos = cache_get(k, 3600)
+    # Si el punto está dentro de la zona precargada de la ciudad, filtramos en memoria (instantáneo)
+    cc = CENTROS.get(ciudad)
+    if cc and dist_km(cc, centro) * 1000 + radio <= RADIO_CIUDAD:
+        elementos = bares_ciudad(ciudad)
+    else:
+        elementos = overpass_bares(centro, radio)
     if elementos is None:
-        q = f"""[out:json][timeout:25];
-        (node["amenity"~"^(bar|pub|biergarten)$"]["name"](around:{radio},{centro[0]},{centro[1]});
-         way["amenity"~"^(bar|pub|biergarten)$"]["name"](around:{radio},{centro[0]},{centro[1]}););
-        out center tags 400;"""
-        try:
-            r = requests.post("https://overpass-api.de/api/interpreter", data={"data": q}, headers=UA, timeout=30)
-            elementos = r.json().get("elements") or []
-            cache_set(k, elementos)
-        except Exception as e:
-            print(f"[OVERPASS ERROR] {e}")
-            return jsonify({"error": "No pude traer los bares ahora", "bares": []}), 502
+        return jsonify({"error": "No pude traer los bares ahora", "bares": []}), 502
+    elementos = [el for el in elementos
+                 if dist_km(centro, (el.get("lat") or (el.get("center") or {}).get("lat") or 0,
+                                     el.get("lon") or (el.get("center") or {}).get("lon") or 0)) * 1000 <= radio]
     out = []
     for el in elementos:
         t = el.get("tags") or {}
