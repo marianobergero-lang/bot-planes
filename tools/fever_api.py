@@ -51,9 +51,50 @@ def aplanar(item):
     fila["Currency"] = fila["Currency"] or norm.get("currency", "")
     return fila
 
+def desde_archivo():
+    """Intenta bajar el archivo CSV del catálogo (mismo formato que la descarga manual)."""
+    import csv, gzip, io
+    try:
+        data = get(f"{BASE}/Catalogs/{CATALOGO}/Files")
+    except Exception as e:
+        print("Files no disponible:", e); return None
+    print("Files:", json.dumps(data, ensure_ascii=False)[:1500])
+    urls = []
+    def buscar(x):
+        if isinstance(x, dict):
+            for k, v in x.items():
+                if isinstance(v, str) and v.startswith("http") and any(t in v.lower() for t in (".csv", ".gz", "download", "file")):
+                    urls.append(v)
+                else:
+                    buscar(v)
+        elif isinstance(x, list):
+            for y in x: buscar(y)
+    buscar(data)
+    for u in urls:
+        try:
+            r = requests.get(u, auth=(SID, TOKEN), timeout=300)
+            if r.status_code != 200:
+                r = requests.get(u, timeout=300)  # algunos links ya vienen firmados
+            r.raise_for_status()
+            crudo = r.content
+            if crudo[:2] == b"\x1f\x8b":
+                crudo = gzip.decompress(crudo)
+            texto = crudo.decode("utf-8", errors="replace")
+            filas = list(csv.DictReader(io.StringIO(texto)))
+            if filas and "City" in filas[0] and "Sessions" in filas[0]:
+                print(f"Archivo OK: {len(filas)} filas desde {u.split('?')[0]}")
+                return filas
+            print("Archivo sin las columnas esperadas:", list(filas[0].keys())[:30] if filas else "vacío")
+        except Exception as e:
+            print("No pude bajar", u.split("?")[0], e)
+    return None
+
 def main():
     if not SID or not TOKEN:
         print("Faltan IMPACT_SID / IMPACT_TOKEN"); return
+    filas = desde_archivo()
+    if filas:
+        print("Planes guardados:", procesar(filas)); return
     filas, pagina = [], 1
     while True:
         data = get(f"{BASE}/Catalogs/{CATALOGO}/Items", PageSize=1000, Page=pagina)
