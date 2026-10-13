@@ -587,7 +587,8 @@ def repartir_por_dia(eventos, max_ev):
     En la selección no se repite el mismo plan en varios días (salvo que no haya otros)."""
     hoy = datetime.now().strftime("%Y-%m-%d")
     por_dia = {}
-    for e in sorted(eventos, key=lambda x: (-(x.get("asistentes") or 0), x.get("relevancia", 0))):
+    # Primero los de Fever que pagan comisión, después el resto por popularidad
+    for e in sorted(eventos, key=lambda x: (0 if x.get("comision") else 1, -(x.get("asistentes") or 0), x.get("relevancia", 0))):
         if e.get("fecha", "") >= hoy:
             por_dia.setdefault(e.get("fecha", ""), []).append(e)
     elegidos, vistos = [], set()
@@ -1820,7 +1821,7 @@ def buscar_fever(ciudad, categoria, desde, hasta):
                 "precio": str(precio) if precio is not None else "No especificado", "precio_label": label,
                 "precio_num": precio_num, "gratis": precio == 0, "asistentes": 0, "destacado": "",
                 "url": p.get("u", ""), "imagen": p.get("img"), "lat": p.get("la"), "lng": p.get("lo"),
-                "fuente": "Fever", "categoria": categoria, "relevancia": rel,
+                "fuente": "Fever", "categoria": categoria, "relevancia": rel, "comision": bool(p.get("com")),
             })
     return out
 
