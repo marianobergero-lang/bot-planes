@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Let's PartIA</title>
+<title>Let's PartIA!</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -332,12 +332,20 @@
   .landing-in { width: 100%; max-width: 760px; padding: 64px 20px 40px; display: flex; flex-direction: column; align-items: center; text-align: center; }
   .landing .logo { font-size: clamp(46px, 8vw, 84px); font-weight: 800; letter-spacing: -3px; line-height: 1; }
   .landing .logo span { color: var(--orange); }
-  .landing .tag { color: var(--muted); font-size: 17px; margin: 12px 0 40px; }
+  .landing .lema { color: var(--muted); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin: 4px 0 44px; }
   .landing .paso { width: 100%; text-align: left; }
   .landing .paso h3 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 12px; }
   .landing .hero-ask { max-width: none; }
-  .landing .o { width: 100%; display: flex; align-items: center; gap: 14px; color: var(--dim); font-size: 13px; text-transform: uppercase; letter-spacing: 1.4px; margin: 36px 0; }
-  .landing .o::before, .landing .o::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .landing .o { width: 100%; display: flex; align-items: center; gap: 18px; color: var(--text); font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin: 52px 0 40px; }
+  .landing .o::before, .landing .o::after { content: ''; flex: 1; height: 2px; background: linear-gradient(90deg, transparent, rgba(233,104,46,.6), transparent); }
+  .ejemplos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .ejemplos button { background: transparent; border: 1px solid var(--border2); color: var(--muted); border-radius: 20px; padding: 7px 13px; font: 500 13px 'Space Grotesk', sans-serif; cursor: pointer; }
+  .ejemplos button:hover { border-color: var(--orange); color: var(--text); }
+  .ciudades-top { flex-wrap: nowrap !important; overflow-x: auto; }
+  .chip.mas { border-color: rgba(233,104,46,.55); color: var(--orange); }
+  .ciudades-top .chip.big { padding: 9px 13px; font-size: 14px; flex-shrink: 0; }
+  .ciudades-top { gap: 6px !important; justify-content: space-between; }
+  .ciudad-grande .city::after { font-size: 22px; right: 18px; color: var(--text); }
   .detectada { font-size: 14px; color: var(--muted); margin-bottom: 12px; min-height: 20px; }
   .detectada b { color: var(--text); }
   .ciudad-grande { display: flex; gap: 10px; }
@@ -403,7 +411,7 @@
 <body>
 
 <header>
-  <a class="brand" href="./" onclick="irHome(event)" title="Volver al inicio">Let's <span>Part</span>IA<small>Many events · Your event</small></a>
+  <a class="brand" href="./" onclick="irHome(event)" title="Volver al inicio">Let's <span>Part</span>IA!<small>Many events · Your event</small></a>
   <nav class="tabs" id="tabs">
     <button class="tab on" data-tab="clubs">🪩 Fiestas y clubs</button>
     <button class="tab" data-tab="bares">🍸 Bares</button>
@@ -417,18 +425,24 @@
   </div>
 </header>
 <div class="toast" id="toast"></div>
-<button class="fab" id="fab" onclick="toggleChat()"><i>🤖</i><span>Preguntale a Let's PartIA</span></button>
+<button class="fab" id="fab" onclick="toggleChat()"><i>🤖</i><span>Preguntale a Let's PartIA!</span></button>
 
 <div class="landing" id="landing">
   <div class="landing-in">
-    <div class="logo">Let's <span>Part</span>IA</div>
-    <div class="tag">Many events · Your event</div>
+    <div class="logo">Let's <span>Part</span>IA!</div>
+    <div class="lema">Many events · Your event</div>
 
     <div class="paso">
       <h3>🤖 Contame qué querés y lo busco</h3>
       <div class="hero-ask">
         <input id="askl" placeholder="Ej: techno en Barcelona el sábado, algo gratis hoy en Madrid…" onkeydown="if(event.key==='Enter')desdeLanding()">
         <button class="send" onclick="desdeLanding()" aria-label="Buscar">↑</button>
+      </div>
+      <div class="ejemplos">
+        <button onclick="desdeLanding(this.textContent)">Techno este sábado en Barcelona</button>
+        <button onclick="desdeLanding(this.textContent)">¿Cuándo toca Amelie Lens?</button>
+        <button onclick="desdeLanding(this.textContent)">Algo gratis hoy en Madrid</button>
+        <button onclick="desdeLanding(this.textContent)">Un sunset open air el domingo</button>
       </div>
     </div>
 
@@ -523,7 +537,7 @@
   <div class="main-wrap">
     <main class="main" id="main"></main>
     <div class="chat-dock" id="dock">
-      <div class="chat-head"><div class="bot-ico">🤖</div><div><b>Let's <span>Part</span>IA</b><small>Contame qué querés y te lo busco</small></div><button class="x" onclick="toggleChat(false)" aria-label="Cerrar">✕</button></div>
+      <div class="chat-head"><div class="bot-ico">🤖</div><div><b>Let's <span>Part</span>IA!</b><small>Contame qué querés y te lo busco</small></div><button class="x" onclick="toggleChat(false)" aria-label="Cerrar">✕</button></div>
       <div class="chat-thread" id="thread"></div>
       <div class="chat-bar">
         <input id="ask" placeholder="¡Hey! Decime qué te gustaría ✨" onkeydown="if(event.key==='Enter')preguntar()">
@@ -947,7 +961,7 @@ function mostrarBares(items) {
   main.scrollTop = 0;
 }
 
-let mapa = null, capaPines = null, pines = {}, itemsMapa = [], esBarMapa = false;
+let mapa = null, capaPines = null, pines = {}, itemsMapa = [], esBarMapa = false, vistaGuardada = null;
 function capaBase(m) {
   // OpenStreetMap (gratis); se ve en gris oscuro con CSS para que los comercios no compitan con los pines
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(m);
@@ -968,13 +982,22 @@ function renderMapa(items, esBar) {
   if (ubic) {
     L.marker([ubic.lat, ubic.lng], { icon: L.divIcon({ className: '', html: '<div class="pin me"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }) })
       .addTo(mapa).bindTooltip(ubic.auto ? ubic.txt : 'Vos', { permanent: true, direction: 'top', offset: [0, -10] });
-    mapa.setView([ubic.lat, ubic.lng], 15);
+    if (vistaGuardada) mapa.setView(vistaGuardada.c, vistaGuardada.z);
+    else mapa.setView([ubic.lat, ubic.lng], esBar ? ({ '1.5': 17, '3': 15 }[st.km] || 14) : 15);
+    vistaGuardada = null;
   } else if (itemsMapa.length) {
     mapa.fitBounds(itemsMapa.map(x => [x.lat, x.lng]), { padding: [30, 30], maxZoom: 14 });
   } else {
     mapa.setView([41.3874, 2.1686], 12);
   }
   mapa.on('moveend', actualizarMapa);
+  mapa.on('zoomend', () => {
+    // En bares: si te alejás, ampliamos la distancia y traemos más (sin mover el mapa)
+    if (!esBarMapa) return;
+    const z = mapa.getZoom();
+    const nuevo = st.km === '1.5' && z <= 15 ? '3' : (st.km === '3' && z <= 13 && st.tipoBar ? '99' : null);
+    if (nuevo) { st.km = nuevo; vistaGuardada = { c: mapa.getCenter(), z }; pintar(); buscarBares(); }
+  });
   document.getElementById('mapalista').addEventListener('click', e => {
     const c = e.target.closest('.card'); if (!c || e.target.closest('button, a')) return;
     seleccionar(c.dataset.id);
@@ -1269,6 +1292,12 @@ function toggleChat(abrir) {
     setTimeout(() => document.getElementById('ask').focus(), 50);
   }
 }
+document.addEventListener('click', e => {
+  const d = document.getElementById('dock');
+  if (!d.classList.contains('abierto')) return;
+  if (e.target.closest('#dock') || e.target.closest('#fab') || e.target.closest('.sc') || e.target.closest('.ejemplos')) return;
+  toggleChat(false);
+});
 function burbuja(txt, quien) {
   document.querySelectorAll('.chat-vacio').forEach(x => x.remove());
   const t = document.getElementById('thread');
@@ -1316,12 +1345,12 @@ async function preguntar(textoFijo) {
     if (!f) {
       burbuja(reply || 'Contame un poco más y te busco algo 🙂', 'bot');
     } else if ((f.tipo || 'fecha') === 'fecha') {
-      burbuja('¡Listo! Te marqué los filtros a la izquierda y busqué 🔎 Si algo no es lo que querías, tocalo y cambialo.', 'bot');
+      burbuja('¡Listo! Te dejé los resultados en pantalla 👈 Podés afinarlos con los filtros de la izquierda o seguir preguntándome por acá.', 'bot');
       aplicarFiltrosDelBot(f);
       buscar();
     } else {
       const ev = data.eventos || [];
-      burbuja(ev.length ? (reply || 'Mirá lo que encontré 👇') : (reply || 'No encontré nada con eso 😕'), 'bot');
+      burbuja(ev.length ? `${reply || 'Mirá lo que encontré'}\nTe dejé los resultados en pantalla 👈 Podés seguir preguntándome por acá.` : (reply || 'No encontré nada con eso 😕'), 'bot');
       if (ev.length) {
         const nombre = f.artista || f.venue || f.query || '';
         const titulo = f.tipo === 'artista' ? `Próximas fechas de <span>${esc(nombre)}</span>`
@@ -1339,7 +1368,7 @@ async function preguntar(textoFijo) {
 }
 
 // ── PANTALLA PRINCIPAL ─────────────────────────────────────────────────────
-const TOP = ['barcelona', 'madrid', 'ibiza', 'london', 'berlin', 'amsterdam', 'paris', 'lisbon', 'buenos aires'];
+const TOP = ['barcelona', 'madrid', 'ibiza', 'london', 'berlin', 'amsterdam'];
 function mostrarLanding() {
   const sel = document.getElementById('cityl');
   sel.value = ciudad();
@@ -1354,8 +1383,8 @@ function entrarCiudad(c) {
   document.getElementById('landing').hidden = true;
   inicio();
 }
-function desdeLanding() {
-  const i = document.getElementById('askl'), t = i.value.trim();
+function desdeLanding(fijo) {
+  const i = document.getElementById('askl'), t = (fijo || i.value).trim();
   if (!t) return i.focus();
   i.value = '';
   document.getElementById('landing').hidden = true;
@@ -1422,7 +1451,8 @@ document.getElementById('city').addEventListener('change', () => {
   try { guardada = localStorage.getItem('lp_ciudad'); } catch (e) {}
   sel.value = CIUDADES.some(c => c[0] === guardada) ? guardada : 'barcelona';
   document.getElementById('cityl').innerHTML = sel.innerHTML;
-  document.getElementById('ciudadestop').innerHTML = TOP.map(k => `<button class="chip big" onclick="entrarCiudad('${k}')">${CIUDADES.find(x => x[0] === k)[1]}</button>`).join('');
+  document.getElementById('ciudadestop').innerHTML = TOP.map(k => `<button class="chip big" onclick="entrarCiudad('${k}')">${CIUDADES.find(x => x[0] === k)[1]}</button>`).join('')
+    + `<button class="chip big mas" onclick="const s=document.getElementById('cityl');s.focus();try{s.showPicker()}catch(e){}">Más ciudades ▾</button>`;
   ubic = puntoCentro(); actualizarNota();
   preciosCiudad(); pintarGeneros(); pintar(); inicio(); contarGuardados();
   mostrarLanding();
