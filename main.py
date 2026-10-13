@@ -1684,6 +1684,51 @@ def debug_futbol():
     return jsonify({"key": bool(FD_KEY), "ciudad": ciudad, "total": len(evs),
                     "partidos": [f"{e['fecha']} {e['hora']} {e['titulo']} @ {e['venue']}" for e in evs]})
 
+# ── SEGUIR ARTISTAS Y EQUIPOS ───────────────────────────────────────────────
+def proximos_artista(nombre):
+    """Próximas fechas de un artista en Resident Advisor. Devuelve (eventos, nombre_real)."""
+    k = f"seg-art-{nombre.lower().strip()}"
+    v = cache_get(k, 3 * 3600)
+    if v is not None:
+        return v
+    slugs = []
+    try:
+        data = ra_request_direct({"operationName": "SEARCH_ARTISTS", "variables": {"query": nombre}, "query": RA_QUERY_ARTIST_SEARCH})
+        for a in (data.get("data", {}) or {}).get("artistSearch", [])[:2]:
+            sl = (a.get("contentUrl") or "").replace("/dj/", "").strip("/")
+            if sl:
+                slugs.append(sl)
+    except Exception as e:
+        print(f"[SEGUIR] {e}")
+    slugs.append(re.sub(r"[^a-z0-9]+", "", nombre.lower()))
+    hoy = datetime.now().strftime("%Y-%m-%d")
+    res = ([], nombre)
+    for sl in slugs:
+        d = ra_request_direct({"operationName": "GET_ARTIST_UPCOMING", "variables": {"slug": sl, "limit": 20, "areaId": None},
+                               "query": RA_QUERY_ARTISTA_PROXIMOS})
+        art = (d.get("data") or {}).get("artist")
+        if art and art.get("id"):
+            evs = [formatear_evento(e) for e in (art.get("events") or []) if e]
+            evs = sorted([e for e in evs if e.get("fecha", "") >= hoy], key=lambda e: e["fecha"])
+            res = (evs, art.get("name") or nombre)
+            break
+    cache_set(k, res)
+    return res
+
+@app.route("/proximos")
+def proximos():
+    """Para "Seguir": /proximos?tipo=artista|equipo&nombre=Hernan Cattaneo"""
+    tipo = request.args.get("tipo", "artista")
+    nombre = (request.args.get("nombre") or "").strip()
+    if not nombre:
+        return jsonify({"nombre": "", "eventos": []})
+    try:
+        evs, real = buscar_equipo(nombre) if tipo == "equipo" else proximos_artista(nombre)
+    except Exception as e:
+        print(f"[PROXIMOS] {e}")
+        evs, real = [], nombre
+    return jsonify({"tipo": tipo, "nombre": real or nombre, "eventos": evs[:6]})
+
 # ── CINE (TMDB, gratis) ─────────────────────────────────────────────────────
 TMDB_KEY = os.environ.get("TMDB_API_KEY", "")
 HABLA_ES = {"ES", "AR", "MX", "CL", "CO"}

@@ -213,6 +213,16 @@
   }
   .menu-share a, .menu-share button { background: none; border: none; color: var(--text); text-align: left; font-size: 13.5px; padding: 8px 10px; border-radius: 7px; cursor: pointer; text-decoration: none; }
   .menu-share a:hover, .menu-share button:hover { background: var(--surface); }
+  .seguir-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 14px; }
+  .seguir-btn { background: var(--orange); color: #fff; border: none; border-radius: 10px; padding: 9px 14px; font: 700 14px 'Space Grotesk', sans-serif; cursor: pointer; }
+  .seguir-btn.on { background: transparent; color: var(--text); border: 1px solid var(--border2); }
+  .seguir-bar small { color: var(--muted); font-size: 12.5px; }
+  .avisos { width: 100%; text-align: left; background: rgba(233,104,46,.08); border: 1px solid rgba(233,104,46,.45); border-radius: 16px; padding: 12px 14px; margin: 0 0 26px; }
+  .avisos h4 { font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--orange); margin-bottom: 6px; }
+  .aviso { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--border); font-size: 14px; }
+  .aviso:first-of-type { border-top: none; }
+  .aviso a { flex: 1; color: var(--text); text-decoration: none; cursor: pointer; } .aviso a b { color: var(--orange); }
+  .aviso button { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 13px; }
   .toast { position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-weight: 600; font-size: 13.5px; padding: 10px 16px; border-radius: 10px; z-index: 50; opacity: 0; transition: opacity .2s; pointer-events: none; }
   .toast.show { opacity: 1; }
   .saved-btn { background: none; border: 1px solid var(--border2); color: var(--text); border-radius: 20px; padding: 7px 13px; font-size: 13px; cursor: pointer; white-space: nowrap; }
@@ -504,6 +514,7 @@
   <div class="landing-in">
     <div class="logo">Let's <span>Part</span>IA!</div>
     <div class="lema">Todos tus planes, en un solo lugar</div>
+    <div class="avisos" id="avisos-l" hidden></div>
 
     <div class="paso">
       <h3>🤖 Contame qué querés y lo busco</h3>
@@ -1579,6 +1590,64 @@ async function compartirBusqueda() {
   catch (e) { prompt('Copiá este link:', url); }
 }
 function botonCompartir() { return `<button class="share-bus" onclick="compartirBusqueda()">↗ Compartir</button>`; }
+// ── SEGUIR ARTISTAS Y EQUIPOS (se guarda en este navegador) ────────────────
+function leerSeguidos() { try { return JSON.parse(localStorage.getItem('lp_sigo') || '[]'); } catch (e) { return []; } }
+function guardarSeguidos(l) { try { localStorage.setItem('lp_sigo', JSON.stringify(l)); } catch (e) {} }
+function sigo(tipo, nombre) { return leerSeguidos().some(x => x.tipo === tipo && x.nombre.toLowerCase() === nombre.toLowerCase()); }
+function barraSeguir(tipo, nombre) {
+  const on = sigo(tipo, nombre);
+  return `<div class="seguir-bar"><button class="seguir-btn ${on ? 'on' : ''}" onclick="toggleSeguir(this, '${tipo}', '${esc(nombre).replace(/'/g, '&#39;')}')">${on ? '✓ Siguiendo' : `🔔 Seguir a ${esc(nombre)}`}</button>
+    <small>${on ? 'Te aviso acá cuando entres a la app' : 'Cuando vuelvas a entrar, te muestro sus próximas fechas arriba de todo'}</small></div>`;
+}
+function toggleSeguir(btn, tipo, nombre) {
+  let l = leerSeguidos();
+  if (sigo(tipo, nombre)) l = l.filter(x => !(x.tipo === tipo && x.nombre.toLowerCase() === nombre.toLowerCase()));
+  else { l.push({ tipo, nombre }); toast(`🔔 Listo, seguís a ${nombre}`); }
+  guardarSeguidos(l.slice(-10));
+  btn.parentElement.outerHTML = barraSeguir(tipo, nombre);
+  AVISOS = null;
+}
+let AVISOS = null;
+async function cargarAvisos() {
+  const l = leerSeguidos();
+  if (!l.length) return [];
+  if (AVISOS) return AVISOS;
+  const res = await Promise.all(l.map(async x => {
+    try {
+      const r = await fetch(`${API}/proximos?tipo=${x.tipo}&nombre=${encodeURIComponent(x.nombre)}`);
+      const d = await r.json();
+      return { ...x, real: d.nombre || x.nombre, eventos: d.eventos || [] };
+    } catch (e) { return { ...x, real: x.nombre, eventos: [] }; }
+  }));
+  AVISOS = res;
+  return res;
+}
+async function pintarAvisos(id) {
+  const box = document.getElementById(id); if (!box) return;
+  const l = await cargarAvisos();
+  if (!l.length) { box.hidden = true; return; }
+  const filas = l.map((x, i) => {
+    const e = x.eventos[0];
+    const ico = x.tipo === 'equipo' ? '⚽' : '🎧';
+    const txt = e ? `${ico} <b>${esc(x.real)}</b> · ${fechaMini(e.fecha)}${e.hora && e.hora !== '23:59' ? ' ' + e.hora : ''} · ${esc(e.titulo)}${e.ciudad_venue || e.venue ? ' · ' + esc(e.ciudad_venue || e.venue) : ''}`
+                  : `${ico} <b>${esc(x.real)}</b> · sin fechas anunciadas por ahora`;
+    return `<div class="aviso"><a onclick="verSeguido(${i})">${txt}</a><button title="Dejar de seguir" onclick="dejarSeguir(${i}, '${id}')">✕</button></div>`;
+  }).join('');
+  box.innerHTML = `<h4>🔔 Lo que seguís</h4>${filas}`;
+  box.hidden = false;
+}
+function verSeguido(i) {
+  const x = (AVISOS || [])[i]; if (!x || !x.eventos.length) return;
+  document.getElementById('landing').hidden = true;
+  st.tab = x.tipo === 'equipo' ? 'deportes' : 'clubs'; pintarGeneros(); pintar();
+  mostrar(x.eventos, x.eventos.length, `${x.tipo === 'equipo' ? 'Próximos partidos de' : 'Próximas fechas de'} <span>${esc(x.real)}</span>`, {}, barraSeguir(x.tipo, x.nombre));
+  vista = 'resultados';
+}
+function dejarSeguir(i, id) {
+  const x = (AVISOS || [])[i]; if (!x) return;
+  guardarSeguidos(leerSeguidos().filter(y => !(y.tipo === x.tipo && y.nombre === x.nombre)));
+  AVISOS = null; pintarAvisos(id);
+}
 function toast(t) {
   document.querySelectorAll('.toast').forEach(x => x.remove());
   const d = document.createElement('div'); d.className = 'toast'; d.textContent = t;
@@ -1651,8 +1720,10 @@ document.addEventListener('click', e => { if (!e.target.closest('#nearpop') && !
 function inicio() {
   vista = 'inicio';
   limpiarURL();
+  setTimeout(() => pintarAvisos('avisos-c'), 0);
   document.getElementById('main').classList.remove('loading');
   document.getElementById('main').innerHTML = `
+    <div class="avisos" id="avisos-c" hidden></div>
     <div class="hello">
       <h2>¿Qué hacemos en <span>${esc(ciudadTxt())}</span>?</h2>
       <div class="guia"><span class="flecha">👈</span><div><b>Armá tu plan con los filtros ${lado()}</b>Elegí cuándo, el horario, el precio o el género, y los resultados aparecen acá. Arriba cambiás entre fiestas, bares, conciertos y más.</div></div>
@@ -1814,7 +1885,7 @@ async function preguntar(textoFijo) {
         const titulo = f.tipo === 'equipo' ? `Próximos partidos de <span>${esc(nombre)}</span>`
           : f.tipo === 'artista' ? `Próximas fechas de <span>${esc(nombre)}</span>`
           : f.tipo === 'venue' ? `Lo que viene en <span>${esc(nombre)}</span>` : `Resultados para <span>${esc(nombre)}</span>`;
-        mostrar(ev, ev.length, titulo);
+        mostrar(ev, ev.length, titulo, {}, f.tipo === 'artista' ? barraSeguir('artista', nombre) : f.tipo === 'equipo' ? barraSeguir('equipo', nombre) : '');
         vista = 'resultados';
         if (MOVIL()) setTimeout(() => toggleChat(false), 1400);
       }
@@ -1857,6 +1928,7 @@ function arrancarFondo() {
 }
 function mostrarLanding() {
   setTimeout(arrancarFondo, 700);
+  pintarAvisos('avisos-l');
   const sel = document.getElementById('cityl');
   sel.value = ciudad();
   document.getElementById('landing').hidden = false;
