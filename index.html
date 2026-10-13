@@ -193,6 +193,7 @@
   .pic.escudos i { font-style: normal; font-weight: 800; color: var(--muted, #9a948c); font-size: 15px; letter-spacing: 1px; }
   .peli .sinopsis { color: var(--muted); font-size: 13px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 4px 0; }
   .peli a.fav { text-decoration: none; }
+  sup.beta { font-size: 9px; font-weight: 800; letter-spacing: .5px; color: #0D0C0B; background: var(--accent, #E9682E); padding: 1px 5px; border-radius: 6px; vertical-align: top; }
   .pic.vacia { background: linear-gradient(135deg, #1d1b18, #121110); display: flex; align-items: center; justify-content: center; font-size: 34px; opacity: .9; }
   .pic::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, transparent 40%, transparent 70%, rgba(23,22,20,.9) 100%); pointer-events: none; }
   .acciones { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 2; }
@@ -440,7 +441,7 @@
     <button class="tab" data-tab="conciertos">🎤 Conciertos</button>
     <button class="tab" data-tab="teatro">🎭 Teatro y shows</button>
     <button class="tab" data-tab="deportes">⚽ Deportes</button>
-    <button class="tab" data-tab="cine">🎬 Cine</button>
+    <button class="tab" data-tab="cine" hidden>🎬 Cine <sup class="beta">BETA</sup></button>
   </nav>
   <div style="display:flex;align-items:center;gap:14px">
     <button class="saved-btn" id="savedbtn" onclick="verGuardados()">♥ Mis planes favoritos <b id="nguardados"></b></button>
@@ -864,6 +865,14 @@ function tarjeta(e) {
       </div>
     </article>`;
 }
+
+// Modo prueba: entrar una vez con ?beta=1 lo deja activado en este navegador (?beta=0 lo apaga)
+const BETA = (() => {
+  const q = new URLSearchParams(location.search).get('beta');
+  try { if (q !== null) localStorage.setItem('lp_beta', q === '1' ? '1' : '0'); return localStorage.getItem('lp_beta') === '1'; }
+  catch (e) { return q === '1'; }
+})();
+if (BETA) document.querySelector('.tab[data-tab=cine]').hidden = false;
 
 // ── CINE ───────────────────────────────────────────────────────────────────
 let cineTipo = 'cartelera', cineData = {};
@@ -1616,7 +1625,7 @@ document.getElementById('city').addEventListener('change', () => {
   sel.value = CIUDADES.some(c => c[0] === guardada) ? guardada : 'barcelona';
   document.getElementById('cityl').innerHTML = sel.innerHTML;
   document.getElementById('ciudadestop').innerHTML = `<div class="que">¿Qué buscás?</div>` + [
-    ['clubs', '🪩 Fiestas y clubs'], ['bares', '🍸 Bares'], ['conciertos', '🎤 Conciertos'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'], ['cine', '🎬 Cine'],
+    ['clubs', '🪩 Fiestas y clubs'], ['bares', '🍸 Bares'], ['conciertos', '🎤 Conciertos'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'], ...(BETA ? [['cine', '🎬 Cine']] : []),
   ].map(([t, txt]) => `<button class="chip big" onclick="entrarCategoria('${t}')">${txt}</button>`).join('');
   ubic = puntoCentro(); actualizarNota();
   preciosCiudad(); pintarGeneros(); pintar(); inicio(); contarGuardados();
