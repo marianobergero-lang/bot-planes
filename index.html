@@ -25,8 +25,11 @@
   .brand { font-size: 20px; font-weight: 800; letter-spacing: -0.7px; white-space: nowrap; }
   .brand span { color: var(--orange); }
   .brand small { display: block; font-size: 11px; color: var(--dim); font-weight: 500; letter-spacing: 0; }
-  .powered { font-size: 11px; color: var(--dim); white-space: nowrap; }
-  .powered b { color: var(--orange); }
+  .brand { color: var(--text); text-decoration: none; }
+  .powered { font-size: 13px; color: var(--dim); white-space: nowrap; text-decoration: none; display: flex; align-items: baseline; gap: 6px; }
+  .powered b { font-size: 19px; font-weight: 800; letter-spacing: -0.6px; }
+  .powered .step { color: var(--text); } .powered .wise { color: var(--orange); }
+  .powered:hover .step { text-decoration: underline; }
   .tabs { display: flex; gap: 4px; }
   .tab { background: none; border: none; color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
   .tab:hover { color: var(--text); background: var(--surface); }
@@ -102,6 +105,23 @@
   .sc small { color: var(--dim); font-weight: 400; font-size: 12px; }
   .back { background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; margin-bottom: 14px; padding: 0; }
   .back:hover { color: var(--text); }
+
+  /* INICIO: chat protagonista */
+  .hero-ask { display: flex; gap: 10px; align-items: center; max-width: 760px; background: var(--surface); border: 1px solid var(--border2); border-radius: 18px; padding: 10px 10px 10px 14px; transition: border-color .15s; }
+  .hero-ask:focus-within { border-color: var(--orange); box-shadow: 0 0 0 4px var(--orange-soft); }
+  .hero-ask input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font: 17px 'Space Grotesk', sans-serif; padding: 10px 4px; }
+  .hero-ask input::placeholder { color: var(--dim); }
+  .hero-ask .send { width: 50px; height: 50px; border-radius: 14px; border: none; background: var(--orange); color: #fff; font-size: 20px; cursor: pointer; flex-shrink: 0; }
+  .hero-when { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 18px 0 30px; }
+  .hero-when > span { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-right: 6px; }
+  .chip.big { font-size: 15px; padding: 11px 18px; border-radius: 24px; color: var(--text); }
+  .hero-sub { font-size: 12px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 10px; padding-top: 22px; border-top: 1px solid var(--line); max-width: 760px; }
+  .shortcuts .sc { padding: 12px 14px; font-size: 13.5px; gap: 4px; }
+  .shortcuts .sc i { font-size: 18px; }
+
+  .pic.nombre { flex-direction: column; justify-content: flex-end; align-items: flex-start; padding: 14px 16px; text-align: left; }
+  .pic.nombre b { font-size: 21px; font-weight: 800; letter-spacing: -0.6px; line-height: 1.05; text-transform: uppercase; color: rgba(242,238,232,.92); position: relative; z-index: 1; max-width: 85%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .pic.nombre i { font-style: normal; font-size: 16px; opacity: .7; position: absolute; right: 14px; bottom: 12px; z-index: 1; }
 
   /* RESULTADOS */
   .res-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
@@ -215,13 +235,19 @@
   .head-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .mapa-wrap { display: grid; grid-template-columns: 1fr 430px; gap: 0; height: calc(100vh - 290px); min-height: 440px; margin-top: 14px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
   #mapa { height: 100%; background: #1a1916; }
-  .mapa-lista { overflow-y: auto; padding: 10px; border-left: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start; }
+  .mapa-lista { overflow-y: auto; padding: 10px; border-left: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: max-content; gap: 8px; align-content: start; }
   .mapa-info { grid-column: 1 / -1; }
   .mapa-lista .card { flex-shrink: 0; min-height: 0; }
-  .mapa-lista .card .pic { height: 64px; font-size: 22px; }
+  .mapa-lista .card .pic { display: none; }
+  .mapa-lista .card .dist { position: static; align-self: flex-start; margin: 9px 0 0 10px; }
+  .mapa-lista .card .bar-ico { position: static; margin: 6px 10px 0; }
+  .mapa-lista .card .bar-ico span { height: 22px; min-width: 22px; font-size: 12px; }
   .mapa-lista .card .inner { padding: 9px 10px 10px; gap: 5px; }
   .mapa-lista .card .title { font-size: 13px; -webkit-line-clamp: 2; }
-  .mapa-lista .card .who, .mapa-lista .card .people, .mapa-lista .card .tags, .mapa-lista .card .horario, .mapa-lista .card .town, .mapa-lista .card .acciones { display: none; }
+  .mapa-lista .card .people, .mapa-lista .card .tags, .mapa-lista .card .horario, .mapa-lista .card .town, .mapa-lista .card .acciones { display: none; }
+  .mapa-lista .card .who { font-size: 11.5px; margin-top: -3px; }
+  .mapa-lista .card .title { margin-top: 0; }
+  .card.sel { border: 2px solid var(--orange) !important; box-shadow: 0 0 0 4px rgba(233,104,46,.25); }
   .mapa-lista .card .facts { font-size: 11.5px; gap: 2px; }
   .mapa-lista .card .dir-btn { display: none; }
   .mapa-lista .card .foot { grid-template-columns: 1fr; row-gap: 6px; padding-top: 8px; }
@@ -328,7 +354,7 @@
 <body>
 
 <header>
-  <div class="brand">Let's <span>Part</span>IA<small>Many events · Your event</small></div>
+  <a class="brand" href="./" onclick="irHome(event)" title="Volver al inicio">Let's <span>Part</span>IA<small>Many events · Your event</small></a>
   <nav class="tabs" id="tabs">
     <button class="tab on" data-tab="clubs">🪩 Fiestas y clubs</button>
     <button class="tab" data-tab="bares">🍸 Bares</button>
@@ -338,7 +364,7 @@
   </nav>
   <div style="display:flex;align-items:center;gap:14px">
     <button class="saved-btn" id="savedbtn" onclick="verGuardados()">♥ Mis planes favoritos <b id="nguardados"></b></button>
-    <div class="powered">powered by <b>stepwise</b></div>
+    <a class="powered" href="https://stepwiseconsulting.es/eventos" target="_blank" rel="noopener">powered by <b><span class="step">Step</span><span class="wise">Wise</span></b></a>
   </div>
 </header>
 <div class="toast" id="toast"></div>
@@ -371,7 +397,7 @@
       <div class="chips" data-g="cuando">
         <button class="chip" data-v="hoy">Hoy</button>
         <button class="chip" data-v="manana">Mañana</button>
-        <button class="chip on" data-v="finde">Este finde</button>
+        <button class="chip" data-v="finde">Este finde</button>
         <button class="chip" data-v="cal" id="chip-cal">📅 Elegir fechas</button>
       </div>
       <div class="mini-cal" id="minical"></div>
@@ -476,7 +502,7 @@ const MESES_L = ['enero','febrero','marzo','abril','mayo','junio','julio','agost
 const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
 // ── ESTADO ─────────────────────────────────────────────────────────────────
-const st = { tab: 'clubs', cuando: 'finde', franja: null, precio: null, genero: null, tipoBar: null, km: '99' };
+const st = { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, km: '99' };
 let ubic = null;          // { lat, lng, txt, auto } · auto = punto céntrico de la ciudad
 const KM_DEFECTO = { bares: '1.5', otros: '99' };
 function kmClave() { return st.tab === 'bares' ? 'bares' : 'otros'; }
@@ -582,6 +608,7 @@ function autoBuscar() {
 
 async function buscar() {
   if (st.tab === 'bares') return buscarBares();
+  if (!st.cuando) { st.cuando = 'finde'; pintar(); }  // sin fecha elegida, buscamos el finde
   vista = 'resultados';
   const main = document.getElementById('main');
   main.classList.add('loading');
@@ -662,6 +689,10 @@ async function verDia(dia) {
   }
 }
 
+function picNombre(nombre, emoji) {
+  let hsh = 0; for (const ch of String(nombre || '')) hsh = (hsh * 31 + ch.charCodeAt(0)) % 360;
+  return `<div class="pic vacia nombre" style="background:linear-gradient(135deg, hsl(${hsh} 32% 20%), #121110 75%)"><b>${esc(nombre || '')}</b><i>${emoji}</i></div>`;
+}
 function tarjeta(e) {
   const cat = e.precio_cat || (e.gratis ? 'gratis' : 'nd');
   const precio = cat === 'nd' ? 'PRECIO EN WEB' : cat === 'gratis' ? 'GRATIS' : (e.precio_label || '').toUpperCase();
@@ -672,7 +703,7 @@ function tarjeta(e) {
   const id = idEvento(e);
   EVENTOS[id] = e;
   const emoji = { conciertos: '🎤', teatro: '🎭', deportes: '⚽' }[st.tab] || '🪩';
-  const pic = e.imagen ? `<div class="pic" style="background-image:url('${esc(e.imagen)}')"></div>` : `<div class="pic vacia">${emoji}</div>`;
+  const pic = e.imagen ? `<div class="pic" style="background-image:url('${esc(e.imagen)}')"></div>` : picNombre(e.venue || e.titulo, emoji);
   return `
     <article class="card" data-id="${esc(id)}" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
       ${pic}
@@ -858,6 +889,11 @@ function renderMapa(items, esBar) {
     mapa.setView([41.3874, 2.1686], 12);
   }
   mapa.on('moveend', actualizarMapa);
+  document.getElementById('mapalista').addEventListener('click', e => {
+    const c = e.target.closest('.card'); if (!c || e.target.closest('button, a')) return;
+    seleccionar(c.dataset.id);
+    const m = pines[c.dataset.id]; if (m) mapa.panTo(m.getLatLng());
+  });
   setTimeout(() => { mapa.invalidateSize(); actualizarMapa(); }, 60);
 }
 function actualizarMapa() {
@@ -872,16 +908,26 @@ function actualizarMapa() {
     const id = esBarMapa ? x.id : idEvento(x);
     const m = L.marker([x.lat, x.lng], { icon: L.divIcon({ className: '', html: `<div class="pin ${esBarMapa ? 'bar' : 'ev'}"></div>`, iconSize: [16, 16], iconAnchor: [8, 8] }) })
       .bindTooltip(x.titulo, { direction: 'top', offset: [0, -10] })
-      .on('click', () => { const c = document.querySelector(`#mapalista .card[data-id="${CSS.escape(id)}"]`); if (c) { c.scrollIntoView({ behavior: 'smooth', block: 'center' }); c.classList.add('hl'); setTimeout(() => c.classList.remove('hl'), 1500); } });
+      .on('click', () => seleccionar(id, true));
     m.addTo(capaPines); pines[id] = m;
   });
   const info = total ? `${vis.length} en esta zona${total > MAX_MAPA ? ` · los ${MAX_MAPA} más destacados de ${total}, acercate para ver más` : ''}` : 'No hay nada en esta zona del mapa. Alejate o movete un poco 🗺️';
   document.getElementById('mapalista').innerHTML = `<div class="mapa-info">${info}</div>` + vis.map(x => esBarMapa ? tarjetaBar(x) : tarjeta(x)).join('');
+  if (seleccionado && pines[seleccionado]) seleccionar(seleccionado);
+}
+let seleccionado = null;
+function seleccionar(id, desdeMapa) {
+  seleccionado = id;
+  document.querySelectorAll('#mapalista .card.sel').forEach(c => c.classList.remove('sel'));
+  Object.values(pines).forEach(m => m._icon && m._icon.firstChild.classList.remove('big'));
+  const c = document.querySelector(`#mapalista .card[data-id="${CSS.escape(id)}"]`);
+  if (c) { c.classList.add('sel'); if (desdeMapa) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  const m = pines[id]; if (m && m._icon) m._icon.firstChild.classList.add('big');
 }
 function resaltar(card, on) {
   card.classList.toggle('hl', on);
   const m = pines[card.dataset.id];
-  if (m && m._icon) m._icon.firstChild.classList.toggle('big', on);
+  if (m && m._icon && card.dataset.id !== seleccionado) m._icon.firstChild.classList.toggle('big', on);
 }
 
 // ── BARES ──────────────────────────────────────────────────────────────────
@@ -914,7 +960,7 @@ function tarjetaBar(b) {
   const emoji = (b.tags || []).includes('Vinos') ? '🍷' : (b.tags || []).includes('Cervezas') || b.categoria === 'Pub' ? '🍺' : '🍸';
   return `
     <article class="card" data-id="${esc(b.id)}" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
-      <div class="pic vacia">${emoji}</div>
+      ${picNombre(b.titulo, emoji)}
       ${b.d != null ? `<span class="dist">${fmtDist(b.d)} · ${aPie(b.d)}</span>` : ''}
       <div class="bar-ico">${b.terraza ? '<span title="Terraza">☀️</span>' : ''}${b.musica ? '<span title="Música en vivo">🎷</span>' : ''}${b.hifi ? '<span title="HiFi / listening bar" class="hifi">HiFi</span>' : ''}</div>
       <div class="inner">
@@ -1049,10 +1095,25 @@ document.addEventListener('click', e => { if (!e.target.closest('#nearpop') && !
 function inicio() {
   vista = 'inicio';
   document.getElementById('main').classList.remove('loading');
+  const conChat = document.getElementById('thread').children.length > 0;
+  document.getElementById('dock').style.display = conChat ? '' : 'none';
   document.getElementById('main').innerHTML = `
     <div class="hello">
       <h2>¿Qué hacemos en <span>${esc(ciudadTxt())}</span>?</h2>
-      <p>Elegí un atajo, armá tu búsqueda con los filtros o decime qué querés abajo 👇</p>
+      <p>Contame qué tenés ganas de hacer y te lo busco, o elegí cuándo y afiná con los filtros de la izquierda.</p>
+      <div class="hero-ask">
+        <div class="bot-ico">🤖</div>
+        <input id="ask2" placeholder="Ej: techno el sábado a la noche, algo gratis hoy, cuándo toca Amelie Lens…" onkeydown="if(event.key==='Enter'){preguntar(this.value);this.value=''}">
+        <button class="send" onclick="const i=document.getElementById('ask2');preguntar(i.value);i.value=''" aria-label="Buscar">↑</button>
+      </div>
+      <div class="hero-when">
+        <span>¿Cuándo?</span>
+        <button class="chip big" onclick="cuandoHome('hoy')">Hoy</button>
+        <button class="chip big" onclick="cuandoHome('manana')">Mañana</button>
+        <button class="chip big" onclick="cuandoHome('finde')">Este finde</button>
+        <button class="chip big" onclick="cuandoHome('cal')">📅 Elegir fechas</button>
+      </div>
+      <div class="hero-sub">O probá un atajo</div>
       <div class="shortcuts">
         <button class="sc" onclick="atajo('finde')"><i>🗓️</i>Lo mejor de este finde<small>Lo que más gente convoca</small></button>
         <button class="sc" onclick="atajo('top')"><i>🔥</i>Lo más top hoy<small>Lo que está pegando hoy</small></button>
@@ -1064,6 +1125,28 @@ function inicio() {
     </div>`;
 }
 
+function cuandoHome(v) {
+  if (v === 'cal') {
+    document.getElementById('side').classList.add('open');
+    cal.abierto = true; pintarCal();
+    document.getElementById('minical').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  st.cuando = v; cal.a = cal.b = null; pintar(); buscar();
+}
+function irHome(ev) {
+  if (ev) ev.preventDefault();
+  Object.assign(st, { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, km: KM_DEFECTO.otros });
+  cal.a = cal.b = null; cal.abierto = false; pintarCal();
+  modoVista = 'lista';
+  historial = [];
+  document.getElementById('thread').innerHTML = '';
+  document.getElementById('dock').classList.remove('open');
+  document.getElementById('side').classList.remove('open');
+  ubic = puntoCentro(); actualizarNota();
+  pintarGeneros(); pintar(); inicio();
+  document.getElementById('main').scrollTop = 0;
+}
 function atajo(k) {
   if (k === 'club') return preguntar('Quiero saber qué hay en una disco o venue en particular en ' + ciudadTxt());
   if (k === 'dj') return preguntar('Quiero buscar las próximas fechas de un DJ o artista');
@@ -1108,6 +1191,7 @@ async function preguntar(textoFijo) {
   inp.value = '';
   const btn = document.getElementById('sendbtn');
   btn.disabled = true;
+  document.getElementById('dock').style.display = '';
   burbuja(texto, 'me');
   historial.push({ role: 'user', content: texto });
   const esperando = burbuja('…', 'bot typing');
