@@ -606,7 +606,8 @@ def repartir_por_dia(eventos, max_ev):
             ronda += 1
         if len(elegidos) >= max_ev:
             break
-    elegidos.sort(key=lambda x: (x.get("fecha", ""), x.get("hora") or "99", -(x.get("asistentes") or 0)))
+    # dentro de cada día: primero Fever (comisión), después los de más interesados, después por hora
+    elegidos.sort(key=lambda x: (x.get("fecha", ""), 0 if x.get("comision") else 1, -(x.get("asistentes") or 0), x.get("hora") or "99"))
     return elegidos
 
 VACIAS = {"the","la","el","los","las","de","del","at","en","in","a","y","and","&","x","b2b","with","con","presents","presenta","party","fiesta","live","tour","night"}
