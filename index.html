@@ -213,6 +213,11 @@
   }
   .menu-share a, .menu-share button { background: none; border: none; color: var(--text); text-align: left; font-size: 13.5px; padding: 8px 10px; border-radius: 7px; cursor: pointer; text-decoration: none; }
   .menu-share a:hover, .menu-share button:hover { background: var(--surface); }
+  .sig-wrap { position: relative; display: inline-block; }
+  .sig-pop { display: none; position: absolute; right: 0; top: calc(100% + 8px); width: 360px; max-width: 86vw; background: var(--card); border: 1px solid var(--border2); border-radius: 14px; padding: 10px 12px; z-index: 3000; box-shadow: 0 16px 40px rgba(0,0,0,.6); }
+  .sig-pop.open { display: block; }
+  .sig-pop .vacio { color: var(--muted); font-size: 13.5px; line-height: 1.45; padding: 4px 2px; }
+  .sig-pop .avisos { margin: 0; border: none; background: none; padding: 0; }
   .seguir-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 14px; }
   .seguir-btn { background: var(--orange); color: #fff; border: none; border-radius: 10px; padding: 9px 14px; font: 700 14px 'Space Grotesk', sans-serif; cursor: pointer; }
   .seguir-btn.on { background: transparent; color: var(--text); border: 1px solid var(--border2); }
@@ -223,7 +228,7 @@
   .aviso:first-of-type { border-top: none; }
   .aviso a { flex: 1; color: var(--text); text-decoration: none; cursor: pointer; } .aviso a b { color: var(--orange); }
   .aviso button { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 13px; }
-  .toast { position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-weight: 600; font-size: 13.5px; padding: 10px 16px; border-radius: 10px; z-index: 50; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast { position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-weight: 600; font-size: 13.5px; padding: 10px 16px; border-radius: 10px; z-index: 4000; opacity: 0; transition: opacity .2s; pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
   .toast.show { opacity: 1; }
   .saved-btn { background: none; border: 1px solid var(--border2); color: var(--text); border-radius: 20px; padding: 7px 13px; font-size: 13px; cursor: pointer; white-space: nowrap; }
   .saved-btn:hover { border-color: var(--orange); }
@@ -305,7 +310,6 @@
   .cal-ops a { display: block; padding: 12px 14px; border: 1px solid var(--border2); border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 600; }
   .cal-ops a:hover { border-color: var(--orange); }
   .cal-ops small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
-  .toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); background: #F2EEE8; color: #0D0C0B; padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; z-index: 4000; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
   .card.hl { border-color: rgba(233,104,46,.7); }
 
   /* DIRECCIÓN */
@@ -502,6 +506,7 @@
   </nav>
   <div style="display:flex;align-items:center;gap:14px">
     <button class="saved-btn" id="savedbtn" onclick="verGuardados()">♥<span class="txt-largo"> Mis planes favoritos</span> <b id="nguardados"></b></button>
+    <div class="sig-wrap"><button class="saved-btn" id="sigbtn" onclick="abrirSiguiendo(event)">🔔<span class="txt-largo"> Siguiendo</span> <b id="nsiguiendo"></b></button><div class="sig-pop" id="sigpop"></div></div>
     <a class="powered" href="https://stepwiseconsulting.es/eventos" target="_blank" rel="noopener">powered by <b><span class="step">Step</span><span class="wise">Wise</span></b></a>
   </div>
 </header>
@@ -1605,6 +1610,7 @@ function toggleSeguir(btn, tipo, nombre) {
   else { l.push({ tipo, nombre }); toast(`🔔 Listo, seguís a ${nombre}`); }
   guardarSeguidos(l.slice(-10));
   btn.parentElement.outerHTML = barraSeguir(tipo, nombre);
+  contarSiguiendo();
   AVISOS = null;
 }
 let AVISOS = null;
@@ -1636,7 +1642,25 @@ async function pintarAvisos(id) {
   box.innerHTML = `<h4>🔔 Lo que seguís</h4>${filas}`;
   box.hidden = false;
 }
+function contarSiguiendo() {
+  const n = leerSeguidos().length;
+  const b = document.getElementById('nsiguiendo'); if (b) b.textContent = n || '';
+}
+async function abrirSiguiendo(ev) {
+  ev.stopPropagation();
+  const pop = document.getElementById('sigpop');
+  if (pop.classList.toggle('open') === false) return;
+  if (!leerSeguidos().length) {
+    pop.innerHTML = `<div class="vacio">🔔 Todavía no seguís a nadie.<br>Preguntale al chat por un DJ o un equipo (ej: "¿cuándo toca Hernán Cattaneo?") y tocá <b>Seguir</b>: acá vas a ver sus próximas fechas.</div>`;
+    return;
+  }
+  pop.innerHTML = '<div class="vacio">Buscando sus próximas fechas…</div><div class="avisos" id="avisos-h" hidden></div>';
+  await pintarAvisos('avisos-h');
+  pop.querySelector('.vacio')?.remove();
+}
+document.addEventListener('click', e => { if (!e.target.closest('.sig-wrap')) document.getElementById('sigpop')?.classList.remove('open'); });
 function verSeguido(i) {
+  document.getElementById('sigpop')?.classList.remove('open');
   const x = (AVISOS || [])[i]; if (!x || !x.eventos.length) return;
   document.getElementById('landing').hidden = true;
   st.tab = x.tipo === 'equipo' ? 'deportes' : 'clubs'; pintarGeneros(); pintar();
@@ -1646,12 +1670,7 @@ function verSeguido(i) {
 function dejarSeguir(i, id) {
   const x = (AVISOS || [])[i]; if (!x) return;
   guardarSeguidos(leerSeguidos().filter(y => !(y.tipo === x.tipo && y.nombre === x.nombre)));
-  AVISOS = null; pintarAvisos(id);
-}
-function toast(t) {
-  document.querySelectorAll('.toast').forEach(x => x.remove());
-  const d = document.createElement('div'); d.className = 'toast'; d.textContent = t;
-  document.body.appendChild(d); setTimeout(() => d.remove(), 2600);
+  AVISOS = null; pintarAvisos(id); contarSiguiendo();
 }
 function cerrarModal() { document.getElementById('modal').classList.remove('open'); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
@@ -1720,10 +1739,8 @@ document.addEventListener('click', e => { if (!e.target.closest('#nearpop') && !
 function inicio() {
   vista = 'inicio';
   limpiarURL();
-  setTimeout(() => pintarAvisos('avisos-c'), 0);
   document.getElementById('main').classList.remove('loading');
   document.getElementById('main').innerHTML = `
-    <div class="avisos" id="avisos-c" hidden></div>
     <div class="hello">
       <h2>¿Qué hacemos en <span>${esc(ciudadTxt())}</span>?</h2>
       <div class="guia"><span class="flecha">👈</span><div><b>Armá tu plan con los filtros ${lado()}</b>Elegí cuándo, el horario, el precio o el género, y los resultados aparecen acá. Arriba cambiás entre fiestas, bares, conciertos y más.</div></div>
@@ -2041,7 +2058,7 @@ document.getElementById('city').addEventListener('change', () => {
     ['clubs', '🪩 Fiestas y clubs'], ['conciertos', '🎤 Conciertos'], ['bares', '🍸 Bares'], ['restaurantes', '🍽️ Restaurantes'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'], ...(BETA ? [['cine', '🎬 Cine']] : []),
   ].map(([t, txt]) => `<button class="chip big" onclick="entrarCategoria('${t}')">${txt}</button>`).join('');
   ubic = puntoCentro(); actualizarNota();
-  preciosCiudad(); pintarGeneros(); pintar(); contarGuardados();
+  preciosCiudad(); pintarGeneros(); pintar(); contarGuardados(); contarSiguiendo();
   if (!leerURL()) { inicio(); mostrarLanding(); }
 })();
 </script>
