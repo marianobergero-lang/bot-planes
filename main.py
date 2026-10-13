@@ -1715,6 +1715,54 @@ def proximos_artista(nombre):
     cache_set(k, res)
     return res
 
+def proximos_tm_keyword(nombre):
+    """Próximas fechas en Ticketmaster buscando por nombre (artistas de conciertos que no están en RA)."""
+    if not TM_API_KEY:
+        return []
+    try:
+        r = requests.get("https://app.ticketmaster.com/discovery/v2/events.json",
+                         params={"apikey": TM_API_KEY, "keyword": nombre, "sort": "date,asc", "size": 40,
+                                 "segmentName": "Music"}, timeout=15)
+        evs = ((r.json().get("_embedded") or {}).get("events") or []) if r.status_code == 200 else []
+    except Exception as e:
+        print(f"[TM KEYWORD] {e}")
+        return []
+    hoy = datetime.now().strftime("%Y-%m-%d")
+    out, vistos = [], set()
+    for ev in evs:
+        e = formatear_tm(ev)
+        clave = (e["titulo"].lower(), e["fecha"])
+        if e["fecha"] >= hoy and clave not in vistos and nombre.lower() in (e["titulo"] + " " + " ".join(e["artistas"])).lower():
+            vistos.add(clave); out.append(e)
+    return out
+
+@app.route("/lugar")
+def lugar():
+    """Eventos de un lugar en las próximas 6 semanas. /lugar?nombre=Razzmatazz&ciudad=barcelona&categoria=clubs"""
+    nombre = (request.args.get("nombre") or "").strip()
+    ciudad = (request.args.get("ciudad") or "barcelona").lower().strip()
+    categoria = request.args.get("categoria", "clubs")
+    if not nombre:
+        return jsonify({"nombre": "", "eventos": []})
+    k = f"lugar-{ciudad}-{categoria}-{nombre.lower()}"
+    v = cache_get(k, 3600)
+    if v is None:
+        hoy = _hoy()
+        d0, d1 = hoy.strftime("%Y-%m-%d"), (hoy + timedelta(days=42)).strftime("%Y-%m-%d")
+        try:
+            if categoria in TM_SEGMENTOS:
+                todos, _ = buscar_ticketmaster(ciudad, d0, d1, categoria, 100000)
+            else:
+                todos, _ = buscar_por_fecha(ciudad, d0, d1, 100000)
+        except Exception as e:
+            print(f"[LUGAR] {e}")
+            todos = []
+        n = nombre.lower()
+        v = sorted([e for e in todos if n == (e.get("venue") or "").lower() or n in (e.get("venue") or "").lower()],
+                   key=lambda e: (e.get("fecha", ""), e.get("hora") or "99"))
+        cache_set(k, v)
+    return jsonify({"nombre": nombre, "eventos": v[:40]})
+
 @app.route("/proximos")
 def proximos():
     """Para "Seguir": /proximos?tipo=artista|equipo&nombre=Hernan Cattaneo"""
@@ -1724,10 +1772,13 @@ def proximos():
         return jsonify({"nombre": "", "eventos": []})
     try:
         evs, real = buscar_equipo(nombre) if tipo == "equipo" else proximos_artista(nombre)
+        if tipo == "artista" and not evs:  # artistas de conciertos que no están en Resident Advisor
+            evs = proximos_tm_keyword(nombre)
     except Exception as e:
         print(f"[PROXIMOS] {e}")
         evs, real = [], nombre
-    return jsonify({"tipo": tipo, "nombre": real or nombre, "eventos": evs[:6]})
+    lim = min(int(request.args.get("max", 6)), 40)
+    return jsonify({"tipo": tipo, "nombre": real or nombre, "eventos": evs[:lim]})
 
 # ── CINE (TMDB, gratis) ─────────────────────────────────────────────────────
 TMDB_KEY = os.environ.get("TMDB_API_KEY", "")

@@ -491,6 +491,24 @@
     #mapa { height: 340px; }
     .mapa-lista { border-left: none; border-top: 1px solid var(--border); max-height: none; }
   }
+
+  /* PATRÓN DE CLICS: naranja = acción principal · claro con letras naranjas = acción secundaria · texto naranja = link · sin caja = información */
+  .card .tickets, .card .tickets:hover { background: var(--orange); border-color: var(--orange); color: #fff !important; }
+  .card .tickets:hover { filter: brightness(1.1); }
+  .card .fav { background: #F2EEE8; border-color: #F2EEE8; color: var(--orange); }
+  .card .fav:hover { background: #fff; border-color: #fff; }
+  .card .fav.on { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .card .dir-btn { background: #F2EEE8; border-color: #F2EEE8; color: var(--orange); font-weight: 700; }
+  .card .dir-btn:hover { background: #fff; color: var(--orange); }
+  .card .ico { background: #F2EEE8; border-color: #F2EEE8; color: var(--orange); font-weight: 700; }
+  .card .ico:hover { background: #fff; }
+  .card .tag { border: none; padding: 0; color: var(--dim); font-size: 11.5px; }
+  .card .tag + .tag::before { content: '· '; }
+  .card .price { background: none !important; padding: 0; font-weight: 700; }
+  .card .p-nd { color: var(--dim); } .card .p-gratis { color: #5fd38d; }
+  .lnk { color: var(--orange); cursor: pointer; text-decoration: underline dotted rgba(233,104,46,.6); text-underline-offset: 3px; font-weight: 600; }
+  .lnk:hover { text-decoration: underline solid; }
+  .card .who .lnk { font-weight: 500; }
 </style>
 </head>
 <body>
@@ -529,14 +547,6 @@
         <div class="fila">
           <input id="askl" placeholder="" onkeydown="if(event.key==='Enter')desdeLanding()" onfocus="pararTipeo()">
           <button class="send" onclick="desdeLanding()" aria-label="Buscar">↑</button>
-        </div>
-        <div class="ideas"><span>Ideas:</span>
-          <button onclick="desdeLanding(this.textContent)">Techno este sábado en Barcelona</button>·
-          <button onclick="desdeLanding(this.textContent)">¿Cuándo toca Amelie Lens?</button>·
-          <button onclick="desdeLanding(this.textContent)">Algo gratis hoy en Madrid</button>·
-          <button onclick="desdeLanding(this.textContent)">Un sunset open air el domingo</button>·
-          <button onclick="desdeLanding(this.textContent)">Bares con terraza en Gràcia</button>·
-          <button onclick="desdeLanding(this.textContent)">Conciertos de rock en London</button>
         </div>
       </div>
     </div>
@@ -945,9 +955,9 @@ function tarjeta(e) {
       <div class="town">📍 ${esc(lugar)}</div>
       ${e.fecha ? `<div class="fecha-mini">${fechaMini(e.fecha)}</div>` : ''}
       <div class="title">${esc(e.titulo)}</div>
-      ${(e.artistas || []).length ? `<div class="who">${esc(e.artistas.slice(0, 5).join(', '))}</div>` : ''}
+      ${(e.artistas || []).length ? `<div class="who">${e.artistas.slice(0, 5).map(a => `<span class="lnk" title="Ver sus próximas fechas" onclick="verArtista('${esc(a).replace(/'/g, '&#39;')}')">${esc(a)}</span>`).join(', ')}</div>` : ''}
       <div class="facts">
-        ${e.venue ? `<div><span>en:</span> <b>${esc(e.venue)}</b> <button class="dir-btn" onclick="verDireccion('${esc(id)}')">📍 Ver dirección</button></div>` : ''}
+        ${e.venue ? `<div><span>en:</span> <b class="lnk" title="Ver todo lo que hay en este lugar" onclick="verLugar('${esc(id)}')">${esc(e.venue)}</b> <button class="dir-btn" onclick="verDireccion('${esc(id)}')">📍 Ver dirección</button></div>` : ''}
         ${hora ? `<div><span>de</span> ${hora}${fin ? ` <span>a</span> ${fin}` : ''}<span> hs</span></div>` : ''}
         <div class="people">${gente}</div>
       </div>
@@ -1446,7 +1456,7 @@ function tarjetaBar(b) {
           <div class="tags">${(b.tags || []).slice(0, 2).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
           <span></span>
           <button class="fav ${estaGuardado(b.id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(b.id)}')">${estaGuardado(b.id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
-          <div class="res-wrap"><button class="tickets" style="background:none;cursor:pointer;font-family:inherit" onclick="menuReservar(event, '${esc(b.id)}')">Reservar ▾</button></div>
+          <div class="res-wrap"><button class="tickets" style="cursor:pointer;font-family:inherit" onclick="menuReservar(event, '${esc(b.id)}')">Reservar ▾</button></div>
         </div>
       </div>
     </article>`;
@@ -1471,7 +1481,7 @@ function tarjetaRest(b) {
           <div class="tags">${(b.tags || []).slice(0, 2).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
           <span></span>
           <button class="fav ${estaGuardado(b.id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(b.id)}')">${estaGuardado(b.id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
-          <div class="res-wrap"><button class="tickets" style="background:none;cursor:pointer;font-family:inherit" onclick="menuReservar(event, '${esc(b.id)}')">Reservar ▾</button></div>
+          <div class="res-wrap"><button class="tickets" style="cursor:pointer;font-family:inherit" onclick="menuReservar(event, '${esc(b.id)}')">Reservar ▾</button></div>
         </div>
       </div>
     </article>`;
@@ -1679,6 +1689,32 @@ async function abrirSiguiendo(ev) {
   pop.querySelector('.vacio')?.remove();
 }
 document.addEventListener('click', e => { if (!e.target.closest('.sig-wrap')) document.getElementById('sigpop')?.classList.remove('open'); });
+async function verArtista(nombre) {
+  const main = document.getElementById('main');
+  main.classList.add('loading');
+  try {
+    const r = await fetch(`${API}/proximos?tipo=artista&max=40&nombre=${encodeURIComponent(nombre)}`);
+    const d = await r.json();
+    const evs = d.eventos || [];
+    mostrar(evs, evs.length, `Próximas fechas de <span>${esc(d.nombre || nombre)}</span>`, {}, barraSeguir('artista', d.nombre || nombre));
+    if (!evs.length) main.insertAdjacentHTML('beforeend', '');
+  } catch (e) { toast('No pude traer sus fechas 😕'); }
+  main.classList.remove('loading'); main.scrollTop = 0; vista = 'resultados';
+}
+async function verLugar(id) {
+  const e = EVENTOS[id]; if (!e || !e.venue) return;
+  const main = document.getElementById('main');
+  main.classList.add('loading');
+  try {
+    const cat = e.fuente === 'Ticketmaster' ? (st.tab === 'clubs' ? 'conciertos' : st.tab) : 'clubs';
+    const r = await fetch(`${API}/lugar?nombre=${encodeURIComponent(e.venue)}&ciudad=${encodeURIComponent(ciudad())}&categoria=${cat}`);
+    const d = await r.json();
+    const evs = (d.eventos || []).length ? d.eventos : [e];
+    mostrar(evs, evs.length, `Lo que viene en <span>${esc(e.venue)}</span>`, {},
+      `<div class="seguir-bar"><button class="dir-btn" style="margin:0;padding:8px 12px;font-size:13px" onclick="verDireccion('${esc(id)}')">📍 Cómo llegar</button><small>Próximas 6 semanas</small></div>`);
+  } catch (err) { toast('No pude traer lo de ese lugar 😕'); }
+  main.classList.remove('loading'); main.scrollTop = 0; vista = 'resultados';
+}
 function verSeguido(i) {
   document.getElementById('sigpop')?.classList.remove('open');
   const x = (AVISOS || [])[i]; if (!x || !x.eventos.length) return;
@@ -1986,7 +2022,7 @@ function entrarCategoria(tab) {
   pintarGeneros(); pintar(); buscar();
 }
 // Texto de fondo que se va escribiendo solo con ejemplos
-const EJEMPLOS = ['techno este sábado en Barcelona…', '¿cuándo toca Hernán Cattaneo?', 'algo gratis hoy en Madrid…', 'un rooftop con buena música…', 'conciertos de rock en London…', 'afters el domingo a la mañana…'];
+const EJEMPLOS = ['techno este sábado en Barcelona…', '¿cuándo toca Hernán Cattaneo?', 'un japonés con terraza en Gràcia…', 'algo gratis hoy en Madrid…', '¿cuándo juega el Barça?', 'bares de vinos en Malasaña…', 'conciertos de rock en London…', 'afters el domingo a la mañana…'];
 let tipeo = null;
 function arrancarTipeo() {
   const inp = document.getElementById('askl');
