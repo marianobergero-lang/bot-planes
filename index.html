@@ -22,7 +22,9 @@
   button { font-family: inherit; }
 
   /* HEADER */
-  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; flex-shrink: 0; position: relative; z-index: 5;
+    background: linear-gradient(180deg, #1f1b17 0%, #171411 100%); box-shadow: 0 6px 18px rgba(0,0,0,.45); }
+  header::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, var(--accent, #E9682E) 0%, rgba(233,104,46,.35) 45%, rgba(233,104,46,0) 100%); }
   .brand { font-size: 26px; font-weight: 800; letter-spacing: -1px; white-space: nowrap; }
   .brand span { color: var(--orange); }
   .brand small { display: block; font-size: 11px; color: var(--dim); font-weight: 500; letter-spacing: 0; }
@@ -34,7 +36,7 @@
   .tabs { display: flex; gap: 4px; }
   .tab { background: none; border: none; color: var(--muted); font-size: 16px; font-weight: 600; padding: 10px 18px; border-radius: 24px; cursor: pointer; white-space: nowrap; }
   .tab:hover { color: var(--text); background: var(--surface); }
-  .tab.on { color: var(--text); background: var(--card); box-shadow: inset 0 0 0 1px var(--border2); }
+  .tab.on { color: var(--text); background: rgba(233,104,46,.14); box-shadow: inset 0 0 0 1px rgba(233,104,46,.55); }
 
   /* LAYOUT */
   .app { flex: 1; display: grid; grid-template-columns: 500px 1fr; min-height: 0; }
@@ -437,9 +439,9 @@
   <a class="brand" href="./" onclick="irHome(event)" title="Volver al inicio">Let's <span>Part</span>IA!<small>Many events · Your event</small></a>
   <nav class="tabs" id="tabs">
     <button class="tab on" data-tab="clubs">🪩 Fiestas y clubs</button>
+    <button class="tab" data-tab="conciertos">🎤 Conciertos</button>
     <button class="tab" data-tab="bares">🍸 Bares</button>
     <button class="tab" data-tab="restaurantes">🍽️ Restaurantes</button>
-    <button class="tab" data-tab="conciertos">🎤 Conciertos</button>
     <button class="tab" data-tab="teatro">🎭 Teatro y shows</button>
     <button class="tab" data-tab="deportes">⚽ Deportes</button>
     <button class="tab" data-tab="cine" hidden>🎬 Cine <sup class="beta">BETA</sup></button>
@@ -1038,8 +1040,12 @@ function distKm(a, b) {
   return 2 * 6371 * Math.asin(Math.sqrt(h));
 }
 function fmtDist(d) { return d < 1 ? `${Math.round(d * 1000 / 50) * 50} m` : `${d.toFixed(1).replace('.', ',')} km`; }
-function aPie(d) { const m = Math.max(1, Math.round(d * 13)); return m > 60 ? `${Math.round(m / 60)} h a pie` : `${m}' a pie`; }
-function tieneCoords(x) { return x.lat != null && x.lng != null; }
+function aPie(d) { if (d > 4) return `~${Math.round(8 + d * 2.5)}' en transporte`; return `${Math.max(1, Math.round(d * 13))}' a pie`; }
+function tieneCoords(x) {
+  if (x.lat == null || x.lng == null) return false;
+  const c = CENTRO[ciudad()];  // ubicaciones a más de 30 km del centro suelen ser errores de geolocalización
+  return !c || distKm([c[0], c[1]], [x.lat, x.lng]) <= 30;
+}
 
 // ── RESULTADOS: LISTA O MAPA ───────────────────────────────────────────────
 function segVista() {
@@ -1701,7 +1707,7 @@ document.getElementById('city').addEventListener('change', () => {
   sel.value = CIUDADES.some(c => c[0] === guardada) ? guardada : 'barcelona';
   document.getElementById('cityl').innerHTML = sel.innerHTML;
   document.getElementById('ciudadestop').innerHTML = `<div class="que">¿Qué buscás?</div>` + [
-    ['clubs', '🪩 Fiestas y clubs'], ['bares', '🍸 Bares'], ['restaurantes', '🍽️ Restaurantes'], ['conciertos', '🎤 Conciertos'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'], ...(BETA ? [['cine', '🎬 Cine']] : []),
+    ['clubs', '🪩 Fiestas y clubs'], ['conciertos', '🎤 Conciertos'], ['bares', '🍸 Bares'], ['restaurantes', '🍽️ Restaurantes'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'], ...(BETA ? [['cine', '🎬 Cine']] : []),
   ].map(([t, txt]) => `<button class="chip big" onclick="entrarCategoria('${t}')">${txt}</button>`).join('');
   ubic = puntoCentro(); actualizarNota();
   preciosCiudad(); pintarGeneros(); pintar(); inicio(); contarGuardados();

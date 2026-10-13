@@ -639,10 +639,14 @@ def buscar_por_fecha(ciudad, desde, hasta, max_ev=8, hora_min=None, gratis=False
 
     try:
 
-        eventos = []
+        eventos, vistos = [], set()
         for item in listings:
             ev = item.get("event")
             if not ev: continue
+            clave = ev.get("id") or (ev.get("title"), ev.get("date"))
+            if clave in vistos:  # RA a veces repite el mismo evento entre páginas
+                continue
+            vistos.add(clave)
 
             ev_fmt = formatear_evento(ev)
             if pasa_filtros(ev_fmt, hora_min, hora_max, gratis, precio_max, precio_min=precio_min):
