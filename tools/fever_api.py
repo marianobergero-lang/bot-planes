@@ -25,31 +25,17 @@ def get(url, **params):
     raise RuntimeError("Impact no respondió")
 
 def aplanar(item):
-    """Lleva un ítem de la API al formato de columnas del CSV (los nombres pueden venir con o sin espacios)."""
-    plano = {}
-    def meter(k, v):
-        if isinstance(v, (str, int, float)) and v != "":
-            plano[str(k)] = str(v)
-    for k, v in item.items():
-        if isinstance(v, list):
-            for x in v:  # atributos personalizados: [{"Name": "City", "Value": "Madrid"}, ...]
-                if isinstance(x, dict) and ("Name" in x or "Key" in x):
-                    meter(x.get("Name") or x.get("Key"), x.get("Value"))
-        elif isinstance(v, dict):
-            for k2, v2 in v.items():
-                meter(k2, v2)
-        else:
-            meter(k, v)
-    norm = {k.replace(" ", "").replace("_", "").lower(): v for k, v in plano.items()}
-    fila = {c: norm.get(c.replace(" ", "").lower(), "") for c in COLUMNAS}
-    # equivalencias con los campos estándar de Impact
-    fila["Plan Name"] = fila["Plan Name"] or norm.get("name", "")
-    fila["Affiliate URL"] = fila["Affiliate URL"] or norm.get("url", "") or norm.get("trackingurl", "")
-    fila["Photo 1"] = fila["Photo 1"] or norm.get("imageurl", "")
-    fila["SKU"] = fila["SKU"] or norm.get("catalogitemid", "") or norm.get("id", "")
-    fila["Minimum Price"] = fila["Minimum Price"] or norm.get("currentprice", "")
-    fila["Currency"] = fila["Currency"] or norm.get("currency", "")
-    return fila
+    """Ítem de la API de Impact → columnas del CSV de Fever (Impact reusa campos estándar para los datos de Fever)."""
+    g = lambda k: item.get(k) if item.get(k) not in (None, []) else ""
+    labels = item.get("Labels") or []
+    return {
+        "Country": g("Text1") or g("Size"), "City": g("Text2"), "Venue": g("Material"), "Location": g("ShippingLabel"),
+        "Coordinates": g("Pattern"), "SKU": g("CatalogItemId"), "Plan Name": g("Name"), "Affiliate URL": g("Url"),
+        "Fever URL": (item.get("Colors") or [""])[0], "Description": g("Description"), "Sessions": g("Manufacturer"),
+        "Minimum Price": g("CurrentPrice"), "Currency": g("Currency"),
+        "Ticket prices": ", ".join(x.strip() for x in labels if isinstance(x, str)),
+        "Category": g("Category"), "Subcategory": g("SubCategory"), "Additional Notes": g("Text3"), "Photo 1": g("ImageUrl"),
+    }
 
 def desde_archivo():
     """Intenta bajar el archivo CSV del catálogo (mismo formato que la descarga manual)."""
@@ -106,19 +92,13 @@ def main():
         items = data.get("Items") or data.get("CatalogItems") or []
         if pagina == 1:
             print("Meta:", {k: v for k, v in data.items() if k.startswith("@")})
-            if items:
-                print("Claves:", list(items[0].keys()))
-                print("Ejemplo de ítem:", json.dumps(items[0], ensure_ascii=False)[:9000])
         filas += [aplanar(i) for i in items]
         CRUDOS.extend(items)
-        print(f"Página {pagina}: {len(items)} ítems")
         sig = data.get("@nextpageuri") or ""
         if not items or not sig:
             break
         url, params, pagina = "https://api.impact.com" + sig, {}, pagina + 1
     print(f"Total: {len(filas)} ítems")
-    for x in [i for i in CRUDOS if i.get("Text2") in ("Madrid", "Barcelona")][:3]:
-        print("Madrid/BCN:", json.dumps({k: v for k, v in x.items() if v not in ("", [], None, False, "0")}, ensure_ascii=False)[:3500])
     print("Planes guardados:", procesar(filas))
 
 if __name__ == "__main__":
