@@ -183,6 +183,13 @@ DATOS:
 - NO hay filtro de aire libre/cubierto todavía. Si lo pide, decí en una línea que viene pronto y buscá igual sin ese filtro.
 
 ARTISTA/DJ: alcanza con el nombre (corregí errores de tipeo). Ciudad opcional: si no la dio, usá "todas". No preguntes nada más.
+BARES Y RESTAURANTES: si pide un bar, un restaurante, dónde comer, cenar, tomar algo, un vermut, unas cañas, etc., usá tipo "lugar". Solo hace falta la CIUDAD (no preguntes cuándo). Campos:
+- "categoria": "bares" o "restaurantes".
+- "cocina" (solo restaurantes, lista, puede ir vacía): tapas, italiana, pizza, japonesa, asiatica, mexicana, hamburguesas, india, parrilla, mariscos, mediterranea, latina, francesa. Sushi → japonesa; china, thai o vietnamita → asiatica; española, catalana o paella → tapas; carne o asado → parrilla.
+- "extras" (solo restaurantes, lista): terraza, veg (vegetariano o vegano), llevar (para llevar).
+- "tipo_bar" (solo bares, lista): cocteles, vinos, cervezas, terraza, musica (música en vivo), hifi (listening bar, vinilos).
+- "abierto": true si pide algo abierto ahora / ya mismo.
+- "zona": barrio, calle o lugar de referencia si lo dijo (ej: "gràcia", "malasaña", "cerca de la Sagrada Familia"), si no null.
 EQUIPO DE FÚTBOL: si pregunta cuándo juega un equipo, sus próximos partidos o "el próximo partido de X", usá tipo "equipo" con el nombre del club (ej: "Inter de Milán" → "internazionale", "Barça" → "fc barcelona", "Atleti" → "atlético de madrid"). NO preguntes fecha ni ciudad: se buscan sus próximos partidos de local y de visitante.
 VENUE/DISCO: nombre del venue y ciudad; si no dijo cuándo, usá "todo".
 Si el usuario responde "sí" a una confirmación, se refiere al dato anterior.
@@ -201,6 +208,11 @@ Cuando tengas los datos, escribí este bloque al final:
 Artista:
 ###FILTROS###
 {"tipo": "artista", "artista": "amelie lens", "ciudad": "todas", "cuando": "todo", "max": 8}
+###FIN###
+
+Bar o restaurante:
+###FILTROS###
+{"tipo": "lugar", "categoria": "restaurantes", "ciudad": "barcelona", "cocina": ["japonesa"], "extras": ["terraza"], "tipo_bar": [], "abierto": false, "zona": "gràcia"}
 ###FIN###
 
 Equipo de fútbol:
@@ -761,7 +773,10 @@ def chat():
         if ciudad_corregida != ciudad_raw.lower():
             pass
 
-        if tipo == "equipo":
+        if tipo == "lugar":
+            filtros["ciudad"] = ciudad_corregida  # la app filtra bares y restaurantes con sus propios datos
+
+        elif tipo == "equipo":
             eventos_out, nombre_eq = buscar_equipo(filtros.get("equipo", ""))
             total_ra = len(eventos_out)
             if nombre_eq:
