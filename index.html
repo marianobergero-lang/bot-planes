@@ -1113,13 +1113,17 @@ function renderActual() {
 function mostrarBares(items) {
   const main = document.getElementById('main');
   const donde = ubic ? `cerca de <span>${esc(ubic.txt)}</span>` : `en <span>${esc(ciudadTxt())}</span>`;
-  items.sort((a, b) => (a.d ?? 999) - (b.d ?? 999));
+  // Cercanía con un empujón a los que tienen más datos (cocina, horario, web)
+  items.sort((a, b) => ((a.d ?? 999) - 0.1 * (a.info || 0)) - ((b.d ?? 999) - 0.1 * (b.info || 0)));
   const total = Math.max(actual.total || 0, items.length);
-  let html = volver() + cartelGuia() + `<div class="res-head"><h2>${total} ${TAB_TXT[st.tab][total === 1 ? 0 : 1]} ${donde}</h2><div class="head-tools">${segVista()}</div></div>`;
+  const plural = TAB_TXT[st.tab][1];
+  const h2 = total > items.length ? `Los ${plural} más recomendados ${donde}` : `${total} ${TAB_TXT[st.tab][total === 1 ? 0 : 1]} ${donde}`;
+  const sub = total > items.length ? `<div class="res-sub" style="margin-top:6px">Te muestro ${items.length} de ${total.toLocaleString('es-ES')} · ${st.tab === 'restaurantes' ? 'Elegí un tipo de cocina' : 'Elegí un tipo de bar'} para afinar</div>` : '';
+  let html = volver() + cartelGuia() + `<div class="res-head"><h2>${h2}</h2><div class="head-tools">${segVista()}</div></div>${sub}`;
   if (!items.length) {
     html += `<div class="empty"><b>No encontré ${TAB_TXT[st.tab][1]} con esos filtros 😕</b>${st.km !== '99' ? 'Probá ampliando la distancia a "Cerca < 3 km".' : 'Probá con otro tipo.'}</div>`;
   } else {
-    html += `<div class="res-sub" style="margin-top:10px">Ordenados por distancia${ubic && ubic.auto ? '. Tocá "◎ Cerca mío" para buscar desde tu ubicación o una dirección' : ''}.</div><div class="grid" style="margin-top:16px" id="grid-bares">${items.map(tarjetaBar).join('')}</div>`;
+    html += `<div class="res-sub" style="margin-top:10px">Los más cercanos primero${ubic && ubic.auto ? '. Tocá "◎ Cerca mío" para buscar desde tu ubicación o una dirección' : ''}.</div><div class="grid" style="margin-top:16px" id="grid-bares">${items.map(tarjetaBar).join('')}</div>`;
     if (total > items.length) html += `<button class="more" id="more-bares" onclick="masBares()">Ver más ${TAB_TXT[st.tab][1]} (${total - items.length} más) ↓</button>`;
   }
   html += `<div class="osm-note">Datos de ${TAB_TXT[st.tab][1]}: © colaboradores de OpenStreetMap.</div>`;
@@ -1265,7 +1269,7 @@ async function buscarBares() {
       .filter(b => !tipoLugar() || valores(tipoLugar()).some(t => b.tipos.includes(t)))
       .map(b => ({ ...b, distancia: distKm(desde, [b.lat, b.lng]) }))
       .filter(b => b.distancia <= radio)
-      .sort((a, b) => (a.distancia - 0.08 * a.info) - (b.distancia - 0.08 * b.info));
+      .sort((a, b) => (a.distancia - 0.1 * a.info) - (b.distancia - 0.1 * b.info));
     actual = { items: modoVista === 'mapa' ? lista : lista.slice(0, 20), todos: lista, total: lista.length, porDia: {}, titulo: null, local: true };
     renderActual();
     main.classList.remove('loading');
