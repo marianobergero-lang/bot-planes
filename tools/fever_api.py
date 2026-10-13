@@ -95,18 +95,24 @@ def main():
     filas = desde_archivo()
     if filas:
         print("Planes guardados:", procesar(filas)); return
-    filas, pagina = [], 1
-    while True:
-        data = get(f"{BASE}/Catalogs/{CATALOGO}/Items", PageSize=1000, Page=pagina)
+    filas, pagina, url, params = [], 1, f"{BASE}/Catalogs/{CATALOGO}/Items", {"PageSize": 1000}
+    while url:
+        try:
+            data = get(url, **params)
+        except Exception as e:
+            print(f"Corte en página {pagina}: {e}"); break
         items = data.get("Items") or data.get("CatalogItems") or []
-        if pagina == 1 and items:  # para revisar el formato en el log de GitHub
-            print("Ejemplo de ítem:", json.dumps(items[0], ensure_ascii=False)[:2500])
+        if pagina == 1:
+            print("Meta:", {k: v for k, v in data.items() if k.startswith("@")})
+            if items:
+                print("Claves:", list(items[0].keys()))
+                print("Ejemplo de ítem:", json.dumps(items[0], ensure_ascii=False)[:9000])
         filas += [aplanar(i) for i in items]
         print(f"Página {pagina}: {len(items)} ítems")
-        total_paginas = int(data.get("@numpages") or data.get("NumPages") or 0)
-        if not items or (total_paginas and pagina >= total_paginas):
+        sig = data.get("@nextpageuri") or ""
+        if not items or not sig:
             break
-        pagina += 1
+        url, params, pagina = "https://api.impact.com" + sig, {}, pagina + 1
     print(f"Total: {len(filas)} ítems")
     print("Planes guardados:", procesar(filas))
 
