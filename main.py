@@ -704,14 +704,19 @@ def fecha_de_hoy():
     hoy = datetime.now()
     return f"\n\nHOY es {nombres[hoy.weekday()]} {hoy.strftime('%Y-%m-%d')}."
 
-def call_groq(messages):
-    print(f"[GROQ] key: {GROQ_API_KEY[:10]}... msgs: {len(messages)}")
+IDIOMA_EN = """
+
+IMPORTANT — LANGUAGE: the app is being used in ENGLISH. Write every message to the user in natural, friendly English (short, no markdown).
+The JSON block between ###FILTROS### and ###FIN### stays EXACTLY as specified above (same keys and the same Spanish values like "finde", "hoy", "noche", "clubs", "restaurantes", "japonesa", etc.). Understand the user's English: "this weekend" → cuando "finde", "tonight" → cuando "hoy" + franja "noche", "tomorrow" → "mañana", "free" → gratis, "cheap" → precio_max 15, "concerts" → categoria "conciertos", "theatre/shows" → "teatro", "sports/match" → "deportes", "bar" → tipo "lugar" categoria "bares", "restaurant/dinner/food" → categoria "restaurantes"."""
+
+def call_groq(messages, lang="es"):
+    print(f"[GROQ] msgs: {len(messages)} lang: {lang}")
     resp = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",
         headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
         json={
             "model": "openai/gpt-oss-120b",
-            "messages": [{"role": "system", "content": SYSTEM_PROMPT + fecha_de_hoy()}] + messages,
+            "messages": [{"role": "system", "content": SYSTEM_PROMPT + fecha_de_hoy() + (IDIOMA_EN if lang == "en" else "")}] + messages,
             "max_tokens": 800,
             "temperature": 0.7,
         },
@@ -737,11 +742,13 @@ def home():
 def chat():
     body     = request.json or {}
     messages = body.get("messages", [])
+    lang     = "en" if body.get("lang") == "en" else "es"
+    L        = lambda es, en: en if lang == "en" else es
     if not messages:
         return jsonify({"error": "messages requerido"}), 400
 
     try:
-        reply = call_groq(messages)
+        reply = call_groq(messages, lang)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -767,7 +774,8 @@ def chat():
             ciudad_corregida, ciudad_ok = corregir_ciudad(ciudad_raw)
             if not ciudad_ok and tipo != "artista":
                 return jsonify({
-                    "reply": f"Uh, todavía no tengo {ciudad_raw.title()} en mi radar 😕 Por ahora busco en ciudades como Barcelona, Madrid, Berlin, London, Paris, Amsterdam, Buenos Aires o Rio de Janeiro. ¿Probamos con alguna?",
+                    "reply": L(f"Uh, todavía no tengo {ciudad_raw.title()} en mi radar 😕 Por ahora busco en ciudades como Barcelona, Madrid, Berlin, London, Paris, Amsterdam, Buenos Aires o Rio de Janeiro. ¿Probamos con alguna?",
+                              f"Hmm, {ciudad_raw.title()} isn't on my radar yet 😕 For now I search cities like Barcelona, Madrid, Berlin, London, Paris, Amsterdam, Buenos Aires or Rio de Janeiro. Shall we try one?"),
                     "filtros": None, "eventos": [], "total_ra": 0
                 })
         if ciudad_corregida != ciudad_raw.lower():
@@ -782,8 +790,9 @@ def chat():
             if nombre_eq:
                 filtros["equipo"] = nombre_eq
             if not eventos_out:
-                clean = ("No encontré ese equipo 😕 Por ahora tengo las ligas grandes de Europa (LaLiga, Premier, Serie A, Bundesliga, Ligue 1, Portugal, Holanda), Champions y Brasileirão. ¿Probamos con otro?"
-                         if not nombre_eq else f"No encontré partidos de {nombre_eq} en las próximas semanas 😕")
+                clean = (L("No encontré ese equipo 😕 Por ahora tengo las ligas grandes de Europa (LaLiga, Premier, Serie A, Bundesliga, Ligue 1, Portugal, Holanda), Champions y Brasileirão. ¿Probamos con otro?",
+                           "I couldn't find that team 😕 For now I cover Europe's big leagues (LaLiga, Premier League, Serie A, Bundesliga, Ligue 1, Portugal, Netherlands), the Champions League and the Brasileirão. Try another one?")
+                         if not nombre_eq else L(f"No encontré partidos de {nombre_eq} en las próximas semanas 😕", f"No {nombre_eq} matches in the coming weeks 😕"))
 
         elif tipo == "fecha":
             desde, hasta = calc_fechas(filtros.get("cuando", "todo"))
@@ -825,7 +834,7 @@ def chat():
         elif tipo == "artista":
             artista_raw = (filtros.get("artista") or filtros.get("query") or "").strip()
             if not artista_raw:
-                return jsonify({"reply": "¿Qué artista o DJ querés buscar?", "filtros": None, "eventos": [], "total_ra": 0})
+                return jsonify({"reply": L("¿Qué artista o DJ querés buscar?", "Which artist or DJ are you looking for?"), "filtros": None, "eventos": [], "total_ra": 0})
             max_ev_artista = filtros.get("max", 10)
             print(f"[ARTISTA] buscando '{artista_raw}' en ciudades principales")
 
@@ -899,16 +908,18 @@ def chat():
                     if eventos_out:
                         total_ra    = artist_info.get("upcomingEventsCount") or len(eventos_out)
                         eventos_out = eventos_out[:max_ev_artista]
-                        clean = f"Próximas fechas de {nombre_real}:"
+                        clean = L(f"Próximas fechas de {nombre_real}:", f"Upcoming dates for {nombre_real}:")
                     else:
                         donde = f" en {ciudad_corregida.title()}" if area_id else ""
                         return jsonify({
-                            "reply": f"Por ahora {nombre_real} no tiene fechas anunciadas{donde} 😕 ¿Probamos sin ciudad o con otro artista?",
+                            "reply": L(f"Por ahora {nombre_real} no tiene fechas anunciadas{donde} 😕 ¿Probamos sin ciudad o con otro artista?",
+                                       f"{nombre_real} has no announced dates{donde.replace(' en ', ' in ')} yet 😕 Try without a city or another artist?"),
                             "filtros": filtros, "eventos": [], "total_ra": 0
                         })
                 else:
                     return jsonify({
-                        "reply": f"No logro encontrar a {artista_raw} 🤔 ¿Me pasás el nombre completo como figura en Resident Advisor? Por ejemplo: Hernan Cattaneo.",
+                        "reply": L(f"No logro encontrar a {artista_raw} 🤔 ¿Me pasás el nombre completo como figura en Resident Advisor? Por ejemplo: Hernan Cattaneo.",
+                                   f"I can't find {artista_raw} 🤔 Can you give me the full name as it appears on Resident Advisor? For example: Hernan Cattaneo."),
                         "filtros": filtros, "eventos": [], "total_ra": 0
                     })
             except Exception as e:
@@ -928,7 +939,7 @@ def chat():
             if matches:
                 venue_match = matches[0]
                 if venue_match != venue_raw.lower():
-                    clean = f"(Entendí '{venue_match.title()}' por '{venue_raw}') " + clean
+                    clean = L(f"(Entendí '{venue_match.title()}' por '{venue_raw}') ", f"(I took '{venue_raw}' as '{venue_match.title()}') ") + clean
                 eventos_out = [e for e in todos if venue_match in e.get("venue", "").lower()]
             else:
                 # Búsqueda parcial
@@ -936,7 +947,8 @@ def chat():
 
             if not eventos_out:
                 return jsonify({
-                    "reply": f"No veo nada anunciado en {venue_raw} para esas fechas 😕 ¿Probamos otras fechas o revisamos el nombre del venue/disco?",
+                    "reply": L(f"No veo nada anunciado en {venue_raw} para esas fechas 😕 ¿Probamos otras fechas o revisamos el nombre del venue/disco?",
+                              f"I don't see anything at {venue_raw} for those dates 😕 Try other dates or check the venue name?"),
                     "filtros": filtros, "eventos": [], "total_ra": 0
                 })
 
@@ -1815,23 +1827,24 @@ def cine():
     """Películas en cartelera en el país de la ciudad. Uso: /cine?ciudad=barcelona&tipo=cartelera|estrenos"""
     ciudad = (request.args.get("ciudad") or "barcelona").lower().strip()
     tipo = "upcoming" if request.args.get("tipo") == "estrenos" else "now_playing"
+    lang = "en" if request.args.get("lang") == "en" else "es"
     if not TMDB_KEY:
         return jsonify({"error": "Falta TMDB_API_KEY", "peliculas": []}), 200
     nombre_ciudad, pais = TM_CIUDADES.get(ciudad, (ciudad.title(), "ES"))
-    k = f"tmdb-{tipo}-{pais}"
+    k = f"tmdb-{tipo}-{pais}-{lang}"
     pelis = cache_get(k, 6 * 3600)
     if pelis is None:
         gen = tmdb_generos()
         pelis, vistos = [], set()
         for page in (1, 2, 3):
-            data = tmdb_get(f"movie/{tipo}", region=pais, language="es-ES", page=page)
+            data = tmdb_get(f"movie/{tipo}", region=pais, language="en-US" if lang == "en" else "es-ES", page=page)
             if not data:
                 break
             for m in data.get("results") or []:
                 if m["id"] in vistos or not m.get("poster_path"):
                     continue
                 vistos.add(m["id"])
-                titulo_busqueda = m.get("title") if pais in HABLA_ES else (m.get("original_title") or m.get("title"))
+                titulo_busqueda = m.get("title") if (pais in HABLA_ES and lang == "es") else (m.get("original_title") or m.get("title"))
                 pelis.append({
                     "id": m["id"],
                     "titulo": m.get("title", ""),
@@ -1844,10 +1857,10 @@ def cine():
                     "votos": m.get("vote_count") or 0,
                     "popularidad": m.get("popularity") or 0,
                     "generos": [gen.get(g, "") for g in m.get("genre_ids") or [] if gen.get(g)],
-                    "url_horarios": ("https://www.sensacine.com/buscar/?q=" + requests.utils.quote(m.get("title", ""))) if pais == "ES"
-                                    else "https://www.google.com/search?q=" + requests.utils.quote(f"{titulo_busqueda} horarios cine {nombre_ciudad}"),
-                    "url_trailer": "https://www.youtube.com/results?search_query=" + requests.utils.quote(f"{m.get('title','')} tráiler"),
-                    "url_ficha": f"https://www.themoviedb.org/movie/{m['id']}?language=es-ES",
+                    "url_horarios": ("https://www.sensacine.com/buscar/?q=" + requests.utils.quote(m.get("title", ""))) if (pais == "ES" and lang == "es")
+                                    else "https://www.google.com/search?q=" + requests.utils.quote(f"{titulo_busqueda} {'showtimes' if lang == 'en' else 'horarios cine'} {nombre_ciudad}"),
+                    "url_trailer": "https://www.youtube.com/results?search_query=" + requests.utils.quote(f"{m.get('title','')} {'trailer' if lang == 'en' else 'tráiler'}"),
+                    "url_ficha": f"https://www.themoviedb.org/movie/{m['id']}?language={'en-US' if lang == 'en' else 'es-ES'}",
                 })
             if page >= (data.get("total_pages") or 1):
                 break

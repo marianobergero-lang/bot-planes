@@ -311,6 +311,13 @@
   .abierto-si { color: #5fd38d; font-weight: 700; } .abierto-no { color: var(--muted); }
   .share-bus { background: transparent; border: 1px solid var(--border2); color: var(--text); border-radius: 10px; padding: 7px 12px; font: 600 13px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; }
   .share-bus:hover { border-color: var(--orange); }
+  .lang-sel { display: inline-flex; border: 1px solid var(--border2); border-radius: 20px; overflow: hidden; vertical-align: middle; }
+  .lang-sel button { background: none; border: none; padding: 5px 9px; font-size: 16px; cursor: pointer; opacity: .45; filter: grayscale(.6); }
+  .lang-sel button.on { opacity: 1; filter: none; background: rgba(233,104,46,.18); }
+  .lang-land { position: absolute; top: 16px; right: 18px; z-index: 3; }
+  @media (max-width: 820px) { .txt-largo.dos { display: none; } .lang-land { top: 10px; right: 10px; } .landing-in { padding-top: 62px !important; } .lang-sel button { padding: 4px 7px; font-size: 14px; } }
+  @media (max-width: 1700px) and (min-width: 821px) { .tab { font-size: 14.5px; padding: 9px 11px; } header { gap: 10px; } .powered { font-size: 12px; } }
+  @media (max-width: 1450px) and (min-width: 821px) { .powered { display: none; } }
   .reset-f { align-self: flex-start; background: #F2EEE8; color: var(--orange); border: none; border-radius: 10px; padding: 7px 12px; font: 700 13px 'Space Grotesk', sans-serif; cursor: pointer; }
   .reset-f:hover { background: #fff; }
   .menu-bus { top: calc(100% + 6px); right: 0; left: auto; min-width: 250px; z-index: 60; }
@@ -536,6 +543,7 @@
   <div style="display:flex;align-items:center;gap:14px">
     <button class="saved-btn" id="savedbtn" onclick="verGuardados()">♥<span class="txt-largo dos">Mis planes<small>favoritos</small></span> <b id="nguardados"></b></button>
     <div class="sig-wrap"><button class="saved-btn" id="sigbtn" onclick="abrirSiguiendo(event)">🔔<span class="txt-largo"> Siguiendo</span> <b id="nsiguiendo"></b></button><div class="sig-pop" id="sigpop"></div></div>
+    <span id="langhead"></span>
     <a class="powered" href="https://stepwiseconsulting.es/eventos" target="_blank" rel="noopener">powered by <b><span class="step">Step</span><span class="wise">Wise</span></b></a>
   </div>
 </header>
@@ -543,6 +551,7 @@
 <button class="fab" id="fab" onclick="toggleChat()"><i>🤖</i><span>Preguntale a Let's PartIA!</span></button>
 
 <div class="landing" id="landing">
+  <div class="lang-land" id="langland"></div>
   <div class="fondo-lado izq" id="fondo-izq" aria-hidden="true"></div>
   <div class="fondo-lado der" id="fondo-der" aria-hidden="true"></div>
   <div class="landing-in">
@@ -728,6 +737,218 @@ const TAB_TXT = { bares: ['bar', 'bares'], restaurantes: ['restaurante', 'restau
 const DIAS_L = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES_L = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+// ── IDIOMA (ES / EN) ───────────────────────────────────────────────────────
+// La app se escribe en español; en inglés, un traductor revisa lo que aparece en pantalla y cambia
+// SOLO frases conocidas de la app (los nombres de eventos, artistas y lugares quedan como vienen).
+const LANG = (() => {
+  const q = new URLSearchParams(location.search).get('lang');
+  try {
+    if (q === 'es' || q === 'en') localStorage.setItem('lp_lang', q);
+    const s = localStorage.getItem('lp_lang'); if (s === 'es' || s === 'en') return s;
+  } catch (e) { if (q === 'es' || q === 'en') return q; }
+  return /^es\b/i.test(navigator.language || '') ? 'es' : 'en';
+})();
+const EN_PLURAL = { 'plan': 'plan', 'planes': 'plans', 'concierto': 'concert', 'conciertos': 'concerts', 'show': 'show', 'shows': 'shows',
+  'evento deportivo': 'sports event', 'eventos deportivos': 'sports events', 'bar': 'bar', 'bares': 'bars', 'restaurante': 'restaurant',
+  'restaurantes': 'restaurants', 'película': 'movie', 'películas': 'movies' };
+const EN = {
+  // cabezal y pestañas
+  'Todos tus planes, en un solo lugar': 'All your plans, in one place', 'powered by': 'powered by',
+  '🪩 Fiestas y clubs': '🪩 Parties & clubs', '🎤 Conciertos': '🎤 Concerts', '🍸 Bares': '🍸 Bars', '🍽️ Restaurantes': '🍽️ Restaurants',
+  '🎭 Teatro y shows': '🎭 Theatre & shows', '⚽ Deportes': '⚽ Sports', '🎬 Cine': '🎬 Movies', 'Mis planes': 'My plans', 'favoritos': 'saved',
+  'Siguiendo': 'Following', 'Volver al inicio': 'Back to start',
+  // portada
+  '🤖 Contame qué querés y lo busco': '🤖 Tell me what you want and I’ll find it', 'o elegí tu ciudad': 'or pick your city',
+  '¿Qué buscás?': 'What are you looking for?', 'Ver planes →': 'See plans →', 'Buscar': 'Search', 'Enviar': 'Send', 'Cerrar': 'Close',
+  'No tenemos tu ciudad todavía. Elegí la más cercana o a la que viajás 👇': 'We don’t have your city yet. Pick the closest one or where you’re traveling 👇',
+  '📍 Parece que estás en': '📍 Looks like you’re in', '. Si no, elegí otra.': '. If not, pick another one.',
+  // filtros
+  'Ciudad': 'City', '◎ Cerca mío': '◎ Near me', '✕ Cerca mío': '✕ Near me', 'Filtros': 'Filters', '✕ Borrar filtros': '✕ Clear filters',
+  'Cuándo': 'When', 'Hoy': 'Today', 'Mañana': 'Tomorrow', 'Este finde': 'This weekend', '📅 Elegir fechas': '📅 Pick dates',
+  'Franja': 'Time', '· horario de inicio entre': '· starting between', 'Tarde': 'Afternoon', 'Sunset': 'Sunset', 'Noche': 'Night', 'Afters': 'Afters',
+  'Precio': 'Price', 'Gratis': 'Free', 'Bajo': 'Low', 'Medio': 'Mid', 'Alto': 'High', 'Género': 'Genre', 'Tipo': 'Type',
+  '🍸 Cócteles': '🍸 Cocktails', '🍷 Vinos': '🍷 Wine', '🍺 Cervezas': '🍺 Beer', '☀️ Terraza': '☀️ Terrace', '🎷 Música en vivo': '🎷 Live music', '🎧 HiFi': '🎧 HiFi',
+  'Cocina': 'Cuisine', 'Tapas': 'Tapas', 'Italiana': 'Italian', 'Pizza': 'Pizza', 'Japonesa': 'Japanese', 'Asiática': 'Asian', 'Mexicana': 'Mexican',
+  'Hamburguesas': 'Burgers', 'India': 'Indian', 'Parrilla': 'Grill', 'Mariscos': 'Seafood', 'Mediterránea': 'Mediterranean', 'Latina': 'Latin American', 'Francesa': 'French',
+  'Además': 'Also', '· se suman a la cocina': '· combined with cuisine', '🌱 Vegetariana / vegana': '🌱 Vegetarian / vegan', '🥡 Para llevar': '🥡 Takeaway',
+  'Ahora': 'Now', '🟢 Abierto ahora': '🟢 Open now', 'Distancia': 'Distance', 'A pie': 'Walking', 'Cerca': 'Nearby', 'Toda la ciudad': 'Whole city',
+  '· activá "Cerca mío"': '· turn on "Near me"', 'Los resultados se actualizan solos al tocar los filtros': 'Results update as soon as you tap a filter',
+  'Ver resultados ↓': 'See results ↓', 'Fútbol': 'Football', 'Básquet': 'Basketball', 'Tenis': 'Tennis', 'Motor': 'Motorsport',
+  'Acción': 'Action', 'Comedia': 'Comedy', 'Drama': 'Drama', 'Terror': 'Horror', 'Animación': 'Animation', 'Ciencia ficción': 'Sci-fi', 'Familia': 'Family', 'Romance': 'Romance',
+  'Aventura': 'Adventure', 'Fantasía': 'Fantasy', 'Suspense': 'Thriller', 'Crimen': 'Crime', 'Misterio': 'Mystery', 'Documental': 'Documentary',
+  'Historia': 'History', 'Música': 'Music', 'Bélica': 'War', 'Película de TV': 'TV movie', 'Fútbol americano': 'American football', 'Boxeo': 'Boxing',
+  'Béisbol': 'Baseball', 'Artes marciales': 'Martial arts', 'Vóley': 'Volleyball',
+  'Tocá un día, o dos para un rango (hasta 7 días)': 'Tap a day, or two for a range (up to 7 days)', 'Tocá otro día para elegir un rango': 'Tap another day to pick a range', 'Listo': 'Done',
+  // cerca mío
+  '◎ Usar mi ubicación actual': '◎ Use my current location', 'o escribí una dirección': 'or type an address', 'Ej: Carrer de Blai 30, un hotel o un barrio': 'e.g. a street, a hotel or a neighbourhood',
+  'Desde el centro:': 'From the centre:', 'Desde': 'From', 'cambiar': 'change', 'tu ubicación actual': 'your current location',
+  // inicio de ciudad
+  '¿Qué hacemos en': 'What shall we do in', 'O probá un atajo': 'Or try a shortcut',
+  'Armá tu plan con los filtros de la izquierda': 'Build your plan with the filters on the left', 'Armá tu plan con los filtros de arriba': 'Build your plan with the filters above',
+  'Elegí cuándo, el horario, el precio o el género, y los resultados aparecen acá. Arriba cambiás entre fiestas, bares, conciertos y más.': 'Pick when, the time, the price or the genre, and the results show up here. Switch between parties, bars, concerts and more at the top.',
+  'Lo mejor de este finde': 'Best of this weekend', 'Lo que más gente convoca': 'What most people are going to', 'Lo más top hoy': 'Hottest today',
+  'Lo que está pegando hoy': 'What’s big today', 'Gratis o barato': 'Free or cheap', 'Para salir sin gastar': 'Going out on a budget',
+  'Sunset y open air': 'Sunset & open air', 'Arrancan al caer el sol': 'Starting at sundown', 'Buscar por club': 'Search by club',
+  'Qué hay en tu disco favorita': 'What’s on at your favourite club', 'Fechas de un DJ': 'A DJ’s dates', 'Cuándo toca tu artista': 'When your artist plays',
+  // resultados
+  '← Volver a los atajos': '← Back to shortcuts', 'Afiná con los filtros de la izquierda': 'Refine with the filters on the left', 'Afiná con los filtros de arriba': 'Refine with the filters above',
+  'Cuándo, horario, precio, género o distancia: tocá uno y los resultados se actualizan solos.': 'When, time, price, genre or distance: tap one and the results update by themselves.',
+  'Nada por acá en': 'Nothing here in', '¿Qué hacemos en': 'What shall we do in',
+  '🔔 Todavía no seguís a nadie.': '🔔 You’re not following anyone yet.', 'Seguir': 'Follow',
+  'Preguntale al chat por un DJ o un equipo (ej: "¿cuándo toca Hernán Cattaneo?") y tocá': 'Ask the chat about a DJ or a team (e.g. "when is Hernán Cattaneo playing?") and tap',
+  ': acá vas a ver sus próximas fechas.': ': their next dates will show up here.', '☰ Lista': '☰ List', '🗺️ Mapa': '🗺️ Map', '↗ Compartir': '↗ Share', 'Ordenados por día.': 'Sorted by day.',
+  'No encontré exactamente lo que buscás 😕': 'I couldn’t find exactly what you’re looking for 😕', 'Probá con otras fechas o con otra ciudad.': 'Try other dates or another city.',
+  'Probá sacando algún filtro de la izquierda, o elegí otras fechas.': 'Try removing a filter on the left, or pick other dates.', 'Probá sacando algún filtro de arriba, o elegí otras fechas.': 'Try removing a filter above, or pick other dates.',
+  'Ojo: estos eventos vienen de Ticketmaster, que en algunas ciudades (como Barcelona o Madrid) tiene poca oferta.': 'Heads up: these events come from Ticketmaster, which has few listings in some cities (like Barcelona or Madrid).',
+  'Uy, se me cortó algo 😅': 'Oops, something went wrong 😅', 'No pude traer los eventos. Probá de nuevo en un ratito.': 'I couldn’t load the events. Try again in a bit.',
+  'Buscando todos…': 'Loading all…', 'No pude traerlos, tocá para reintentar': 'Couldn’t load them, tap to retry',
+  'en:': 'at:', 'de': 'from', 'a': 'to', 'hs': '', 'Ver tickets →': 'Tickets →', '♡ Mis planes': '♡ Save', '♥ En mis planes': '♥ Saved', '📍 Ver dirección': '📍 Directions',
+  'PRECIO EN WEB': 'PRICE ON SITE', 'GRATIS': 'FREE', 'Entradas (web del club) →': 'Tickets (club site) →', 'Buscar entradas →': 'Find tickets →',
+  'Agregar a mi calendario': 'Add to my calendar', 'Compartir': 'Share', 'Ver sus próximas fechas': 'See upcoming dates', 'Ver todo lo que hay en este lugar': 'See everything at this venue',
+  'Los más cercanos primero.': 'Closest first.', 'Tocá "◎ Cerca mío" para buscar desde tu ubicación o una dirección': 'Tap "◎ Near me" to search from your location or an address',
+  'Los más cercanos primero. Tocá "◎ Cerca mío" para buscar desde tu ubicación o una dirección.': 'Closest first. Tap "◎ Near me" to search from your location or an address.',
+  'Probá ampliando la distancia a "Cerca < 3 km".': 'Try widening the distance to "Nearby < 3 km".', 'Probá con otro tipo.': 'Try another type.',
+  'Bar': 'Bar', 'Pub': 'Pub', 'Cervecería al aire libre': 'Beer garden', 'Restaurante': 'Restaurant', 'Cócteles': 'Cocktails', 'Vinos': 'Wine', 'Cervezas': 'Beer',
+  'Abierto ahora': 'Open now', 'Cerrado ahora': 'Closed now', 'Abierto 24 hs': 'Open 24/7', '📍 Ver en el mapa': '📍 See on map', 'Ver en el mapa': 'See on map',
+  '⭐ Reseñas y precios en Google': '⭐ Reviews & prices on Google', 'Reservar ▾': 'Book ▾', 'Ver detalle y seguir': 'See details & follow',
+  '📍 Ver ficha en Google': '📍 See on Google', 'Fotos, horarios, teléfono y reserva si el lugar la ofrece': 'Photos, hours, phone and booking if available',
+  '🌐 Ir a la web del lugar': '🌐 Go to their website', 'Reservá directo con ellos': 'Book directly with them', '📞 Llamar': '📞 Call', 'Terraza': 'Terrace',
+  'Opciones vegetarianas': 'Vegetarian options', 'Para llevar': 'Takeaway', 'Música en vivo': 'Live music', 'HiFi / listening bar': 'HiFi / listening bar',
+  'Elegí un tipo de bar para buscar en toda la ciudad': 'Pick a type of bar to search the whole city', 'Elegí un tipo de cocina para buscar en toda la ciudad': 'Pick a cuisine to search the whole city',
+  'Vos': 'You', 'No pude cargar el mapa. Probá recargar la página.': 'Couldn’t load the map. Try reloading the page.',
+  'No hay nada en esta zona del mapa. Alejate o movete un poco 🗺️': 'Nothing in this part of the map. Zoom out or move around 🗺️',
+  // detalle / modal
+  'Copiar dirección': 'Copy address', 'Cómo llegar →': 'Directions →', '📍 Cómo llegar': '📍 Directions', 'Dirección no informada': 'Address not available',
+  '📅 Agregar a mi calendario': '📅 Add to my calendar', 'Se abre con todo cargado, solo tocás Guardar': 'Opens pre-filled, just tap Save',
+  'iPhone, Mac u Outlook': 'iPhone, Mac or Outlook', 'Descarga el evento y se abre en tu calendario': 'Downloads the event and opens it in your calendar',
+  '🌐 Web': '🌐 Website', 'Mostrando las próximas 6 semanas': 'Showing the next 6 weeks',
+  // compartir y avisos
+  '💬 WhatsApp': '💬 WhatsApp', '🔗 Copiar link': '🔗 Copy link', '✉️ Mail': '✉️ Email', '📲 Más opciones…': '📲 More options…',
+  '🔗 Link copiado. Pegalo donde quieras': '🔗 Link copied. Paste it anywhere', 'Seleccioná el link de abajo y copialo': 'Select the link below and copy it',
+  '🔗 Link copiado': '🔗 Link copied', 'No pude copiarlo 😕': 'Couldn’t copy it 😕', '📍 Dirección copiada': '📍 Address copied', 'No pude copiarla 😕': 'Couldn’t copy it 😕',
+  'Lo sacaste de tus planes': 'Removed from your plans', '♥ Sumado a tus planes favoritos': '♥ Added to your saved plans', 'Filtros borrados': 'Filters cleared',
+  'Buscando tu ubicación…': 'Finding your location…', 'Tu navegador no comparte ubicación. Escribí una dirección 👇': 'Your browser doesn’t share location. Type an address 👇',
+  'No pude acceder a tu ubicación. Escribí una dirección 👇': 'I couldn’t get your location. Type an address 👇', 'No encontré esa dirección 🤔': 'I couldn’t find that address 🤔',
+  'No pude traer sus fechas 😕': 'Couldn’t load their dates 😕', 'No pude traer lo de ese lugar 😕': 'Couldn’t load that venue 😕',
+  '✓ Siguiendo': '✓ Following', '🔔 Lo que seguís': '🔔 What you follow', 'Buscando sus próximas fechas…': 'Looking up their next dates…',
+  'Dejar de seguir': 'Unfollow', 'Sus próximas fechas aparecen en "🔔 Siguiendo", arriba a la derecha': 'Their next dates show up in "🔔 Following", top right',
+  'Queda guardado en "🔔 Siguiendo", arriba a la derecha': 'Saved in "🔔 Following", top right',
+  // mis planes
+  'Bares y restaurantes': 'Bars & restaurants', 'Todavía no sumaste nada': 'Nothing saved yet',
+  'Tocá "♡ Mis planes" en cualquier evento y lo vas a encontrar acá, ordenado por día.': 'Tap "♡ Save" on any event and you’ll find it here, sorted by day.',
+  // chat
+  'Contame qué querés y te lo busco': 'Tell me what you want and I’ll find it', '¡Hey! Decime qué te gustaría ✨': 'Hey! Tell me what you feel like ✨',
+  'Preguntale a Let\'s PartIA!': 'Ask Let\'s PartIA!', 'Pedime lo que quieras, por ejemplo:': 'Ask me anything, for example:',
+  'Techno este sábado a la noche': 'Techno this Saturday night', '¿Cuándo toca Amelie Lens?': 'When is Amelie Lens playing?', 'Algo tranqui y barato para hoy': 'Something chill and cheap for today',
+  'Contame un poco más y te busco algo 🙂': 'Tell me a bit more and I’ll find something 🙂', 'No encontré nada con eso 😕': 'I didn’t find anything with that 😕',
+  'Uy, se me cortó algo 😅 ¿Lo intentamos de nuevo?': 'Oops, something went wrong 😅 Shall we try again?', 'Mirá lo que encontré': 'Look what I found',
+  // cine
+  '🍿 En cartelera': '🍿 Now showing', '🗓️ Próximos estrenos': '🗓️ Coming soon', 'vía TMDB': 'via TMDB', '▶ Tráiler': '▶ Trailer', 'Ver horarios →': 'Showtimes →',
+  'Ordenadas por popularidad. Tocá "Ver horarios" para ver cines y sesiones cerca tuyo.': 'Sorted by popularity. Tap "Showtimes" to see cinemas and sessions near you.',
+  'No encontré películas con ese filtro 😕': 'No movies with that filter 😕', 'Probá con otro género.': 'Try another genre.',
+  'No pude traer la cartelera. Probá de nuevo en un ratito.': 'I couldn’t load the listings. Try again in a bit.',
+  // ciudades con nombre en español
+  'Milán': 'Milan', 'Múnich': 'Munich', 'Ciudad de México': 'Mexico City', 'Roma': 'Rome', 'Turín': 'Turin', 'Viena': 'Vienna', 'Bruselas': 'Brussels',
+  'Praga': 'Prague', 'Estocolmo': 'Stockholm', 'Hamburgo': 'Hamburg', 'Lisboa': 'Lisbon', 'Ámsterdam': 'Amsterdam', 'Berlín': 'Berlin', 'Londres': 'London',
+  'Nueva York': 'New York', 'París': 'Paris', 'Tokio': 'Tokyo', 'Sídney': 'Sydney',
+};
+const EN_RX = [
+  [/^(\d[\d.]*) (plan|planes|concierto|conciertos|show|shows|evento deportivo|eventos deportivos|bar|bares|restaurante|restaurantes|película|películas) en$/, (m, n, p) => `${n} ${EN_PLURAL[p]} in`],
+  [/^(\d[\d.]*) (bar|bares|restaurante|restaurantes) (cerca de|en)$/, (m, n, p, w) => `${n} ${EN_PLURAL[p]} ${w === 'en' ? 'in' : 'near'}`],
+  [/^Los (bares|restaurantes) más recomendados (cerca de|en)$/, (m, p, w) => `Top ${EN_PLURAL[p]} ${w === 'en' ? 'in' : 'near'}`],
+  [/^🚶 (.+) desde (.+) · (\d+)' a pie$/, "🚶 $1 from $2 · $3' walk"], [/^🚶 (.+) desde (.+) · ~(\d+)' en transporte$/, "🚶 $1 from $2 · ~$3' by transit"],
+  [/^· desde (.+)$/, '· from $1'],
+  [/^Te muestro ([\d.]+) de ([\d.,]+) · Elegí un tipo de (cocina|bar) para afinar$/, (m, a, b, t) => `Showing ${a} of ${b} · Pick a ${t === 'bar' ? 'type of bar' : 'cuisine'} to narrow it down`],
+  [/^Te muestro los (\d+) más destacados\. Ordenados por día\.$/, 'Showing the top $1. Sorted by day.'],
+  [/^Ordenados por día y por cercanía a (.+)\.$/, 'Sorted by day and distance from $1.'],
+  [/^Ver los (\d+) (.+?) del (\S+) (\d+) ↓$/, (m, n, p, d, num) => `See all ${n} ${EN_PLURAL[p] || p} on ${d.charAt(0).toUpperCase() + d.slice(1)} ${num} ↓`],
+  [/^Ver más (.+?) \(([\d.]+) más\) ↓$/, (m, p, n) => `See more ${EN_PLURAL[p] || p} (${n} more) ↓`],
+  [/^No encontré (.+?) con esos filtros 😕$/, (m, p) => `No ${EN_PLURAL[p] || p} with those filters 😕`],
+  [/^Datos de (.+?): © colaboradores de OpenStreetMap\.$/, (m, p) => `${(EN_PLURAL[p] || p).replace(/^./, c => c.toUpperCase())} data: © OpenStreetMap contributors.`],
+  [/^(\d+) de (\d+) sin ubicación exacta no entran en el filtro de distancia\.$/, '$1 of $2 have no exact location and aren’t included in the distance filter.'],
+  [/^(\d+) sin ubicación exacta no aparecen en el mapa \(sí en la lista\)\.$/, '$1 without an exact location aren’t on the map (they are in the list).'],
+  [/^(\d+) en esta zona( · los (\d+) más destacados de (\d+), acercate para ver más)?$/, (m, n, x, top, tot) => `${n} in this area${x ? ` · top ${top} of ${tot}, zoom in to see more` : ''}`],
+  [/^👥 (\d+) interesados$/, '👥 $1 interested'], [/^vía (.+)$/, 'via $1'],
+  [/^(.+) · (\d+)' a pie$/, "$1 · $2' walk"], [/^(.+) · ~(\d+)' en transporte$/, "$1 · ~$2' by transit"],
+  [/^hasta (.+)$/, 'up to $1'], [/^desde (.+)$/, 'from $1'],
+  [/^(BARATO|NORMAL|CARO) · DESDE (.+)$/, (m, c, p) => `${{ BARATO: 'CHEAP', NORMAL: 'MID', CARO: 'PRICEY' }[c]} · FROM ${p}`],
+  [/^(BARATO|NORMAL|CARO) · (.+)$/, (m, c, p) => `${{ BARATO: 'CHEAP', NORMAL: 'MID', CARO: 'PRICEY' }[c]} · ${p}`],
+  [/^Próximas fechas de$/, 'Upcoming dates for'], [/^Próximos partidos de$/, 'Upcoming matches for'], [/^Lo que viene en$/, 'Coming up at'], [/^Resultados para$/, 'Results for'],
+  [/^🔔 Seguir a (.+)$/, '🔔 Follow $1'], [/^🔔 Listo, seguís a (.+)$/, '🔔 Done, you’re following $1'], [/^📅 Ver lo que viene en (.+)$/, '📅 See what’s on at $1'],
+  [/^Todavía no tengo restaurantes de (.+) 😕$/, 'No restaurants for $1 yet 😕'],
+  [/^Por ahora están (.+) y (.+)\.$/, 'Available so far: $1 and $2.'],
+  [/^ · sin fechas anunciadas por ahora$/, ' · no dates announced yet'],
+  [/^🎬 (En cines|Estreno)( · (.+))?$/, (m, t, x, f) => `🎬 ${t === 'En cines' ? 'In cinemas' : 'Release'}${x ? ' · ' + f : ''}`],
+  [/^ \/10 · (\d+) votos$/, ' /10 · $1 votes'],
+  [/^(\d+) (película|películas) (en cartelera|por estrenarse) en$/, (m, n, p, t) => `${n} ${EN_PLURAL[p]} ${t === 'en cartelera' ? 'now showing' : 'coming soon'} in`],
+  [/^¡Listo! Te dejé (los resultados|los bares|los restaurantes) en pantalla (👆|👈) Podés afinarlos con los filtros (de arriba|de la izquierda) o seguir preguntándome por acá\.$/,
+    (m, q, e, l) => `Done! I left the ${{ 'los resultados': 'results', 'los bares': 'bars', 'los restaurantes': 'restaurants' }[q]} on screen ${e} You can refine them with the filters ${l === 'de arriba' ? 'above' : 'on the left'} or keep asking me here.`],
+  [/^Quiero saber qué hay en una disco o venue en particular en (.+)$/, 'I want to know what’s on at a specific club or venue in $1'],
+];
+// Partes de texto que pueden venir mezcladas con otras (respuestas del chat, partidos de fútbol)
+const EN_SUB = [
+  [/Te dejé los resultados en pantalla 👈 Podés seguir preguntándome por acá\./g, 'I left the results on screen 👈 You can keep asking me here.'],
+  [/ · Jornada (\d+)/g, ' · Matchday $1'], [/ · De local/g, ' · Home'], [/ · De visitante/g, ' · Away'], [/ · Horario a confirmar/g, ' · Time TBC'],
+];
+function tr(s) {
+  if (LANG === 'es' || s == null) return s;
+  const str = String(s), k = str.trim();
+  if (!k) return str;
+  if (Object.prototype.hasOwnProperty.call(EN, k)) return str.replace(k, EN[k]);
+  for (const [rx, rep] of EN_RX) if (rx.test(k)) return str.replace(k, k.replace(rx, rep));
+  let out = str;
+  for (const [rx, rep] of EN_SUB) out = out.replace(rx, rep);
+  return out;
+}
+const ATTRS_TR = ['placeholder', 'title', 'aria-label'];
+function traducirNodo(root) {
+  if (LANG === 'es' || !root) return;
+  if (root.nodeType === 3) { const t = tr(root.nodeValue); if (t !== root.nodeValue) root.nodeValue = t; return; }
+  if (root.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA|INPUT|SELECT|OPTION)$/.test(root.nodeName)) {
+    if (root.nodeType === 1 && root.nodeName === 'INPUT') ATTRS_TR.forEach(a => { const v = root.getAttribute(a); if (v) { const t = tr(v); if (t !== v) root.setAttribute(a, t); } });
+    return;
+  }
+  ATTRS_TR.forEach(a => { const v = root.getAttribute(a); if (v) { const t = tr(v); if (t !== v) root.setAttribute(a, t); } });
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {
+    acceptNode: n => n.nodeType === 1 && /^(SCRIPT|STYLE|TEXTAREA|SELECT)$/.test(n.nodeName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  let n;
+  while ((n = w.nextNode())) {
+    if (n.nodeType === 3) { const t = tr(n.nodeValue); if (t !== n.nodeValue) n.nodeValue = t; }
+    else ATTRS_TR.forEach(a => { const v = n.getAttribute(a); if (v) { const t = tr(v); if (t !== v) n.setAttribute(a, t); } });
+  }
+}
+function arrancarTraductor() {
+  document.documentElement.lang = LANG;
+  if (LANG === 'es') return;
+  traducirNodo(document.body);
+  new MutationObserver(ms => ms.forEach(m => {
+    if (m.type === 'characterData') traducirNodo(m.target);
+    else if (m.type === 'attributes') ATTRS_TR.forEach(a => { const v = m.target.getAttribute(a); if (v) { const t = tr(v); if (t !== v) m.target.setAttribute(a, t); } });
+    else m.addedNodes.forEach(traducirNodo);
+  })).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'title'] });
+}
+if (LANG === 'en') {  // fechas y horarios en inglés
+  DIAS_L.splice(0, 7, 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
+  MESES_L.splice(0, 12, 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+  MESES_C.splice(0, 12, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
+}
+const DOW_CORTO = LANG === 'en' ? ['M', 'T', 'W', 'T', 'F', 'S', 'S'] : ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+const EN_CLAVES = { tarde: 'afternoon', sunset: 'sunset', noche: 'night', afters: 'afters', gratis: 'free', bajo: 'low', medio: 'mid', alto: 'high',
+  cocteles: 'cocktails', vinos: 'wine', cervezas: 'beer', terraza: 'terrace', musica: 'live music', hifi: 'HiFi', tapas: 'tapas', italiana: 'Italian',
+  pizza: 'pizza', japonesa: 'Japanese', asiatica: 'Asian', mexicana: 'Mexican', hamburguesas: 'burgers', india: 'Indian', parrilla: 'grill',
+  mariscos: 'seafood', mediterranea: 'Mediterranean', latina: 'Latin American', francesa: 'French', veg: 'vegetarian', llevar: 'takeaway',
+  'abierto ahora': 'open now', 'fútbol': 'football', 'básquet': 'basketball', tenis: 'tennis', motor: 'motorsport' };
+function trClave(v) { return LANG === 'en' ? (EN_CLAVES[v] || tr(v)) : v; }
+const ETIQUETAS_EN = { tapas: 'Tapas / Spanish', italiana: 'Italian', pizza: 'Pizza', japonesa: 'Japanese', asiatica: 'Asian', mexicana: 'Mexican',
+  hamburguesas: 'Burgers', india: 'Indian', parrilla: 'Grill / Steak', mariscos: 'Fish & seafood', mediterranea: 'Mediterranean', latina: 'Latin American', francesa: 'French' };
+function cambiarIdioma(l) {
+  try { localStorage.setItem('lp_lang', l); } catch (e) {}
+  const u = new URL(location.href); u.searchParams.set('lang', l); location.href = u.toString();
+}
+function selectorIdioma() {
+  return `<div class="lang-sel"><button class="${LANG === 'es' ? 'on' : ''}" onclick="cambiarIdioma('es')" title="Español">🇪🇸</button><button class="${LANG === 'en' ? 'on' : ''}" onclick="cambiarIdioma('en')" title="English">🇬🇧</button></div>`;
+}
+
 
 // ── ESTADO ─────────────────────────────────────────────────────────────────
 const st = { tab: 'clubs', cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, km: '99' };
@@ -805,7 +1026,7 @@ function pintar() {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === st.tab));
   if (MOVIL()) document.querySelector('.tab.on')?.scrollIntoView({ inline: 'center', block: 'nearest' });
   document.getElementById('chip-cal').textContent = textoFechas();
-  const et = { hoy: 'Hoy', manana: 'Mañana', finde: 'Este finde', cal: textoFechas().replace('📅 ', '') };
+  const et = { hoy: tr('Hoy'), manana: tr('Mañana'), finde: tr('Este finde'), cal: textoFechas().replace('📅 ', '') };
   const esBar = esLugar();
   const esCine = st.tab === 'cine';
   document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (esCine && g.id !== 'group-genero') || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length));
@@ -822,7 +1043,7 @@ function pintar() {
   const hayFiltros = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].some(k => st[k])
     || st.cuando === 'cal' || st.km !== KM_DEFECTO[kmClave()] || (ubic && !ubic.auto);
   document.getElementById('resetf').hidden = !hayFiltros;
-  document.getElementById('fsummary').textContent = (esBar ? [st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar, st.tab === 'restaurantes' ? st.extraRest : null, st.abierto ? 'abierto ahora' : null, kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map((x, i, arr) => x === kmTxt ? x : String(x).replace(/,/g, ' + ')).join(' · ');
+  document.getElementById('fsummary').textContent = (esBar ? [st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar, st.tab === 'restaurantes' ? st.extraRest : null, st.abierto ? 'abierto ahora' : null, kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map(x => x === kmTxt ? x : valores(x).map(trClave).join(' + ')).join(' · ');
 }
 
 // ── CALENDARIO ─────────────────────────────────────────────────────────────
@@ -834,7 +1055,7 @@ function pintarCal() {
   if (!cal.mes) cal.mes = new Date(H.getFullYear(), H.getMonth(), 1);
   const y = cal.mes.getFullYear(), m = cal.mes.getMonth();
   const off = (new Date(y, m, 1).getDay() + 6) % 7, n = new Date(y, m + 1, 0).getDate();
-  let g = ['L','M','X','J','V','S','D'].map(d => `<div class="mc-dow">${d}</div>`).join('') + '<div></div>'.repeat(off);
+  let g = DOW_CORTO.map(d => `<div class="mc-dow">${d}</div>`).join('') + '<div></div>'.repeat(off);
   for (let i = 1; i <= n; i++) {
     const d = new Date(y, m, i), t = d.getTime(), c = ['mc-d'];
     if (t === H.getTime()) c.push('today');
@@ -900,7 +1121,7 @@ function volver() { return '<button class="back" onclick="inicio()">← Volver a
 
 function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
   const main = document.getElementById('main');
-  const activos = [...valores(st.franja), ...valores(st.precio), ...valores(st.genero).map(x => (GENEROS[st.tab] || []).find(g => g[0] === x)?.[1] || x)].map(x => `<span>${esc(x)}</span>`).join('');
+  const activos = [...valores(st.franja).map(trClave), ...valores(st.precio).map(trClave), ...valores(st.genero).map(x => (GENEROS[st.tab] || []).find(g => g[0] === x)?.[1] || x)].map(x => `<span>${esc(x)}</span>`).join('');
   const n = Math.max(total, eventos.length);
   const h2 = titulo || (eventos.length
     ? `${n} ${TAB_TXT[st.tab][n === 1 ? 0 : 1]} en <span>${esc(ciudadTxt())}</span>`
@@ -1013,7 +1234,7 @@ async function buscarCine() {
     if (ctrl) ctrl.abort();
     ctrl = new AbortController();
     try {
-      const r = await fetch(`${API}/cine?ciudad=${encodeURIComponent(ciudad())}&tipo=${cineTipo}`, { signal: ctrl.signal });
+      const r = await fetch(`${API}/cine?ciudad=${encodeURIComponent(ciudad())}&tipo=${cineTipo}&lang=${LANG}`, { signal: ctrl.signal });
       const data = await r.json();
       if (data.error) throw new Error(data.error);
       cineData[k] = data.peliculas || [];
@@ -1117,7 +1338,8 @@ function verGuardados() {
 }
 function textoCompartir(e) {
   const d = deIso(e.fecha);
-  return `¿Vamos? 🔥 ${e.titulo} — ${DIAS_L[d.getDay()]} ${d.getDate()} de ${MESES_L[d.getMonth()]}${e.venue ? ' en ' + e.venue : ''}`;
+  return LANG === 'en' ? `Shall we go? 🔥 ${e.titulo} — ${DIAS_L[d.getDay()]} ${d.getDate()} ${MESES_L[d.getMonth()]}${e.venue ? ' at ' + e.venue : ''}`
+    : `¿Vamos? 🔥 ${e.titulo} — ${DIAS_L[d.getDay()]} ${d.getDate()} de ${MESES_L[d.getMonth()]}${e.venue ? ' en ' + e.venue : ''}`;
 }
 function cerrarMenus() { document.querySelectorAll('.menu-share').forEach(m => m.remove()); }
 document.addEventListener('click', cerrarMenus);
@@ -1314,7 +1536,7 @@ async function restLocales(c) {
   try {
     const r = await fetch(`datos/restaurantes/${c.replace(/ /g, '-')}.json`);
     if (!r.ok) throw new Error('sin archivo');
-    const j = await r.json(), et = j.etiquetas || {};
+    const j = await r.json(), et = LANG === 'en' ? ETIQUETAS_EN : (j.etiquetas || {});
     REST_LOCALES[c] = (j.restaurantes || []).map(b => {
       const k = b.k || [], t = b.t || [];
       return {
@@ -1402,6 +1624,7 @@ async function masBares() {
   } catch (e) { btn.disabled = false; btn.textContent = 'No pude cargarlos, tocá para reintentar'; }
 }
 const DIAS_OSM = { Mo: 'Lu', Tu: 'Ma', We: 'Mi', Th: 'Ju', Fr: 'Vi', Sa: 'Sá', Su: 'Do', PH: 'Feriados', off: 'cerrado' };
+if (LANG === 'en') Object.assign(DIAS_OSM, { Mo: 'Mon', Tu: 'Tue', We: 'Wed', Th: 'Thu', Fr: 'Fri', Sa: 'Sat', Su: 'Sun', PH: 'Holidays', off: 'closed' });
 // ¿Está abierto ahora? Entiende los formatos comunes de OpenStreetMap ("Mo-Fr 12:00-16:00,20:00-23:30; Su off").
 // Devuelve true / false, o null si el horario es raro y no lo podemos saber.
 function abiertoAhora(h, ahora = new Date()) {
@@ -1445,8 +1668,8 @@ function horarioEs(h) {
     .split(/;\s*/)
     .filter(p => !/unknown|"/i.test(p))   // partes en inglés o con comentarios ("Depends on the holiday") fuera
     .join('; ')
-    .replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su|PH|off|closed)\b/g, m => DIAS_OSM[m] || 'cerrado')
-    .replace(/24\/7/, 'Abierto 24 hs')
+    .replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su|PH|off|closed)\b/g, m => DIAS_OSM[m] || DIAS_OSM.off)
+    .replace(/24\/7/, LANG === 'en' ? 'Open 24/7' : 'Abierto 24 hs')
     .replace(/;\s*/g, ' · ');
 }
 function emojiLugar(x) {
@@ -1629,7 +1852,7 @@ function leerURL() {
 async function compartirBusqueda(ev) {
   ev.stopPropagation();
   const url = location.origin + urlEstado();
-  const texto = `Mirá estos ${TAB_TXT[st.tab][1]} en ${ciudadTxt()} 👀`;
+  const texto = LANG === 'en' ? `Check out these ${EN_PLURAL[TAB_TXT[st.tab][1]]} in ${tr(ciudadTxt())} 👀` : `Mirá estos ${TAB_TXT[st.tab][1]} en ${ciudadTxt()} 👀`;
   cerrarMenus();
   const m = document.createElement('div');
   m.className = 'menu-share menu-bus';
@@ -1884,8 +2107,8 @@ function irHome(ev) {
   document.getElementById('main').scrollTop = 0;
 }
 function atajo(k) {
-  if (k === 'club') return preguntar('Quiero saber qué hay en una disco o venue en particular en ' + ciudadTxt());
-  if (k === 'dj') return preguntar('Quiero buscar las próximas fechas de un DJ o artista');
+  if (k === 'club') return preguntar(LANG === 'en' ? 'I want to know what’s on at a specific club or venue in ' + ciudadTxt() : 'Quiero saber qué hay en una disco o venue en particular en ' + ciudadTxt());
+  if (k === 'dj') return preguntar(LANG === 'en' ? 'I want to find the upcoming dates of a DJ or artist' : 'Quiero buscar las próximas fechas de un DJ o artista');
   Object.assign(st, { tab: 'clubs', cuando: 'finde', franja: null, precio: null, genero: null });
   cal.a = cal.b = null;
   if (k === 'top') st.cuando = 'hoy';
@@ -1979,7 +2202,7 @@ async function preguntar(textoFijo) {
   historial.push({ role: 'user', content: texto });
   const esperando = burbuja('…', 'bot typing');
   try {
-    const r = await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: historial }) });
+    const r = await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: historial, lang: LANG }) });
     const data = await r.json();
     esperando.remove();
     const reply = (data.reply || '').replace(/\*\*/g, '');
@@ -2069,7 +2292,7 @@ function entrarCategoria(tab) {
   pintarGeneros(); pintar(); buscar();
 }
 // Texto de fondo que se va escribiendo solo con ejemplos
-const EJEMPLOS = ['techno este sábado en Barcelona…', '¿cuándo toca Hernán Cattaneo?', 'un japonés con terraza en Gràcia…', 'algo gratis hoy en Madrid…', '¿cuándo juega el Barça?', 'bares de vinos en Malasaña…', 'conciertos de rock en London…', 'afters el domingo a la mañana…'];
+const EJEMPLOS = LANG === 'en' ? ['techno this Saturday in Barcelona…', 'when is Hernán Cattaneo playing?', 'a Japanese place with a terrace in Gràcia…', 'something free today in Madrid…', 'when do Barça play?', 'wine bars in Malasaña…', 'rock concerts in London…', 'afters on Sunday morning…'] : ['techno este sábado en Barcelona…', '¿cuándo toca Hernán Cattaneo?', 'un japonés con terraza en Gràcia…', 'algo gratis hoy en Madrid…', '¿cuándo juega el Barça?', 'bares de vinos en Malasaña…', 'conciertos de rock en London…', 'afters el domingo a la mañana…'];
 let tipeo = null;
 function arrancarTipeo() {
   const inp = document.getElementById('askl');
@@ -2079,7 +2302,7 @@ function arrancarTipeo() {
     if (document.activeElement === inp || inp.value) return;
     const t = EJEMPLOS[i];
     j += borrando ? -3 : 1;
-    inp.placeholder = 'Ej: ' + t.slice(0, Math.max(0, j));
+    inp.placeholder = (LANG === 'en' ? 'e.g. ' : 'Ej: ') + t.slice(0, Math.max(0, j));
     if (!borrando && j >= t.length + 14) borrando = true;
     if (borrando && j <= 0) { borrando = false; i = (i + 1) % EJEMPLOS.length; }
   }, 38);
@@ -2161,6 +2384,9 @@ document.getElementById('city').addEventListener('change', () => {
     ['clubs', '🪩 Fiestas y clubs'], ['conciertos', '🎤 Conciertos'], ['bares', '🍸 Bares'], ['restaurantes', '🍽️ Restaurantes'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'], ...(BETA ? [['cine', '🎬 Cine']] : []),
   ].map(([t, txt]) => `<button class="chip big" onclick="entrarCategoria('${t}')">${txt}</button>`).join('');
   ubic = puntoCentro(); actualizarNota();
+  document.getElementById('langhead').innerHTML = selectorIdioma();
+  document.getElementById('langland').innerHTML = selectorIdioma();
+  arrancarTraductor();
   preciosCiudad(); pintarGeneros(); pintar(); contarGuardados(); contarSiguiendo();
   if (!leerURL()) { inicio(); mostrarLanding(); }
 })();
