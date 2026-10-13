@@ -1736,14 +1736,7 @@ def proximos_tm_keyword(nombre):
             vistos.add(clave); out.append(e)
     return out
 
-@app.route("/lugar")
-def lugar():
-    """Eventos de un lugar en las próximas 6 semanas. /lugar?nombre=Razzmatazz&ciudad=barcelona&categoria=clubs"""
-    nombre = (request.args.get("nombre") or "").strip()
-    ciudad = (request.args.get("ciudad") or "barcelona").lower().strip()
-    categoria = request.args.get("categoria", "clubs")
-    if not nombre:
-        return jsonify({"nombre": "", "eventos": []})
+def eventos_lugar(nombre, ciudad, categoria="clubs"):
     k = f"lugar-{ciudad}-{categoria}-{nombre.lower()}"
     v = cache_get(k, 3600)
     if v is None:
@@ -1761,7 +1754,16 @@ def lugar():
         v = sorted([e for e in todos if n == (e.get("venue") or "").lower() or n in (e.get("venue") or "").lower()],
                    key=lambda e: (e.get("fecha", ""), e.get("hora") or "99"))
         cache_set(k, v)
-    return jsonify({"nombre": nombre, "eventos": v[:40]})
+    return v
+
+@app.route("/lugar")
+def lugar():
+    """Eventos de un lugar en las próximas 6 semanas. /lugar?nombre=Razzmatazz&ciudad=barcelona&categoria=clubs"""
+    nombre = (request.args.get("nombre") or "").strip()
+    ciudad = (request.args.get("ciudad") or "barcelona").lower().strip()
+    if not nombre:
+        return jsonify({"nombre": "", "eventos": []})
+    return jsonify({"nombre": nombre, "eventos": eventos_lugar(nombre, ciudad, request.args.get("categoria", "clubs"))[:40]})
 
 @app.route("/proximos")
 def proximos():
@@ -1771,7 +1773,10 @@ def proximos():
     if not nombre:
         return jsonify({"nombre": "", "eventos": []})
     try:
-        evs, real = buscar_equipo(nombre) if tipo == "equipo" else proximos_artista(nombre)
+        if tipo == "lugar":
+            evs, real = eventos_lugar(nombre, (request.args.get("ciudad") or "barcelona").lower(), request.args.get("categoria", "clubs")), nombre
+        else:
+            evs, real = buscar_equipo(nombre) if tipo == "equipo" else proximos_artista(nombre)
         if tipo == "artista" and not evs:  # artistas de conciertos que no están en Resident Advisor
             evs = proximos_tm_keyword(nombre)
     except Exception as e:

@@ -306,6 +306,8 @@
   .abierto-si { color: #5fd38d; font-weight: 700; } .abierto-no { color: var(--muted); }
   .share-bus { background: transparent; border: 1px solid var(--border2); color: var(--text); border-radius: 10px; padding: 7px 12px; font: 600 13px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; }
   .share-bus:hover { border-color: var(--orange); }
+  .reset-f { align-self: flex-start; background: #F2EEE8; color: var(--orange); border: none; border-radius: 10px; padding: 7px 12px; font: 700 13px 'Space Grotesk', sans-serif; cursor: pointer; }
+  .reset-f:hover { background: #fff; }
   .menu-bus { top: calc(100% + 6px); right: 0; left: auto; min-width: 250px; z-index: 60; }
   .link-bus { margin-top: 6px; width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--muted); border-radius: 8px; padding: 6px 8px; font-size: 12px; }
   .cal-ops { display: grid; gap: 10px; margin-top: 14px; }
@@ -589,6 +591,7 @@
       <span>Filtros</span><em id="fsummary"></em>
     </button>
 
+    <button class="reset-f" id="resetf" hidden onclick="borrarFiltros()">✕ Borrar filtros</button>
     <div class="group group-cuando g-ev">
       <h4>Cuándo</h4>
       <div class="chips" data-g="cuando">
@@ -725,6 +728,15 @@ function esLugar() { return st.tab === 'bares' || st.tab === 'restaurantes'; }
 const MULTI = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest'];  // filtros que se pueden combinar
 const MOVIL = () => matchMedia('(max-width: 820px)').matches;
 function lado() { return MOVIL() ? 'de arriba' : 'de la izquierda'; }
+function borrarFiltros() {
+  Object.assign(st, { cuando: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null });
+  cal.a = cal.b = null; cal.abierto = false; pintarCal();
+  st.km = KM_DEFECTO[kmClave()];
+  ubic = puntoCentro(); actualizarNota();
+  pintar();
+  if (vista === 'resultados' || esLugar()) buscar();
+  toast('Filtros borrados');
+}
 function valores(x) { return x ? String(x).split(',') : []; }
 function tipoLugar() { return st.tab === 'restaurantes' ? (st.tipoRest || st.extraRest) : st.tipoBar; }
 let ubic = null;          // { lat, lng, txt, auto } · auto = punto céntrico de la ciudad
@@ -800,6 +812,9 @@ function pintar() {
   todo.disabled = bloqueado;
   todo.title = bloqueado ? (st.tab === 'restaurantes' ? 'Elegí un tipo de cocina para buscar en toda la ciudad' : 'Elegí un tipo de bar para buscar en toda la ciudad') : '';
   const kmTxt = st.km !== '99' && ubic ? `< ${st.km.replace('.', ',')} km` : null;
+  const hayFiltros = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].some(k => st[k])
+    || st.cuando === 'cal' || st.km !== KM_DEFECTO[kmClave()] || (ubic && !ubic.auto);
+  document.getElementById('resetf').hidden = !hayFiltros;
   document.getElementById('fsummary').textContent = (esBar ? [st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar, st.tab === 'restaurantes' ? st.extraRest : null, st.abierto ? 'abierto ahora' : null, kmTxt] : [et[st.cuando], st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map((x, i, arr) => x === kmTxt ? x : String(x).replace(/,/g, ' + ')).join(' · ');
 }
 
@@ -1446,7 +1461,7 @@ function tarjetaBar(b) {
       <div class="bar-ico">${b.terraza ? '<span title="Terraza">☀️</span>' : ''}${b.musica ? '<span title="Música en vivo">🎷</span>' : ''}${b.hifi ? '<span title="HiFi / listening bar" class="hifi">HiFi</span>' : ''}</div>
       <div class="inner">
         <div class="town">📍 ${esc(b.barrio || ciudadTxt())}</div>
-        <div class="title">${esc(b.titulo)}</div>
+        <div class="title"><span class="lnk" style="text-decoration:none;color:inherit" title="Ver detalle y seguir" onclick="verDireccion('${esc(b.id)}')">${esc(b.titulo)} <span style="color:var(--orange);font-size:13px">›</span></span></div>
         <div class="who">${esc(b.categoria)}</div>
         <div class="facts">
           ${b.direccion ? `<div class="dir-link" onclick="verDireccion('${esc(b.id)}')"><span>📍</span> ${esc(b.direccion)}</div>` : `<div><button class="dir-btn" style="margin:0" onclick="verDireccion('${esc(b.id)}')">📍 Ver en el mapa</button></div>`}
@@ -1470,7 +1485,7 @@ function tarjetaRest(b) {
       <div class="bar-ico">${b.terraza ? '<span title="Terraza">☀️</span>' : ''}${b.veg ? '<span title="Opciones vegetarianas">🌱</span>' : ''}${b.llevar ? '<span title="Para llevar">🥡</span>' : ''}</div>
       <div class="inner">
         <div class="town">📍 ${esc(b.barrio || ciudadTxt())}</div>
-        <div class="title">${esc(b.titulo)}</div>
+        <div class="title"><span class="lnk" style="text-decoration:none;color:inherit" title="Ver detalle y seguir" onclick="verDireccion('${esc(b.id)}')">${esc(b.titulo)} <span style="color:var(--orange);font-size:13px">›</span></span></div>
         <div class="who">${esc(b.categoria)}</div>
         <div class="facts">
           ${b.direccion ? `<div class="dir-link" onclick="verDireccion('${esc(b.id)}')"><span>📍</span> ${esc(b.direccion)}</div>` : `<div><button class="dir-btn" style="margin:0" onclick="verDireccion('${esc(b.id)}')">📍 Ver en el mapa</button></div>`}
@@ -1517,6 +1532,11 @@ function verDireccion(id) {
       <h3>${esc(nombre)}</h3>
       <p>📍 ${esc(dir || 'Dirección no informada')} · ${esc(lugar)}</p>
       ${d != null ? `<p>🚶 ${fmtDist(d)} desde ${esc(ubic.txt)} · ${aPie(d)}</p>` : ''}
+      ${x.tipo === 'bar' && x.horario ? `<p>🕐 ${estadoAhora(x.horario)}${esc(horarioEs(x.horario))}</p>` : ''}
+      ${x.tipo === 'bar' && (x.web || x.telefono) ? `<p>${x.web ? `<a class="lnk" href="${esc(x.web)}" target="_blank" rel="noopener">🌐 Web</a>` : ''}${x.web && x.telefono ? ' · ' : ''}${x.telefono ? `<a class="lnk" href="tel:${esc(x.telefono.replace(/\s/g, ''))}">📞 ${esc(x.telefono)}</a>` : ''}</p>` : ''}
+      <div style="margin:10px 0 4px">${x.tipo === 'bar'
+        ? barraSeguir('sitio', nombre, { id: x.id, tipo: 'bar', lugar: x.lugar, titulo: x.titulo, direccion: x.direccion, barrio: x.barrio, ciudadNombre: ciudadTxt(), horario: x.horario, web: x.web, telefono: x.telefono, lat: x.lat, lng: x.lng, cocinas: x.cocinas, tags: x.tags, categoria: x.categoria })
+        : x.venue ? `<div class="seguir-bar"><button class="seguir-btn" onclick="cerrarModal(); verLugar('${esc(id)}')">📅 Ver lo que viene en ${esc(x.venue)}</button></div>` : ''}</div>
       <div class="modal-actions">
         <button class="fav" id="copiardir">Copiar dirección</button>
         <a class="tickets" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}" target="_blank" rel="noopener">Cómo llegar →</a>
@@ -1603,16 +1623,18 @@ async function compartirBusqueda(ev) {
   ev.stopPropagation();
   const url = location.origin + urlEstado();
   const texto = `Mirá estos ${TAB_TXT[st.tab][1]} en ${ciudadTxt()} 👀`;
-  if (navigator.share && MOVIL()) { try { await navigator.share({ title: "Let's PartIA!", text: texto, url }); } catch (e) {} return; }
   cerrarMenus();
   const m = document.createElement('div');
   m.className = 'menu-share menu-bus';
   const msg = encodeURIComponent(`${texto}\n${url}`);
   m.innerHTML = `<a href="https://wa.me/?text=${msg}" target="_blank" rel="noopener">💬 WhatsApp</a>
     <button data-copiar>🔗 Copiar link</button>
-    <a href="mailto:?subject=${encodeURIComponent("Let's PartIA!")}&body=${msg}">✉️ Mail</a>
+ <a href="mailto:?subject=${encodeURIComponent("Let's PartIA!")}&body=${msg}">✉️ Mail</a>
+    ${navigator.share ? '<button data-mas>📲 Más opciones…</button>' : ''}
     <input class="link-bus" value="${esc(url)}" readonly onclick="this.select()">`;
   m.addEventListener('click', e => e.stopPropagation());
+  const mas = m.querySelector('[data-mas]');
+  if (mas) mas.onclick = async () => { try { await navigator.share({ title: "Let's PartIA!", text: texto, url }); } catch (e) {} cerrarMenus(); };
   m.querySelector('[data-copiar]').onclick = async () => {
     const inp = m.querySelector('.link-bus');
     let ok = false;
@@ -1629,16 +1651,20 @@ function botonCompartir() { return `<button class="share-bus" onclick="compartir
 function leerSeguidos() { try { return JSON.parse(localStorage.getItem('lp_sigo') || '[]'); } catch (e) { return []; } }
 function guardarSeguidos(l) { try { localStorage.setItem('lp_sigo', JSON.stringify(l)); } catch (e) {} }
 function sigo(tipo, nombre) { return leerSeguidos().some(x => x.tipo === tipo && x.nombre.toLowerCase() === nombre.toLowerCase()); }
-function barraSeguir(tipo, nombre) {
+const SEG_META = {};
+function barraSeguir(tipo, nombre, meta) {
   const on = sigo(tipo, nombre);
+  const k = tipo + '|' + nombre.toLowerCase();
+  if (meta) SEG_META[k] = meta;
+  const ayuda = tipo === 'sitio' ? 'Queda guardado en "🔔 Siguiendo", arriba a la derecha' : 'Sus próximas fechas aparecen en "🔔 Siguiendo", arriba a la derecha';
   return `<div class="seguir-bar"><button class="seguir-btn ${on ? 'on' : ''}" onclick="toggleSeguir(this, '${tipo}', '${esc(nombre).replace(/'/g, '&#39;')}')">${on ? '✓ Siguiendo' : `🔔 Seguir a ${esc(nombre)}`}</button>
-    <small>${on ? 'Te aviso acá cuando entres a la app' : 'Cuando vuelvas a entrar, te muestro sus próximas fechas arriba de todo'}</small></div>`;
+    <small>${on ? ayuda : ''}</small></div>`;
 }
 function toggleSeguir(btn, tipo, nombre) {
   let l = leerSeguidos();
   if (sigo(tipo, nombre)) l = l.filter(x => !(x.tipo === tipo && x.nombre.toLowerCase() === nombre.toLowerCase()));
-  else { l.push({ tipo, nombre }); toast(`🔔 Listo, seguís a ${nombre}`); }
-  guardarSeguidos(l.slice(-10));
+  else { l.push({ tipo, nombre, meta: SEG_META[tipo + '|' + nombre.toLowerCase()] || null }); toast(`🔔 Listo, seguís a ${nombre}`); }
+  guardarSeguidos(l.slice(-15));
   btn.parentElement.outerHTML = barraSeguir(tipo, nombre);
   contarSiguiendo();
   AVISOS = null;
@@ -1649,8 +1675,10 @@ async function cargarAvisos() {
   if (!l.length) return [];
   if (AVISOS) return AVISOS;
   const res = await Promise.all(l.map(async x => {
+    if (x.tipo === 'sitio') return { ...x, real: x.nombre, eventos: [] };
     try {
-      const r = await fetch(`${API}/proximos?tipo=${x.tipo}&nombre=${encodeURIComponent(x.nombre)}`);
+      const extra = x.tipo === 'lugar' && x.meta ? `&ciudad=${encodeURIComponent(x.meta.ciudad)}&categoria=${x.meta.cat}&max=20` : '';
+      const r = await fetch(`${API}/proximos?tipo=${x.tipo}&nombre=${encodeURIComponent(x.nombre)}${extra}`);
       const d = await r.json();
       return { ...x, real: d.nombre || x.nombre, eventos: d.eventos || [] };
     } catch (e) { return { ...x, real: x.nombre, eventos: [] }; }
@@ -1664,7 +1692,12 @@ async function pintarAvisos(id) {
   if (!l.length) { box.hidden = true; return; }
   const filas = l.map((x, i) => {
     const e = x.eventos[0];
-    const ico = x.tipo === 'equipo' ? '⚽' : '🎧';
+    const ico = x.tipo === 'equipo' ? '⚽' : x.tipo === 'lugar' ? '🏛️' : x.tipo === 'sitio' ? (x.meta ? emojiLugar(x.meta) : '🍸') : '🎧';
+    if (x.tipo === 'sitio') {
+      const m = x.meta || {};
+      const txt = `${ico} <b>${esc(x.real)}</b>${m.horario ? ' · ' + estadoAhora(m.horario).replace(/ · $/, '') : ''}${m.barrio || m.ciudadNombre ? ' · ' + esc(m.barrio || m.ciudadNombre) : ''}`;
+      return `<div class="aviso"><a onclick="verSitio(${i})">${txt}</a><button title="Dejar de seguir" onclick="dejarSeguir(${i}, '${id}')">✕</button></div>`;
+    }
     const txt = e ? `${ico} <b>${esc(x.real)}</b> · ${fechaMini(e.fecha)}${e.hora && e.hora !== '23:59' ? ' ' + e.hora : ''} · ${esc(e.titulo)}${e.ciudad_venue || e.venue ? ' · ' + esc(e.ciudad_venue || e.venue) : ''}`
                   : `${ico} <b>${esc(x.real)}</b> · sin fechas anunciadas por ahora`;
     return `<div class="aviso"><a onclick="verSeguido(${i})">${txt}</a><button title="Dejar de seguir" onclick="dejarSeguir(${i}, '${id}')">✕</button></div>`;
@@ -1711,16 +1744,23 @@ async function verLugar(id) {
     const d = await r.json();
     const evs = (d.eventos || []).length ? d.eventos : [e];
     mostrar(evs, evs.length, `Lo que viene en <span>${esc(e.venue)}</span>`, {},
-      `<div class="seguir-bar"><button class="dir-btn" style="margin:0;padding:8px 12px;font-size:13px" onclick="verDireccion('${esc(id)}')">📍 Cómo llegar</button><small>Próximas 6 semanas</small></div>`);
+      barraSeguir('lugar', e.venue, { ciudad: ciudad(), cat }) + `<div class="seguir-bar" style="margin-top:-6px"><button class="dir-btn" style="margin:0;padding:8px 12px;font-size:13px" onclick="verDireccion('${esc(id)}')">📍 Cómo llegar</button><small>Mostrando las próximas 6 semanas</small></div>`);
   } catch (err) { toast('No pude traer lo de ese lugar 😕'); }
   main.classList.remove('loading'); main.scrollTop = 0; vista = 'resultados';
+}
+function verSitio(i) {
+  const x = (AVISOS || [])[i]; if (!x || !x.meta) return;
+  document.getElementById('sigpop')?.classList.remove('open');
+  EVENTOS[x.meta.id] = x.meta;
+  verDireccion(x.meta.id);
 }
 function verSeguido(i) {
   document.getElementById('sigpop')?.classList.remove('open');
   const x = (AVISOS || [])[i]; if (!x || !x.eventos.length) return;
   document.getElementById('landing').hidden = true;
   st.tab = x.tipo === 'equipo' ? 'deportes' : 'clubs'; pintarGeneros(); pintar();
-  mostrar(x.eventos, x.eventos.length, `${x.tipo === 'equipo' ? 'Próximos partidos de' : 'Próximas fechas de'} <span>${esc(x.real)}</span>`, {}, barraSeguir(x.tipo, x.nombre));
+  const tit = x.tipo === 'equipo' ? 'Próximos partidos de' : x.tipo === 'lugar' ? 'Lo que viene en' : 'Próximas fechas de';
+  mostrar(x.eventos, x.eventos.length, `${tit} <span>${esc(x.real)}</span>`, {}, barraSeguir(x.tipo, x.nombre, x.meta));
   vista = 'resultados';
 }
 function dejarSeguir(i, id) {
