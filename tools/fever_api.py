@@ -111,4 +111,21 @@ def main():
     print("Planes guardados:", procesar(filas))
 
 if __name__ == "__main__":
-    main()
+    # todo lo que se imprime queda también en datos/fever/_registro.txt (para revisar sin entrar a GitHub)
+    import builtins, traceback
+    registro = []
+    _print = builtins.print
+    def print(*a, **k):
+        msg = " ".join(str(x) for x in a)
+        for secreto in (SID, TOKEN):
+            if secreto:
+                msg = msg.replace(secreto, "***")
+        registro.append(msg); _print(msg, **k)
+    builtins.print = print
+    try:
+        main()
+    except Exception:
+        print(traceback.format_exc())
+    os.makedirs("datos/fever", exist_ok=True)
+    with open("datos/fever/_registro.txt", "w", encoding="utf-8") as fh:
+        fh.write(time.strftime("%Y-%m-%d %H:%M UTC\n", time.gmtime()) + "\n".join(registro)[:20000])
