@@ -641,6 +641,104 @@
   .lnk { color: var(--orange); cursor: pointer; text-decoration: underline dotted rgba(233,104,46,.6); text-underline-offset: 3px; font-weight: 600; }
   .lnk:hover { text-decoration: underline solid; }
   .card .who .lnk { font-weight: 500; }
+
+  /* ── REDISEÑO FASE 3: home "Esta noche en…", barra horizontal, cajón de filtros, columna derecha, barra inferior ── */
+  header { gap: 20px; }
+  .ask-h { flex: 1 1 360px; max-width: 560px; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 6px 0 14px; border-radius: 14px; background: #1C1A17; border: 1px solid rgba(233,104,46,.45); }
+  .ask-h input, .ask-m input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font: 15px 'DM Sans', sans-serif; }
+  .ask-h input::placeholder, .ask-m input::placeholder { color: var(--dim); }
+  .ask-ic { color: var(--link); display: flex; } .ask-ic .ic { margin: 0; }
+  .ask-h .send, .ask-m .send { width: 38px; height: 38px; border-radius: 10px; border: none; background: var(--cta); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .ask-h .send:hover, .ask-m .send:hover { background: var(--cta2); }
+  .hdr-der { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .app { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .main-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .topbar { padding: 22px 28px 0; flex-shrink: 0; }
+  .tb-head { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; }
+  .tb-h1 { font: 700 34px/1.1 'Space Grotesk', sans-serif; letter-spacing: -1.2px; display: flex; align-items: baseline; gap: .28em; flex-wrap: wrap; }
+  .city-in { position: relative; display: inline-flex; }
+  .city-in select { appearance: none; -webkit-appearance: none; background: none; border: none; color: var(--orange); font: inherit; letter-spacing: inherit; padding: 0 .85em 0 0; cursor: pointer; outline: none; max-width: 100%; }
+  .city-in select:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 6px; }
+  .city-in select option { color: #111; background: #fff; font: 16px 'DM Sans', sans-serif; letter-spacing: 0; }
+  .city-in::after { content: ''; position: absolute; right: .12em; top: 52%; width: .28em; height: .28em; border-right: 3px solid var(--orange); border-bottom: 3px solid var(--orange); transform: translateY(-75%) rotate(45deg); pointer-events: none; }
+  .tb-ubic { position: relative; margin-left: auto; }
+  .tb-ubic .near { height: 40px; border-radius: 999px; font: 600 14px 'DM Sans', sans-serif; }
+  .tb-ubic .near-pop { top: calc(100% + 8px); left: auto; right: 0; width: 340px; }
+  .topbar .near-note { margin-top: 2px; }
+  .ask-m { display: none; }
+  .tb-barra { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .mom-wrap { position: relative; }
+  .chips.mom { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: #171614; flex-wrap: nowrap; }
+  .chips.mom .chip { border: none; background: transparent; color: var(--muted); height: 38px; padding: 0 14px; border-radius: 10px; font-size: 14px; font-weight: 600; }
+  .chips.mom .chip:hover { color: var(--text); }
+  .chips.mom .chip.on { background: #2A2622; color: var(--text); }
+  .cats { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cat { border: 1px solid rgba(242,238,232,.18); background: transparent; color: #E6E1D9; border-radius: 999px; padding: 0 15px; height: 40px; font: 600 14px 'DM Sans', sans-serif; white-space: nowrap; cursor: pointer; }
+  .cat:hover { border-color: var(--muted); }
+  .cat.on { background: #F2EEE8; color: #0D0C0B; border-color: #F2EEE8; }
+  .cat.volver-cat { border-color: transparent; color: var(--muted); padding-left: 6px; }
+  .mas-f { margin-left: auto; display: flex; align-items: center; height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border2); background: transparent; color: var(--text); font: 600 14px 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap; }
+  .mas-f:hover { border-color: var(--muted); }
+  .mas-f b { margin-left: 8px; background: var(--cta); color: #fff; border-radius: 999px; min-width: 20px; height: 20px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px; }
+  .mas-f b:empty { display: none; }
+  .cuerpo { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; }
+  .cuerpo .main { padding: 20px 28px 40px; min-height: 0; overflow-y: auto; }
+  .col-der { overflow-y: auto; padding: 20px 28px 30px 0; display: flex; flex-direction: column; gap: 16px; }
+  .mm-box { border-radius: 18px; overflow: hidden; background: var(--card); border: 1px solid var(--border); flex-shrink: 0; }
+  #minimapa { height: 300px; background: #1a1916; }
+  .mm-box .ghost { width: 100%; border: none; border-top: 1px solid var(--border); border-radius: 0; height: 46px; }
+  .avisos-d, .avisos-m { padding: 14px 16px; border-radius: 18px; background: #1F1712; border: 1px solid rgba(233,104,46,.35); }
+  .avisos-m { margin-top: 14px; }
+  body.sin-col .cuerpo { grid-template-columns: minmax(0, 1fr); } body.sin-col .col-der { display: none; }
+  .res-count { font: 600 15px 'DM Sans', sans-serif; color: var(--muted); }
+  .back { display: inline-flex; align-items: center; font-size: 14px; }
+  .back .ic { margin-right: .3em; }
+  /* Cajón "Más filtros" */
+  .side { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 100%; z-index: 1800; background: var(--bg); border-left: 1px solid var(--border2); border-right: none; transform: translateX(100%); visibility: hidden; transition: transform .22s ease, visibility .22s; box-shadow: -20px 0 50px rgba(0,0,0,.5); }
+  .side.open { transform: none; visibility: visible; }
+  .side-fondo { display: none; position: fixed; inset: 0; z-index: 1700; background: rgba(0,0,0,.55); }
+  body.filtros-abiertos .side-fondo { display: block; }
+  .side-head { display: flex; align-items: center; justify-content: space-between; }
+  .side-head b { font: 700 22px 'Space Grotesk', sans-serif; letter-spacing: -0.6px; }
+  .side-head .cerrar-x { position: static; }
+  .side .search { display: block; position: sticky; bottom: 0; width: 100%; margin-top: 8px; box-shadow: 0 -12px 24px rgba(13,12,11,.9); }
+  .nav-abajo { display: none; }
+  .main-wrap, .topbar, .tb-barra, .cuerpo, .cats, .mom-wrap { min-width: 0; }
+  .city-in select { font-size: inherit !important; }
+  @media (min-width: 1101px) { .fab:not(.abierto) { display: none; } }
+  @media (min-width: 1101px) { .avisos-m { display: none !important; } }
+  @media (max-width: 1100px) {
+    .cuerpo { grid-template-columns: minmax(0, 1fr); } .col-der { display: none; }
+    .ask-h { display: none; }
+  }
+  @media (max-width: 820px) {
+    header { padding: 12px 16px; flex-wrap: nowrap; }
+    header .saved-btn, header .sig-wrap { display: none; }
+    .app { overflow-y: auto; }
+    .topbar { padding: 14px 16px 0; }
+    .tb-h1 { font-size: 26px; letter-spacing: -0.9px; }
+    .tb-ubic { margin-left: 0; }
+    .tb-ubic .near { height: 36px; font-size: 13px; padding: 0 12px; }
+    .tb-ubic .near-pop { left: 0; right: auto; width: calc(100vw - 32px); }
+    .ask-m { display: flex; align-items: center; gap: 10px; height: 54px; margin-top: 14px; padding: 0 7px 0 14px; border-radius: 16px; background: #1C1A17; border: 1px solid rgba(233,104,46,.45); }
+    .ask-m input { font-size: 16px; }
+    .tb-barra { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px; padding: 14px 0; }
+    .chips.mom .chip { flex: 1; padding: 0 6px; }
+    .cats { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 0 16px; scrollbar-width: none; }
+    .cats::-webkit-scrollbar { display: none; }
+    .mas-f { margin-left: 0; align-self: flex-start; }
+    .cuerpo { display: block; }
+    .cuerpo .main { overflow: visible; padding: 16px 16px 100px; }
+    .side { width: 100%; padding: 16px 16px 0 !important; overflow-y: auto !important; border-left: none; }
+    .side .group { display: block !important; }
+    .side.open .afiliado, .side.open .side-powered { display: block; }
+    .fab { display: none !important; }
+    .nav-abajo { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 1400; padding: 6px 6px calc(8px + env(safe-area-inset-bottom)); background: rgba(13,12,11,.97); border-top: 1px solid var(--border); }
+    .nav-abajo button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; color: var(--dim); font: 600 12px 'DM Sans', sans-serif; padding: 6px 0; cursor: pointer; }
+    .nav-abajo button .ic { margin: 0; width: 22px; height: 22px; }
+    .nav-abajo button.on { color: var(--text); }
+    .chat-dock { bottom: calc(70px + env(safe-area-inset-bottom)); }
+  }
 </style>
 <script data-goatcounter="https://partia.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <script>
@@ -673,16 +771,8 @@ document.addEventListener('click', ev => {
 
 <header>
   <a class="brand" href="./" onclick="irHome(event)" title="Volver al inicio">Let's <span>Part</span>IA!<small>Todos tus planes, en un solo lugar</small></a>
-  <nav class="tabs" id="tabs">
-    <button class="tab on" data-tab="clubs">🪩 Fiestas y clubs</button>
-    <button class="tab" data-tab="conciertos">🎤 Conciertos</button>
-    <button class="tab" data-tab="bares">🍸 Bares</button>
-    <button class="tab" data-tab="restaurantes">🍽️ Restaurantes</button>
-    <button class="tab" data-tab="teatro">🎭 Teatro y shows</button>
-    <button class="tab" data-tab="deportes">⚽ Deportes</button>
-    <button class="tab" data-tab="cine" hidden>🎬 Cine <sup class="beta">BETA</sup></button>
-  </nav>
-  <div style="display:flex;align-items:center;gap:14px">
+  <label class="ask-h"><span class="ask-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><input id="askh" placeholder="Preguntale al agente: techno al aire libre el sábado…" aria-label="Preguntale a Let's PartIA!" onkeydown="if(event.key==='Enter')desdeCaja('askh')"><button class="send" onclick="desdeCaja('askh')" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></label>
+  <div class="hdr-der">
     <button class="saved-btn" id="savedbtn" onclick="verGuardados()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="txt-largo dos">Mis planes<small>favoritos</small></span> <b id="nguardados"></b></button>
     <div class="sig-wrap"><button class="saved-btn" id="sigbtn" onclick="abrirSiguiendo(event)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="txt-largo"> Siguiendo</span> <b id="nsiguiendo"></b></button><div class="sig-pop" id="sigpop"></div></div>
     <span id="langhead"></span>
@@ -727,38 +817,9 @@ document.addEventListener('click', ev => {
 <div class="sheet" id="sheet" onclick="if(event.target===this)cerrarDetalle()"><div class="sheet-box" id="sheetbox" role="dialog" aria-modal="true" aria-label="Detalle del plan"></div></div>
 
 <div class="app">
-  <aside class="side" id="side">
-    <div class="city-block">
-      <label class="city-label" for="city">Ciudad</label>
-      <div class="city-row">
-        <div class="city"><select id="city"></select></div>
-        <button class="near" id="near" onclick="abrirCerca(event)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Mi ubicación</button>
-      </div>
-      <div class="near-pop" id="nearpop">
-        <button class="cerrar-x" onclick="event.stopPropagation();document.getElementById('nearpop').classList.remove('open')" aria-label="Cerrar">✕</button>
-        <button class="near-opt" onclick="usarUbicacion()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Usar mi ubicación actual</button>
-        <div class="near-or">o escribí una dirección</div>
-        <input id="diri" placeholder="Ej: Carrer de Blai 30, un hotel o un barrio" oninput="sugerirDir()" autocomplete="off">
-        <div id="sugs"></div>
-      </div>
-      <div class="near-note" id="nearnote"></div>
-    </div>
-
-    <button class="filters-toggle" onclick="document.body.classList.toggle('filtros-abiertos', document.getElementById('side').classList.toggle('open'))">
-      <span>Filtros</span><em id="fsummary"></em>
-    </button>
-
+  <aside class="side" id="side" aria-label="Más filtros">
+    <div class="side-head"><b>Más filtros</b><button class="cerrar-x" onclick="cerrarFiltros()" aria-label="Cerrar">✕</button></div>
     <button class="reset-f" id="resetf" hidden onclick="borrarFiltros()">✕ Borrar filtros</button>
-    <div class="group group-cuando g-ev">
-      <h4>Cuándo</h4>
-      <div class="chips" data-g="cuando">
-        <button class="chip" data-v="hoy">Hoy</button>
-        <button class="chip" data-v="manana">Mañana</button>
-        <button class="chip" data-v="finde">Este finde</button>
-        <button class="chip" data-v="cal" id="chip-cal"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Elegir fechas</button>
-      </div>
-      <div class="mini-cal" id="minical"></div>
-    </div>
     <div class="group g-ev">
       <h4>Franja <em>· horario de inicio entre</em></h4>
       <div class="chips" data-g="franja">
@@ -824,11 +885,43 @@ document.addEventListener('click', ev => {
 
     <div class="afiliado">Algunos links de entradas son de afiliado: si comprás, nos llevamos una pequeña comisión sin costo extra para vos.</div>
     <a class="powered side-powered" href="https://stepwiseconsulting.es/eventos" target="_blank" rel="noopener">powered by <b><span class="step">Step</span><span class="wise">Wise</span></b></a>
-    <button class="search" onclick="document.getElementById('side').classList.remove('open'); document.body.classList.remove('filtros-abiertos'); buscar(); document.getElementById('main').scrollIntoView({ behavior: 'smooth' })">Ver resultados ↓</button>
+    <button class="search" onclick="cerrarFiltros()">Ver resultados</button>
   </aside>
+  <div class="side-fondo" onclick="cerrarFiltros()"></div>
 
   <div class="main-wrap">
-    <main class="main" id="main"></main>
+    <div class="topbar" id="topbar">
+      <div class="tb-head">
+        <h1 class="tb-h1"><span id="h1mom">Esta noche en</span> <span class="city-in"><select id="city" aria-label="Ciudad"></select></span></h1>
+        <div class="tb-ubic"><button class="near" id="near" onclick="abrirCerca(event)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Mi ubicación</button>
+          <div class="near-pop" id="nearpop">
+        <button class="cerrar-x" onclick="event.stopPropagation();document.getElementById('nearpop').classList.remove('open')" aria-label="Cerrar">✕</button>
+        <button class="near-opt" onclick="usarUbicacion()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Usar mi ubicación actual</button>
+        <div class="near-or">o escribí una dirección</div>
+        <input id="diri" placeholder="Ej: Carrer de Blai 30, un hotel o un barrio" oninput="sugerirDir()" autocomplete="off">
+        <div id="sugs"></div>
+      </div>
+      </div>
+      </div>
+      <div class="near-note" id="nearnote"></div>
+      <label class="ask-m"><span class="ask-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><input id="askm" placeholder="Techno al aire libre, algo barato…" aria-label="Preguntale a Let's PartIA!" onkeydown="if(event.key==='Enter')desdeCaja('askm')"><button class="send" onclick="desdeCaja('askm')" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></label>
+      <div class="tb-barra">
+        <div class="mom-wrap"><div class="chips mom" data-g="cuando" role="group" aria-label="Cuándo">
+          <button class="chip" data-v="hoy">Esta noche</button><button class="chip" data-v="manana">Mañana</button><button class="chip" data-v="finde">Finde</button><button class="chip" data-v="cal" id="chip-cal"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Fecha</button>
+        </div>
+          <div class="mini-cal" id="minical"></div></div>
+        <div class="cats" id="cats" role="group" aria-label="Qué buscás"></div>
+        <button class="mas-f" onclick="abrirFiltros()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Más filtros<b id="nfiltros"></b></button>
+      </div>
+      <div class="avisos avisos-m" id="avisos-m" hidden></div>
+    </div>
+    <div class="cuerpo">
+      <main class="main" id="main"></main>
+      <aside class="col-der" id="colder">
+        <div class="mm-box" id="mmbox"><div id="minimapa"></div><button class="ghost" onclick="setModo('mapa')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4-6 2.5V20l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>Ver mapa grande</button></div>
+        <div class="avisos avisos-d" id="avisos-d" hidden></div>
+      </aside>
+    </div>
     <div class="chat-dock" id="dock">
       <div class="chat-head"><div class="bot-ico"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></div><div><b>Let's <span>Part</span>IA!</b><small>Contame qué querés y te lo busco</small></div><button class="x" onclick="toggleChat(false)" aria-label="Cerrar">✕</button></div>
       <div class="chat-thread" id="thread"></div>
@@ -840,6 +933,12 @@ document.addEventListener('click', ev => {
   </div>
 </div>
 
+<nav class="nav-abajo" aria-label="Navegación">
+  <button class="on" id="nav-explorar" onclick="irExplorar()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg><span>Explorar</span></button>
+  <button id="nav-agente" onclick="toggleChat(true)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg><span>Agente</span></button>
+  <button id="nav-planes" onclick="verGuardados()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>Mis planes</span></button>
+  <button id="nav-sigo" onclick="verSiguiendo()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span>Siguiendo</span></button>
+</nav>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const API = 'https://bot-planes-production.up.railway.app';
@@ -882,7 +981,7 @@ const GENEROS = {
   teatro: [], deportes: [['fútbol', 'Fútbol'], ['básquet', 'Básquet'], ['tenis', 'Tenis'], ['motor', 'Motor']],
   cine: [['Acción', 'Acción'], ['Comedia', 'Comedia'], ['Drama', 'Drama'], ['Terror', 'Terror'], ['Animación', 'Animación'], ['Ciencia ficción', 'Ciencia ficción'], ['Familia', 'Familia'], ['Romance', 'Romance']],
 };
-const TAB_TXT = { bares: ['bar', 'bares'], restaurantes: ['restaurante', 'restaurantes'], clubs: ['plan', 'planes'], conciertos: ['concierto', 'conciertos'], teatro: ['show', 'shows'], deportes: ['evento deportivo', 'eventos deportivos'], cine: ['película', 'películas'] };
+const TAB_TXT = { todo: ['plan', 'planes'], bares: ['bar', 'bares'], restaurantes: ['restaurante', 'restaurantes'], clubs: ['plan', 'planes'], conciertos: ['concierto', 'conciertos'], teatro: ['show', 'shows'], deportes: ['evento deportivo', 'eventos deportivos'], cine: ['película', 'películas'] };
 const DIAS_L = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES_L = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -1110,7 +1209,11 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
     'Sus próximas fechas aparecen en "Siguiendo", arriba a la derecha': 'Their next dates show up in "Following", top right',
     'Siguiendo': 'Following', 'Aire libre': 'Open air', 'Elegir fechas': 'Pick dates', 'Idioma': 'Language',
     'Tickets ▾': 'Tickets ▾', 'Entradas': 'Tickets', 'Comprar tickets': 'Get tickets', 'Entradas en la web del club': 'Tickets on the club website', 'Al calendario': 'Add to calendar',
-    'Con': 'With', 'También en:': 'Also on:', 'Cómo llegar': 'Directions', 'Volver': 'Back', 'Guardar en Mis planes': 'Save to My plans', 'Detalle del plan': 'Plan details' });
+    'Con': 'With', 'Esta noche en': 'Tonight in', 'Mañana en': 'Tomorrow in', 'Este finde en': 'This weekend in', 'Bares en': 'Bars in', 'Restaurantes en': 'Restaurants in', 'Cine en': 'Movies in',
+    'Esta noche': 'Tonight', 'Finde': 'Weekend', 'Fecha': 'Date', 'Todo': 'All', '✨ Todo': '✨ All', '🪩 Fiestas': '🪩 Parties', '🎭 Shows': '🎭 Shows', '🍽️ Comer y beber': '🍽️ Food & drinks', '← Planes': '← Plans',
+    'Más filtros': 'More filters', 'Ver mapa grande': 'Open big map', 'Explorar': 'Explore', 'Agente': 'Agent', 'Mis planes': 'My plans', 'Navegación': 'Navigation', 'Qué buscás': 'What are you looking for',
+    'Preguntale al agente: techno al aire libre el sábado…': 'Ask the agent: open-air techno on Saturday…', 'Techno al aire libre, algo barato…': 'Open-air techno, something cheap…',
+    'Lo que': 'What you', 'seguís': 'follow', 'Nada por acá': 'Nothing here', 'Ver resultados': 'See results', 'Volver': 'Back', 'También en:': 'Also on:', 'Cómo llegar': 'Directions', 'Volver': 'Back', 'Guardar en Mis planes': 'Save to My plans', 'Detalle del plan': 'Plan details' });
 })();
 function trClave(v) { return LANG === 'en' ? (EN_CLAVES[v] || tr(v)) : v; }
 const ETIQUETAS_EN = { tapas: 'Tapas / Spanish', italiana: 'Italian', pizza: 'Pizza', japonesa: 'Japanese', asiatica: 'Asian', mexicana: 'Mexican',
@@ -1129,11 +1232,11 @@ function selectorIdioma() {
 
 
 // ── ESTADO ─────────────────────────────────────────────────────────────────
-const st = { tab: 'clubs', cuando: null, aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, km: '99' };
+const st = { tab: 'todo', cuando: null, aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, km: '99' };
 function esLugar() { return st.tab === 'bares' || st.tab === 'restaurantes'; }
 const MULTI = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest'];  // filtros que se pueden combinar
 const MOVIL = () => matchMedia('(max-width: 820px)').matches;
-function lado() { return MOVIL() ? 'de arriba' : 'de la izquierda'; }
+function lado() { return 'en "Más filtros"'; }
 function borrarFiltros() {
   Object.assign(st, { cuando: null, aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null });
   cal.a = cal.b = null; cal.abierto = false; pintarCal();
@@ -1152,9 +1255,7 @@ let modoVista = 'lista';  // 'lista' | 'mapa'
 let actual = { items: [], total: 0, porDia: {}, titulo: null };
 const MAX_MAPA = 20;
 let usoFiltros = false;  // el cartel guía se muestra hasta que tocan el primer filtro del costado
-function cartelGuia() {
-  return usoFiltros ? '' : `<div class="guia chica"><span class="flecha">👈</span><div><b>Afiná con los filtros ${lado()}</b>Cuándo, horario, precio, género o distancia: tocá uno y los resultados se actualizan solos.</div></div>`;
-}
+function cartelGuia() { return ''; }
 const cal = { abierto: false, a: null, b: null, mes: null };
 let vista = 'inicio';
 let historial = [];
@@ -1177,7 +1278,7 @@ function rango() {
   return rangoFinde();
 }
 function textoFechas() {
-  if (!cal.a) return 'Elegir fechas';
+  if (!cal.a) return 'Fecha';
   const f = d => `${d.getDate()} ${MESES_C[d.getMonth()]}`;
   return cal.b ? `${f(cal.a)} → ${f(cal.b)}` : `${DIAS_L[cal.a.getDay()].slice(0, 3).toLowerCase()} ${f(cal.a)}`;
 }
@@ -1201,13 +1302,12 @@ function pintarGeneros() {
 }
 function pintar() {
   document.querySelectorAll('.chips').forEach(g => g.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', MULTI.includes(g.dataset.g) ? valores(st[g.dataset.g]).includes(b.dataset.v) : st[g.dataset.g] === b.dataset.v)));
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === st.tab));
-  if (MOVIL()) document.querySelector('.tab.on')?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  pintarCats(); pintarTitulo();
   document.getElementById('chip-cal').innerHTML = ic('cal') + esc(tr(textoFechas()));
   const et = { hoy: tr('Hoy'), manana: tr('Mañana'), finde: tr('Este finde'), cal: textoFechas() };
   const esBar = esLugar();
   const esCine = st.tab === 'cine';
-  document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (esCine && g.id !== 'group-genero') || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length) || (g.id === 'group-aire' && !['clubs', 'conciertos'].includes(st.tab)));
+  document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (esCine && g.id !== 'group-genero') || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length) || (g.id === 'group-aire' && !['todo', 'clubs', 'conciertos'].includes(st.tab)));
   document.getElementById('group-km').hidden = esCine;
   document.querySelectorAll('.g-bar').forEach(g => g.hidden = st.tab !== 'bares');
   document.querySelectorAll('.g-rest').forEach(g => g.hidden = st.tab !== 'restaurantes');
@@ -1221,7 +1321,106 @@ function pintar() {
   const hayFiltros = ['aire', 'franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].some(k => st[k])
     || st.cuando === 'cal' || st.km !== KM_DEFECTO[kmClave()] || (ubic && !ubic.auto);
   document.getElementById('resetf').hidden = !hayFiltros;
-  document.getElementById('fsummary').textContent = (esBar ? [st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar, st.tab === 'restaurantes' ? st.extraRest : null, st.abierto ? 'abierto ahora' : null, kmTxt] : [et[st.cuando], st.aire === 'abierto' ? 'aire libre' : st.aire === 'cerrado' ? 'cerrado' : null, st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map(x => x === kmTxt ? x : valores(x).map(trClave).join(' + ')).join(' · ');
+  const n = ['aire', 'franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].reduce((t, k) => t + valores(st[k]).length, 0) + (st.km !== KM_DEFECTO[kmClave()] ? 1 : 0);
+  document.getElementById('nfiltros').textContent = n || '';
+  document.querySelector('.mom-wrap').hidden = esBar || esCine;
+  const fsum = document.getElementById('fsummary'); if (fsum) fsum.textContent = (esBar ? [st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar, st.tab === 'restaurantes' ? st.extraRest : null, st.abierto ? 'abierto ahora' : null, kmTxt] : [et[st.cuando], st.aire === 'abierto' ? 'aire libre' : st.aire === 'cerrado' ? 'cerrado' : null, st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map(x => x === kmTxt ? x : valores(x).map(trClave).join(' + ')).join(' · ');
+}
+
+// ── CATEGORÍAS Y TÍTULO DE LA HOME ──────────────────────────────────────────
+const CATS = [['todo', 'Todo'], ['clubs', '🪩 Fiestas'], ['conciertos', '🎤 Conciertos'], ['teatro', '🎭 Shows'], ['deportes', '⚽ Deportes']];
+function pintarCats() {
+  const lista = esLugar()
+    ? [['todo', '← Planes', 'volver-cat'], ['bares', '🍸 Bares'], ['restaurantes', '🍽️ Restaurantes']]
+    : [...CATS, ...(BETA ? [['cine', '🎬 Cine']] : []), ['bares', '🍽️ Comer y beber']];
+  document.getElementById('cats').innerHTML = lista.map(([t, txt, cl]) =>
+    `<button class="cat ${cl || ''} ${t === st.tab && !cl ? 'on' : ''}" data-tab="${t}" aria-pressed="${t === st.tab && !cl}">${txt}</button>`).join('');
+}
+function pintarTitulo() {
+  const T = { hoy: 'Esta noche en', manana: 'Mañana en', finde: 'Este finde en' };
+  let t;
+  if (st.tab === 'bares') t = 'Bares en';
+  else if (st.tab === 'restaurantes') t = 'Restaurantes en';
+  else if (st.tab === 'cine') t = 'Cine en';
+  else if (st.cuando === 'cal' && cal.a) { const f = textoFechas(); t = (LANG === 'en' ? f + ' in' : f + ' en'); t = t[0].toUpperCase() + t.slice(1); }
+  else t = T[st.cuando || 'hoy'];
+  document.getElementById('h1mom').textContent = LANG === 'en' ? tr(t) : t;
+  ajustarCiudad();
+  document.body.classList.toggle('sin-col', st.tab === 'cine' || modoVista === 'mapa');
+}
+// El selector de ciudad del título ocupa solo lo que mide el nombre elegido
+function ajustarCiudad() {
+  const sel = document.getElementById('city'); if (!sel || !sel.options.length) return;
+  const m = document.createElement('span');
+  const cs = getComputedStyle(sel);
+  m.style.cssText = `position:absolute;visibility:hidden;white-space:nowrap;font:${cs.font};letter-spacing:${cs.letterSpacing}`;
+  m.textContent = sel.options[sel.selectedIndex]?.text || '';
+  document.body.appendChild(m);
+  sel.style.width = Math.ceil(m.getBoundingClientRect().width + parseFloat(cs.fontSize) * 0.9) + 'px';
+  m.remove();
+}
+function cambiarTab(t) {
+  const antes = kmClave();
+  st.tab = t;
+  if (kmClave() !== antes) st.km = KM_DEFECTO[kmClave()];
+  if (esLugar() && !tipoLugar() && st.km === '99') st.km = '3';
+  st.genero = valores(st.genero).filter(x => (GENEROS[st.tab] || []).some(g => g[0] === x)).join(',') || null;
+  modoVista = modoVista === 'mapa' ? 'mapa' : 'lista';
+  pintarGeneros(); pintar(); buscar();
+}
+function abrirFiltros() {
+  document.getElementById('side').classList.add('open'); document.body.classList.add('filtros-abiertos');
+  setTimeout(() => document.querySelector('#side .cerrar-x')?.focus(), 60);
+}
+function cerrarFiltros() {
+  document.getElementById('side').classList.remove('open'); document.body.classList.remove('filtros-abiertos');
+}
+function marcarNav(id) { document.querySelectorAll('.nav-abajo button').forEach(b => b.classList.toggle('on', b.id === id)); }
+function irExplorar() {
+  cerrarDetalle(); cerrarFiltros(); toggleChat(false); marcarNav('nav-explorar');
+  document.getElementById('landing').hidden = true;
+  buscar();
+  document.querySelector('.app').scrollTop = 0; document.getElementById('main').scrollTop = 0;
+}
+// Caja del agente (cabezal en escritorio, arriba de todo en celular)
+function desdeCaja(id) {
+  const inp = document.getElementById(id);
+  const t = inp.value.trim(); if (!t) { inp.focus(); return; }
+  inp.value = '';
+  toggleChat(true); preguntar(t);
+}
+// Lo que seguís como pantalla (celular)
+async function verSiguiendo() {
+  cerrarDetalle(); cerrarFiltros(); toggleChat(false); marcarNav('nav-sigo');
+  vista = 'siguiendo';
+  const main = document.getElementById('main');
+  if (!leerSeguidos().length) {
+    main.innerHTML = volver() + `<div class="res-head"><h2>Lo que <span>seguís</span></h2></div><div class="empty">Todavía no seguís a nadie.<br>Preguntale al agente por un DJ o un equipo (ej: "¿cuándo toca Hernán Cattaneo?") y tocá <b style="display:inline;font-size:inherit">Seguir</b>: acá vas a ver sus próximas fechas.</div>`;
+    return;
+  }
+  main.innerHTML = volver() + `<div class="res-head"><h2>Lo que <span>seguís</span></h2></div><div class="avisos avisos-d" id="avisos-v"><div class="vacio">Buscando sus próximas fechas…</div></div>`;
+  pintarAvisos('avisos-v');
+}
+// Mapa chico de la columna derecha (escritorio)
+let miniMapa2 = null;
+function pintarMiniMapa(items) {
+  const box = document.getElementById('mmbox');
+  if (!box || !window.L || matchMedia('(max-width: 1100px)').matches) return;
+  const conC = items.filter(tieneCoords).slice(0, 40);
+  box.hidden = !conC.length;
+  if (!conC.length) return;
+  try {
+    if (miniMapa2) { miniMapa2.remove(); miniMapa2 = null; }
+    miniMapa2 = L.map('minimapa', { zoomControl: false, attributionControl: false });
+    capaBase(miniMapa2);
+    conC.forEach(x => {
+      const id = x.tipo === 'bar' ? x.id : idEvento(x);
+      L.marker([x.lat, x.lng], { icon: iconoPin(x) }).bindTooltip(x.titulo, { direction: 'top', offset: [0, -10] })
+        .on('click', () => x.tipo === 'bar' ? verDireccion(id) : abrirDetalle(id)).addTo(miniMapa2);
+    });
+    miniMapa2.fitBounds(conC.map(x => [x.lat, x.lng]), { padding: [24, 24], maxZoom: 14 });
+    setTimeout(() => miniMapa2 && miniMapa2.invalidateSize(), 60);
+  } catch (e) { box.hidden = true; }
 }
 
 // ── CALENDARIO ─────────────────────────────────────────────────────────────
@@ -1267,8 +1466,9 @@ function autoBuscar() {
 async function buscar() {
   if (esLugar()) return buscarBares();
   if (st.tab === 'cine') return buscarCine();
-  if (!st.cuando) { st.cuando = [5, 6].includes(new Date().getDay()) ? 'hoy' : 'finde'; pintar(); }
-  guardarURL();  // viernes y sábado: esta noche; si no, el finde
+  if (!st.cuando) { st.cuando = 'hoy'; pintar(); }
+  guardarURL();
+  marcarNav('nav-explorar');
   vista = 'resultados';
   trackBusqueda(st.tab, ciudad());
   const main = document.getElementById('main');
@@ -1285,11 +1485,11 @@ async function buscar() {
   ctrl = new AbortController();
   ultimaBusqueda = new URLSearchParams(p);
   try {
-    const r = await fetch(`${API}/eventos?${p}`, { signal: ctrl.signal });
-    const data = await r.json();
+    const data = st.tab === 'todo' ? await buscarTodo(p, ctrl.signal) : await (await fetch(`${API}/eventos?${p}`, { signal: ctrl.signal })).json();
     if (data.error) throw new Error(data.error);
     actual = { items: data.eventos || [], total: data.total_ra || 0, porDia: data.por_dia || {}, titulo: null };
     renderActual();
+    if (modoVista !== 'mapa') pintarMiniMapa(actual.items);
   } catch (e) {
     if (e.name === 'AbortError') return;
     main.innerHTML = volver() + `<div class="empty"><b>Uy, se me cortó algo 😅</b>No pude traer los eventos. Probá de nuevo en un ratito.</div>`;
@@ -1297,16 +1497,34 @@ async function buscar() {
   main.classList.remove('loading');
 }
 
-function volver() { return '<button class="back" onclick="inicio()">← Volver a los atajos</button>'; }
+// "Todo": fiestas, conciertos, shows y deportes juntos; cada día se intercalan (2 fiestas, 1 de cada otra)
+async function buscarTodo(p, signal) {
+  const cats = ['clubs', 'conciertos', 'teatro', 'deportes'];
+  const res = await Promise.all(cats.map(c => {
+    const q = new URLSearchParams(p); q.set('categoria', c);
+    if (q.get('max') !== '300') q.set('max', c === 'clubs' ? 24 : 12);
+    return fetch(`${API}/eventos?${q}`, { signal }).then(r => r.json()).catch(e => { if (e.name === 'AbortError') throw e; return { eventos: [] }; });
+  }));
+  const porCat = res.map((d, i) => (d.eventos || []).map(e => ({ ...e, categoria: e.categoria || cats[i] })));
+  const dias = [...new Set(porCat.flat().map(e => e.fecha))].sort();
+  const orden = [0, 0, 1, 2, 3];
+  const eventos = [];
+  dias.forEach(dia => {
+    const colas = porCat.map(l => l.filter(e => e.fecha === dia));
+    while (colas.some(c => c.length)) orden.forEach(i => { if (colas[i].length) eventos.push(colas[i].shift()); });
+  });
+  return { eventos, total_ra: res.reduce((t, d) => t + (d.total_ra || 0), 0), por_dia: {} };
+}
+
+function volver() { return vista === 'resultados' || vista === 'inicio' ? '' : `<button class="back" onclick="irExplorar()">${ic('back')}Volver</button>`; }
 
 function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
   const main = document.getElementById('main');
+  if (titulo && vista !== 'guardados') vista = 'especial';
   const activos = [...valores(st.franja).map(trClave), ...valores(st.precio).map(trClave), ...valores(st.genero).map(x => (GENEROS[st.tab] || []).find(g => g[0] === x)?.[1] || x)].map(x => `<span>${esc(x)}</span>`).join('');
   const n = Math.max(total, eventos.length);
-  const h2 = titulo || (eventos.length
-    ? `${n} ${TAB_TXT[st.tab][n === 1 ? 0 : 1]} en <span>${esc(ciudadTxt())}</span>`
-    : `Nada por acá en <span>${esc(ciudadTxt())}</span>`);
-  let html = volver() + (titulo ? '' : cartelGuia()) + `<div class="res-head"><h2>${h2}</h2><div class="head-tools"><div class="active">${titulo ? '' : activos}</div>${titulo ? '' : botonCompartir() + segVista()}</div></div>${extra}`;
+  const h2 = titulo ? `<h2>${titulo}</h2>` : `<div class="res-count">${eventos.length ? `${n} ${(w => LANG === 'en' ? EN_PLURAL[w] || w : w)(TAB_TXT[st.tab][n === 1 ? 0 : 1])}` : 'Nada por acá'}</div>`;
+  let html = volver() + `<div class="res-head">${h2}<div class="head-tools"><div class="active">${titulo ? '' : activos}</div>${titulo ? '' : botonCompartir() + segVista()}</div></div>${extra}`;
   if (!eventos.length) {
     const tm = st.tab !== 'clubs' && !titulo;
     html += `<div class="empty"><b>No encontré exactamente lo que buscás 😕</b>
@@ -1323,7 +1541,7 @@ function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
     html += `<div class="day"><b>${DIAS_L[d.getDay()]} ${d.getDate()}</b> ${MESES_L[d.getMonth()]}</div>`;
     html += `<div class="grid" id="grid-${dia}">${delDia.map(tarjeta).join('')}</div>`;
     const hay = porDia[dia] || 0;
-    if (!titulo && !porCercania && hay > delDia.length) {
+    if (!titulo && !porCercania && st.tab !== 'todo' && hay > delDia.length) {
       html += `<button class="more" id="more-${dia}" onclick="verDia('${dia}')">Ver los ${hay} ${TAB_TXT[st.tab][1]} del ${DIAS_L[d.getDay()].toLowerCase()} ${d.getDate()} ↓</button>`;
     }
   });
@@ -1512,6 +1730,7 @@ function toggleGuardado(ev, id) {
 }
 function verGuardados() {
   vista = 'guardados';
+  cerrarDetalle(); cerrarFiltros(); toggleChat(false); marcarNav('nav-planes');
   const hoy = iso(hoy0());
   const todos = Object.values(leerGuardados());
   const lista = todos.filter(e => e.tipo !== 'bar' && (e.fecha || '') >= hoy).sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
@@ -1583,6 +1802,7 @@ function segVista() {
 function setModo(m) {
   if (m === modoVista) return;
   modoVista = m;
+  document.body.classList.toggle('sin-col', m === 'mapa' || st.tab === 'cine');
   if (esLugar()) renderActual(); else buscar();
 }
 
@@ -2296,7 +2516,7 @@ async function abrirPendiente() {
   } catch (err) {}
 }
 function cerrarModal() { document.getElementById('modal').classList.remove('open'); }
-document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (document.getElementById('modal').classList.contains('open')) cerrarModal(); else cerrarDetalle(); });
+document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (document.getElementById('modal').classList.contains('open')) cerrarModal(); else if (document.getElementById('sheet').classList.contains('open')) cerrarDetalle(); else cerrarFiltros(); });
 
 // ── CERCA MÍO ──────────────────────────────────────────────────────────────
 function abrirCerca(ev) {
@@ -2359,25 +2579,7 @@ function actualizarNota() {
 document.addEventListener('click', e => { if (!e.target.closest('#nearpop') && !e.target.closest('#near')) document.getElementById('nearpop').classList.remove('open'); });
 
 // ── INICIO ─────────────────────────────────────────────────────────────────
-function inicio() {
-  vista = 'inicio';
-  limpiarURL();
-  document.getElementById('main').classList.remove('loading');
-  document.getElementById('main').innerHTML = `
-    <div class="hello">
-      <h2>¿Qué hacemos en <span>${esc(ciudadTxt())}</span>?</h2>
-      <div class="guia"><span class="flecha">👈</span><div><b>Armá tu plan con los filtros ${lado()}</b>Elegí cuándo, el horario, el precio o el género, y los resultados aparecen acá. Arriba cambiás entre fiestas, bares, conciertos y más.</div></div>
-      <h3 class="titulo-atajos">O probá un atajo</h3>
-      <div class="shortcuts">
-        <button class="sc" onclick="atajo('finde')"><i>🗓️</i>Lo mejor de este finde<small>Lo que más gente convoca</small></button>
-        <button class="sc" onclick="atajo('top')"><i>🔥</i>Lo más top hoy<small>Lo que está pegando hoy</small></button>
-        <button class="sc" onclick="atajo('gratis')"><i>💸</i>Gratis o barato<small>Para salir sin gastar</small></button>
-        <button class="sc" onclick="atajo('sunset')"><i>🌅</i>Sunset y open air<small>Arrancan al caer el sol</small></button>
-        <button class="sc" onclick="atajo('club')"><i>📍</i>Buscar por club<small>Qué hay en tu disco favorita</small></button>
-        <button class="sc" onclick="atajo('dj')"><i>🎧</i>Fechas de un DJ<small>Cuándo toca tu artista</small></button>
-      </div>
-    </div>`;
-}
+function inicio() { buscar(); }
 
 function cuandoHome(v) {
   if (v === 'cal') {
@@ -2390,18 +2592,14 @@ function cuandoHome(v) {
 }
 function irHome(ev) {
   if (ev) ev.preventDefault();
-  Object.assign(st, { tab: 'clubs', cuando: null, aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, km: KM_DEFECTO.otros });
+  Object.assign(st, { tab: 'todo', cuando: 'hoy', aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, km: KM_DEFECTO.otros });
   cal.a = cal.b = null; cal.abierto = false; pintarCal();
   modoVista = 'lista';
   usoFiltros = false;
   historial = [];
   document.getElementById('thread').innerHTML = '';
-  toggleChat(false);
-  document.getElementById('side').classList.remove('open');
   ubic = puntoCentro(); actualizarNota();
-  pintarGeneros(); pintar(); inicio();
-  mostrarLanding();
-  document.getElementById('main').scrollTop = 0;
+  pintarGeneros(); pintar(); irExplorar();
 }
 function atajo(k) {
   if (k === 'club') return preguntar(LANG === 'en' ? 'I want to know what’s on at a specific club or venue in ' + ciudadTxt() : 'Quiero saber qué hay en una disco o venue en particular en ' + ciudadTxt());
@@ -2419,6 +2617,7 @@ function toggleChat(abrir) {
   const d = document.getElementById('dock'), f = document.getElementById('fab');
   const on = abrir === undefined ? !d.classList.contains('abierto') : abrir;
   d.classList.toggle('abierto', on); f.classList.toggle('abierto', on);
+  if (on) marcarNav('nav-agente'); else if (document.getElementById('nav-agente').classList.contains('on')) marcarNav(vista === 'guardados' ? 'nav-planes' : vista === 'siguiendo' ? 'nav-sigo' : 'nav-explorar');
   f.querySelector('i').innerHTML = on ? ic('x') : ic('spark');
   if (on) {
     const t = document.getElementById('thread');
@@ -2432,7 +2631,7 @@ function toggleChat(abrir) {
 document.addEventListener('click', e => {
   const d = document.getElementById('dock');
   if (!d.classList.contains('abierto')) return;
-  if (e.target.closest('#dock') || e.target.closest('#fab') || e.target.closest('.sc') || e.target.closest('.ideas') || e.target.closest('.caja-chat')) return;
+  if (e.target.closest('#dock') || e.target.closest('#fab') || e.target.closest('.sc') || e.target.closest('.ideas') || e.target.closest('.caja-chat') || e.target.closest('#nav-agente') || e.target.closest('.ask-h') || e.target.closest('.ask-m')) return;
   toggleChat(false);
 });
 function burbuja(txt, quien) {
@@ -2582,11 +2781,11 @@ function entrarCiudad(c) {
   try { localStorage.setItem('lp_ciudad', sel.value); } catch (e) {}
   preciosCiudad(); apagarCerca(true); pintar();
   document.getElementById('landing').hidden = true;
-  inicio();
+  buscar();
 }
 function entrarCategoria(tab) {
-  entrarCiudad();
   st.tab = tab;
+  entrarCiudad();
   st.km = (tab === 'bares' || tab === 'restaurantes') ? KM_DEFECTO.bares : KM_DEFECTO.otros;
   pintarGeneros(); pintar(); buscar();
 }
@@ -2655,20 +2854,15 @@ document.querySelectorAll('.chips').forEach(g => {
     pintar(); autoBuscar();
   });
 });
-document.getElementById('tabs').addEventListener('click', e => {
-  const t = e.target.closest('.tab'); if (!t) return;
-  const antes = kmClave();
-  st.tab = t.dataset.tab;
-  if (kmClave() !== antes) st.km = KM_DEFECTO[kmClave()];
-  if (esLugar() && !tipoLugar() && st.km === '99') st.km = '3';
-  st.genero = valores(st.genero).filter(x => (GENEROS[st.tab] || []).some(g => g[0] === x)).join(',') || null;
-  pintarGeneros(); pintar(); buscar();
+document.getElementById('cats').addEventListener('click', e => {
+  const b = e.target.closest('.cat'); if (!b) return;
+  cambiarTab(b.dataset.tab);
 });
 document.getElementById('city').addEventListener('change', () => {
   preciosCiudad();
   apagarCerca(true);
   try { localStorage.setItem('lp_ciudad', ciudad()); } catch (e) {}
-  if (vista === 'resultados' || esLugar()) autoBuscar(); else inicio();
+  pintarTitulo(); autoBuscar();
 });
 
 // ── ARRANQUE ───────────────────────────────────────────────────────────────
@@ -2680,14 +2874,19 @@ document.getElementById('city').addEventListener('change', () => {
   sel.value = CIUDADES.some(c => c[0] === guardada) ? guardada : 'barcelona';
   document.getElementById('cityl').innerHTML = sel.innerHTML;
   document.getElementById('ciudadestop').innerHTML = `<div class="que">¿Qué buscás?</div>` + [
-    ['clubs', '🪩 Fiestas y clubs'], ['conciertos', '🎤 Conciertos'], ['bares', '🍸 Bares'], ['restaurantes', '🍽️ Restaurantes'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'], ...(BETA ? [['cine', '🎬 Cine']] : []),
+    ['todo', '✨ Todo'], ['clubs', '🪩 Fiestas y clubs'], ['conciertos', '🎤 Conciertos'], ['bares', '🍸 Bares'], ['restaurantes', '🍽️ Restaurantes'], ['teatro', '🎭 Teatro y shows'], ['deportes', '⚽ Deportes'], ...(BETA ? [['cine', '🎬 Cine']] : []),
   ].map(([t, txt]) => `<button class="chip big" onclick="entrarCategoria('${t}')">${txt}</button>`).join('');
   ubic = puntoCentro(); actualizarNota();
   document.getElementById('langhead').innerHTML = selectorIdioma();
   document.getElementById('langland').innerHTML = selectorIdioma();
   arrancarTraductor();
   preciosCiudad(); pintarGeneros(); pintar(); contarGuardados(); contarSiguiendo();
-  if (!leerURL()) { inicio(); mostrarLanding(); }
+  if (!leerURL()) {
+    if (guardada) { document.getElementById('landing').hidden = true; buscar(); }
+    else mostrarLanding();
+  }
+  addEventListener('resize', () => ajustarCiudad());
+  document.fonts && document.fonts.ready.then(ajustarCiudad);
 })();
 </script>
 </body>
