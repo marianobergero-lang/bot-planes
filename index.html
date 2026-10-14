@@ -7,18 +7,18 @@
 <title>Let's PartIA!</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
   :root {
     --bg: #0D0C0B; --surface: #141311; --card: #171614;
     --border: rgba(242,238,232,.08); --border2: rgba(242,238,232,.16); --line: rgba(242,238,232,.07);
     --orange: #E9682E; --orange2: #d2561d; --orange-soft: rgba(233,104,46,.12);
-    --text: #F2EEE8; --muted: #A39E96; --dim: #6E6A64;
+    --text: #F2EEE8; --muted: #B3ADA4; --dim: #8F897F; --cta: #C4501C; --cta2: #D25E28; --link: #F08A55;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
-  body { font-family: 'Space Grotesk', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+  body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
   button { font-family: inherit; }
 
   /* HEADER */
@@ -27,7 +27,7 @@
   header::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, var(--accent, #E9682E) 0%, rgba(233,104,46,.35) 45%, rgba(233,104,46,0) 100%); }
   .brand { font-size: 26px; font-weight: 800; letter-spacing: -1px; white-space: nowrap; }
   .brand span { color: var(--orange); }
-  .brand small { display: block; font-size: 11px; color: var(--dim); font-weight: 500; letter-spacing: 0; }
+  .brand small { display: block; font-size: 12px; color: var(--dim); font-weight: 500; letter-spacing: 0; }
   .brand { color: var(--text); text-decoration: none; }
   .powered { font-size: 13px; color: var(--dim); white-space: nowrap; text-decoration: none; display: flex; align-items: baseline; gap: 6px; }
   .powered b { font-size: 19px; font-weight: 800; letter-spacing: -0.6px; }
@@ -36,7 +36,7 @@
   .tabs { display: flex; gap: 4px; }
   .tab { background: none; border: none; color: var(--muted); font-size: 14.5px; font-weight: 600; padding: 8px 13px; border-radius: 24px; cursor: pointer; white-space: nowrap; }
   .tab:hover { color: var(--text); background: var(--surface); }
-  .tab.on { color: #fff; background: linear-gradient(180deg, #f07a3c, #e0581f); box-shadow: 0 0 0 1px rgba(255,170,120,.6), 0 4px 18px rgba(233,104,46,.55); text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .tab.on { color: #fff; background: var(--cta); box-shadow: 0 0 0 1px rgba(255,170,120,.35), 0 4px 16px rgba(196,80,28,.45); text-shadow: 0 1px 2px rgba(0,0,0,.25); }
 
   /* LAYOUT */
   .app { flex: 1; display: grid; grid-template-columns: 500px 1fr; min-height: 0; }
@@ -46,7 +46,7 @@
   .main.loading { opacity: .35; pointer-events: none; }
 
   /* CIUDAD */
-  .city-label, .group h4 { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; display: block; }
+  .city-label, .group h4 { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; display: block; }
   .group h4 em { font-style: normal; text-transform: none; letter-spacing: 0; color: var(--dim); font-weight: 500; margin-left: 4px; }
   .city { position: relative; }
   .city select {
@@ -55,7 +55,8 @@
     font: 700 16px 'Space Grotesk', sans-serif; letter-spacing: -0.4px; cursor: pointer;
   }
   .city select:focus { outline: none; border-color: var(--orange); }
-  .city::before { content: '📍'; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 17px; pointer-events: none; }
+  .city::before { content: ''; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; background: var(--muted); pointer-events: none;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E") center / contain no-repeat; }
   .city::after { content: '▾'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
 
   /* FILTROS */
@@ -67,19 +68,19 @@
   .chips { display: flex; flex-wrap: nowrap; gap: 6px; }
   .chip {
     background: transparent; border: 1px solid var(--border2); color: var(--muted);
-    padding: 8px 11px; border-radius: 20px; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all .12s; white-space: nowrap;
+    padding: 8px 11px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .12s; white-space: nowrap;
   }
   .chip:hover { border-color: var(--muted); color: var(--text); }
-  .chip.on { background: var(--orange); border-color: var(--orange); color: #fff; font-weight: 600; }
+  .chip.on { background: var(--cta); border-color: var(--cta); color: #fff; font-weight: 600; }
   .chip:disabled { opacity: .35; cursor: not-allowed; }
-  .chip small { opacity: .75; font-weight: 400; margin-left: 4px; font-size: 11px; }
-  .afiliado { margin-top: auto; font-size: 11px; line-height: 1.4; color: var(--dim); }
+  .chip small { opacity: .75; font-weight: 400; margin-left: 4px; font-size: 12px; }
+  .afiliado { margin-top: auto; font-size: 12px; line-height: 1.4; color: var(--dim); }
   .afiliado + .side-powered { margin-top: 0; }
   .side-powered { margin-top: auto; padding-top: 10px; font-size: 13px; color: var(--dim); text-decoration: none; }
   .side-powered b { font-size: 16px; } .side-powered .step { color: var(--text); } .side-powered .wise { color: var(--orange); }
-  .live { margin-top: auto; font-size: 12px; color: var(--dim); display: flex; align-items: center; gap: 8px; }
+  .live { margin-top: auto; font-size: 13px; color: var(--dim); display: flex; align-items: center; gap: 8px; }
   .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 3px var(--orange-soft); }
-  .search { display: none; background: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .search { display: none; background: var(--cta); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
 
   /* MINI CALENDARIO */
   .group-cuando { position: relative; }
@@ -89,15 +90,15 @@
   .mc-top button { background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; width: 26px; height: 26px; cursor: pointer; }
   .mc-top button:disabled { opacity: .3; cursor: default; }
   .mc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px 0; text-align: center; }
-  .mc-dow { font-size: 10px; color: var(--dim); padding: 3px 0; }
+  .mc-dow { font-size: 12px; color: var(--dim); padding: 3px 0; }
   .mc-d { background: none; border: none; color: var(--text); font: 500 12.5px 'Space Grotesk', sans-serif; height: 30px; border-radius: 7px; cursor: pointer; }
   .mc-d:hover:not(:disabled) { background: var(--border); }
   .mc-d:disabled { color: #3a3a3a; cursor: default; }
   .mc-d.today { box-shadow: inset 0 0 0 1px var(--muted); }
   .mc-d.in { background: var(--orange-soft); border-radius: 0; }
-  .mc-d.sel { background: var(--orange); color: #fff; font-weight: 700; }
-  .mc-note { font-size: 11.5px; color: var(--dim); margin-top: 6px; }
-  .mc-ok { margin-top: 8px; width: 100%; background: var(--orange); color: #fff; border: none; border-radius: 8px; padding: 8px; font: 700 13px 'Space Grotesk', sans-serif; cursor: pointer; }
+  .mc-d.sel { background: var(--cta); color: #fff; font-weight: 700; }
+  .mc-note { font-size: 13px; color: var(--dim); margin-top: 6px; }
+  .mc-ok { margin-top: 8px; width: 100%; background: var(--cta); color: #fff; border: none; border-radius: 8px; padding: 8px; font: 700 13px 'DM Sans', sans-serif; cursor: pointer; }
   .mc-ok:disabled { opacity: .35; cursor: default; }
 
   /* INICIO / ATAJOS */
@@ -112,7 +113,7 @@
   }
   .sc:hover { border-color: var(--orange); transform: translateY(-2px); }
   .sc i { font-style: normal; font-size: 22px; }
-  .sc small { color: var(--dim); font-weight: 400; font-size: 12px; }
+  .sc small { color: var(--dim); font-weight: 400; font-size: 13px; }
   .back { background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; margin-bottom: 14px; padding: 0; }
   .back:hover { color: var(--text); }
 
@@ -121,11 +122,11 @@
   .hero-ask:focus-within { border-color: var(--orange); box-shadow: 0 0 0 4px var(--orange-soft); }
   .hero-ask input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font: 17px 'Space Grotesk', sans-serif; padding: 10px 4px; }
   .hero-ask input::placeholder { color: var(--dim); }
-  .hero-ask .send { width: 50px; height: 50px; border-radius: 14px; border: none; background: var(--orange); color: #fff; font-size: 20px; cursor: pointer; flex-shrink: 0; }
+  .hero-ask .send { width: 50px; height: 50px; border-radius: 14px; border: none; background: var(--cta); color: #fff; font-size: 20px; cursor: pointer; flex-shrink: 0; }
   .hero-when { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 18px 0 30px; }
   .hero-when > span { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-right: 6px; }
   .chip.big { font-size: 15px; padding: 11px 18px; border-radius: 24px; color: var(--text); }
-  .hero-sub { font-size: 12px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 10px; padding-top: 22px; border-top: 1px solid var(--line); max-width: 760px; }
+  .hero-sub { font-size: 13px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 10px; padding-top: 22px; border-top: 1px solid var(--line); max-width: 760px; }
   .shortcuts .sc { padding: 18px 18px; font-size: 16.5px; gap: 6px; }
   .shortcuts .sc i { font-size: 24px; }
   .shortcuts .sc small { font-size: 13px; }
@@ -148,7 +149,11 @@
   .res-head h2 span { color: var(--orange); }
   .res-sub { font-size: 13px; color: var(--dim); }
   .active { display: flex; gap: 6px; flex-wrap: wrap; }
-  .active span { font-size: 12px; color: var(--muted); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
+  .active span { font-size: 13px; color: var(--muted); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
+  .ic { width: 1.15em; height: 1.15em; vertical-align: -0.2em; flex-shrink: 0; margin-right: .4em; }
+  .dot-on { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4CC38A; margin-right: 7px; vertical-align: 1px; }
+  .ico .ic, .send .ic, .bot-ico .ic, .fab i .ic, button.x .ic, .cerrar-x .ic, .only .ic { margin-right: 0; }
+  .brand, .landing .logo, .title, .day, .res-head h2, .hello h2, .modal-info h3, .titulo-atajos, .chat-head b { font-family: 'Space Grotesk', system-ui, sans-serif; }
   .day { display: flex; align-items: baseline; gap: 12px; font-size: 15px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.8px; margin: 34px 0 16px; }
   .day b { font-size: 22px; letter-spacing: .5px; color: var(--text); font-weight: 700; }
   .day::after { content: ''; flex: 1; height: 1px; background: var(--line); align-self: center; }
@@ -169,7 +174,7 @@
     border: 1px solid var(--border); border-radius: 12px; padding: 16px; transition: border-color .12s, transform .12s;
   }
   .card:hover { border-color: rgba(242,238,232,.25); transform: translateY(-1px); }
-  .town { align-self: flex-end; font-size: 10.5px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .town { align-self: flex-end; font-size: 12px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
   .title { font-size: 16px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.25; margin-top: -4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .who { font-size: 13px; color: var(--muted); margin-top: -4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .facts { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text); opacity: .9; }
@@ -180,17 +185,17 @@
     display: grid; grid-template-columns: 1fr auto; row-gap: 10px; column-gap: 12px; align-items: center;
   }
   .tags { display: flex; gap: 6px; flex-wrap: nowrap; overflow: hidden; min-height: 24px; }
-  .tag { font-size: 11px; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
-  .price { justify-self: end; font-size: 11.5px; font-weight: 700; letter-spacing: .5px; padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
+  .tag { font-size: 12px; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
+  .price { justify-self: end; font-size: 13px; font-weight: 700; letter-spacing: .5px; padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
   .p-gratis { color: var(--orange); background: var(--orange-soft); }
   .p-barato, .p-normal, .p-caro { color: var(--text); background: rgba(242,238,232,.06); }
   .p-nd { color: var(--dim); background: rgba(242,238,232,.04); }
-  .people { font-size: 12px; color: var(--dim); }
+  .people { font-size: 13px; color: var(--dim); }
   .tickets {
     justify-self: end; border: 1px solid rgba(233,104,46,.55); border-radius: 8px; padding: 6px 12px;
-    font-size: 12.5px; font-weight: 700; color: var(--orange); text-decoration: none; transition: all .12s; white-space: nowrap;
+    font-size: 13px; font-weight: 700; color: var(--orange); text-decoration: none; transition: all .12s; white-space: nowrap;
   }
-  .tickets:hover { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .tickets:hover { background: var(--cta); border-color: var(--cta); color: #fff; }
 
   /* FOTO, GUARDAR, COMPARTIR */
   .card { padding: 0 !important; overflow: hidden; position: relative; }
@@ -212,7 +217,7 @@
     display: flex; align-items: center; justify-content: center; transition: transform .12s, background .12s;
   }
   .ico:hover { transform: scale(1.08); background: rgba(13,12,11,.85); }
-  .ico.on { background: var(--orange); border-color: var(--orange); }
+  .ico.on { background: var(--cta); border-color: var(--cta); }
   .menu-share {
     position: absolute; top: 48px; right: 10px; z-index: 5; background: var(--card); border: 1px solid var(--border2);
     border-radius: 10px; padding: 6px; display: flex; flex-direction: column; min-width: 170px; box-shadow: 0 12px 30px rgba(0,0,0,.6);
@@ -228,11 +233,11 @@
   .sig-pop .vacio { color: var(--muted); font-size: 13.5px; line-height: 1.45; padding: 4px 2px; }
   .sig-pop .avisos { margin: 0; border: none; background: none; padding: 0; }
   .seguir-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 14px; }
-  .seguir-btn { background: var(--orange); color: #fff; border: none; border-radius: 10px; padding: 9px 14px; font: 700 14px 'Space Grotesk', sans-serif; cursor: pointer; }
+  .seguir-btn { background: var(--cta); color: #fff; border: none; border-radius: 10px; padding: 9px 14px; font: 700 14px 'DM Sans', sans-serif; cursor: pointer; }
   .seguir-btn.on { background: transparent; color: var(--text); border: 1px solid var(--border2); }
-  .seguir-bar small { color: var(--muted); font-size: 12.5px; }
+  .seguir-bar small { color: var(--muted); font-size: 13px; }
   .avisos { width: 100%; text-align: left; background: rgba(233,104,46,.08); border: 1px solid rgba(233,104,46,.45); border-radius: 16px; padding: 12px 14px; margin: 0 0 26px; }
-  .avisos h4 { font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--orange); margin-bottom: 6px; }
+  .avisos h4 { font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--orange); margin-bottom: 6px; }
   .aviso { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--border); font-size: 14px; }
   .aviso:first-of-type { border-top: none; }
   .aviso a { flex: 1; color: var(--text); text-decoration: none; cursor: pointer; } .aviso a b { color: var(--orange); }
@@ -247,7 +252,7 @@
   .fav { justify-self: start; background: transparent; border: 1px solid var(--border2); color: var(--text); border-radius: 8px; padding: 6px 12px; font: 700 12.5px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; transition: all .12s; }
   .fav:hover { border-color: var(--orange); }
   .fav.on { background: var(--orange-soft); border-color: rgba(233,104,46,.55); color: var(--orange); }
-  .facts .people { font-size: 12px; color: var(--dim); margin-top: 2px; }
+  .facts .people { font-size: 13px; color: var(--dim); margin-top: 2px; }
 
   /* CERCA MÍO */
   .city-block { position: relative; }
@@ -255,8 +260,8 @@
   .city-row .city { flex: 1; }
   .near { border: 1px solid var(--border2); background: transparent; color: var(--text); border-radius: 12px; padding: 0 14px; font: 600 13px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; transition: all .12s; }
   .near:hover { border-color: var(--orange); }
-  .near.on { background: var(--orange); border-color: var(--orange); color: #fff; }
-  .near-note { font-size: 12px; color: var(--dim); margin-top: 7px; display: none; }
+  .near.on { background: var(--cta); border-color: var(--cta); color: #fff; }
+  .near-note { font-size: 13px; color: var(--dim); margin-top: 7px; display: none; }
   .near-note.show { display: block; }
   .near-note b { color: var(--text); font-weight: 600; }
   .near-note a { color: var(--orange); }
@@ -264,13 +269,13 @@
   .near-pop.open { display: block; }
   .near-opt { width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--border2); color: var(--text); border-radius: 9px; padding: 10px 12px; font: 600 13.5px 'Space Grotesk', sans-serif; cursor: pointer; }
   .near-opt:hover { border-color: var(--orange); }
-  .near-or { font-size: 11.5px; color: var(--dim); margin: 10px 2px 6px; text-transform: uppercase; letter-spacing: 1px; }
+  .near-or { font-size: 13px; color: var(--dim); margin: 10px 2px 6px; text-transform: uppercase; letter-spacing: 1px; }
   #diri { width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text); border-radius: 9px; padding: 10px 12px; font: 14px 'Space Grotesk', sans-serif; outline: none; }
   #diri:focus { border-color: var(--orange); }
   .sug { padding: 8px 10px; font-size: 13px; border-radius: 7px; cursor: pointer; }
   .sug:hover { background: var(--surface); }
-  .sug small { display: block; color: var(--dim); font-size: 11.5px; }
-  .dist { position: absolute; left: 10px; top: 10px; z-index: 2; font-size: 11.5px; font-weight: 700; background: var(--text); color: var(--bg); border-radius: 6px; padding: 4px 8px; }
+  .sug small { display: block; color: var(--dim); font-size: 13px; }
+  .dist { position: absolute; left: 10px; top: 10px; z-index: 2; font-size: 13px; font-weight: 700; background: var(--text); color: var(--bg); border-radius: 6px; padding: 4px 8px; }
 
   /* LISTA / MAPA */
   .seg { display: flex; border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; }
@@ -285,22 +290,22 @@
   .mapa-lista .card .pic { display: none; }
   .mapa-lista .card .dist { position: static; align-self: flex-start; margin: 9px 0 0 10px; }
   .mapa-lista .card .bar-ico { position: static; margin: 6px 10px 0; }
-  .mapa-lista .card .bar-ico span { height: 22px; min-width: 22px; font-size: 12px; }
+  .mapa-lista .card .bar-ico span { height: 22px; min-width: 22px; font-size: 13px; }
   .mapa-lista .card .inner { padding: 9px 10px 10px; gap: 5px; }
   .mapa-lista .card .title { font-size: 13px; -webkit-line-clamp: 2; }
   .mapa-lista .card .people, .mapa-lista .card .tags, .mapa-lista .card .horario, .mapa-lista .card .town, .mapa-lista .card .acciones { display: none; }
-  .mapa-lista .card .who { font-size: 11.5px; margin-top: -3px; }
+  .mapa-lista .card .who { font-size: 13px; margin-top: -3px; }
   .mapa-lista .card .title { margin-top: 0; }
   .fecha-mini { display: none; }
-  .mapa-lista .card .fecha-mini { display: inline-block; align-self: flex-start; font-size: 10.5px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: .8px; border: 1px solid rgba(233,104,46,.45); border-radius: 5px; padding: 2px 6px; }
+  .mapa-lista .card .fecha-mini { display: inline-block; align-self: flex-start; font-size: 12px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: .8px; border: 1px solid rgba(233,104,46,.45); border-radius: 5px; padding: 2px 6px; }
   .card.sel { border: 2px solid var(--orange) !important; box-shadow: 0 0 0 4px rgba(233,104,46,.25); }
-  .mapa-lista .card .facts { font-size: 11.5px; gap: 2px; }
+  .mapa-lista .card .facts { font-size: 13px; gap: 2px; }
   .mapa-lista .card .dir-btn { display: none; }
   .mapa-lista .card .foot { grid-template-columns: 1fr; row-gap: 6px; padding-top: 8px; }
-  .mapa-lista .card .price, .mapa-lista .card .tickets, .mapa-lista .card .fav, .mapa-lista .card .res-wrap { justify-self: stretch; text-align: center; font-size: 11.5px; padding: 5px 6px; }
+  .mapa-lista .card .price, .mapa-lista .card .tickets, .mapa-lista .card .fav, .mapa-lista .card .res-wrap { justify-self: stretch; text-align: center; font-size: 13px; padding: 5px 6px; }
   .mapa-lista .card .res-wrap > button { width: 100%; }
-  .mapa-lista .dist { font-size: 10.5px; padding: 3px 6px; left: 6px; top: 6px; }
-  .mapa-info { font-size: 12.5px; color: var(--dim); padding: 2px 4px 4px; }
+  .mapa-lista .dist { font-size: 12px; padding: 3px 6px; left: 6px; top: 6px; }
+  .mapa-info { font-size: 13px; color: var(--dim); padding: 2px 4px 4px; }
   .leaflet-container { font-family: 'Space Grotesk', sans-serif; background: #1a1916; }
   .leaflet-tile-pane { opacity: .5; }
   .leaflet-container { background: #0D0C0B !important; }
@@ -315,31 +320,29 @@
   .abierto-si { color: #5fd38d; font-weight: 700; } .abierto-no { color: var(--muted); }
   .share-bus { background: transparent; border: 1px solid var(--border2); color: var(--text); border-radius: 10px; padding: 7px 12px; font: 600 13px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; }
   .share-bus:hover { border-color: var(--orange); }
-  .lang-sel { display: inline-flex; gap: 6px; align-items: center; vertical-align: middle; }
-  .lang-sel button { display: inline-flex; align-items: center; justify-content: center; background: none; border: 2px solid transparent; border-radius: 8px; padding: 3px; cursor: pointer; line-height: 0; transition: all .15s; }
-  .lang-sel button svg { border-radius: 3px; display: block; }
-  .lang-sel button:not(.on) { opacity: .45; filter: grayscale(.7); }
-  .lang-sel button:not(.on):hover { opacity: .85; filter: none; }
-  .lang-sel button.on { border-color: var(--orange); box-shadow: 0 0 10px rgba(233,104,46,.45); }
+  .lang-sel { display: inline-flex; align-items: center; gap: 2px; height: 42px; padding: 0 6px; border: 1px solid var(--border2); border-radius: 999px; vertical-align: middle; color: var(--dim); }
+  .lang-sel button { background: none; border: none; color: var(--dim); font: 600 14px 'DM Sans', sans-serif; padding: 6px 8px; border-radius: 999px; cursor: pointer; }
+  .lang-sel button:hover { color: var(--text); }
+  .lang-sel button.on { color: var(--text); }
   .user-btn { width: 46px; height: 46px; border-radius: 50%; background: none; border: 1px solid var(--border2); color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
   .user-btn:hover { border-color: var(--orange); color: var(--orange); }
   .user-pop { width: 280px; }
   .user-pop .u-head { display: flex; gap: 10px; align-items: center; padding: 4px 2px 10px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
   .user-pop .u-head svg { flex-shrink: 0; color: var(--orange); }
-  .user-pop .u-head b { display: block; } .user-pop .u-head small { color: var(--muted); font-size: 12.5px; }
-  .user-pop .u-item { display: flex; gap: 10px; align-items: center; width: 100%; background: none; border: none; color: var(--muted); padding: 9px 4px; font: 500 14px 'Space Grotesk', sans-serif; text-align: left; cursor: not-allowed; }
-  .user-pop .u-item em { margin-left: auto; font-style: normal; font-size: 11px; color: var(--dim); }
+  .user-pop .u-head b { display: block; } .user-pop .u-head small { color: var(--muted); font-size: 13px; }
+  .user-pop .u-item { display: flex; gap: 10px; align-items: center; width: 100%; background: none; border: none; color: var(--muted); padding: 9px 4px; font: 500 14px 'DM Sans', sans-serif; text-align: left; cursor: not-allowed; }
+  .user-pop .u-item em { margin-left: auto; font-style: normal; font-size: 12px; color: var(--dim); }
   .lang-land { position: absolute; top: 16px; right: 18px; z-index: 3; }
-  @media (max-width: 820px) { .txt-largo.dos { display: none; } .lang-land { top: 10px; right: 10px; } .landing-in { padding-top: 70px !important; } .lang-sel { height: 38px; } .lang-sel button { padding: 0 10px; font-size: 13px; } header .saved-btn { height: 38px; padding: 0 12px; } .user-btn { width: 38px; height: 38px; } }
+  @media (max-width: 820px) { .txt-largo.dos { display: none; } .lang-land { top: 10px; right: 10px; } .landing-in { padding-top: 70px !important; } .lang-sel { height: 38px; } header .saved-btn { height: 38px; padding: 0 12px; } .user-btn { width: 38px; height: 38px; } }
   @media (max-width: 1500px) and (min-width: 821px) { .tab { font-size: 13.5px; padding: 8px 10px; } header { gap: 10px; } }
-  .reset-f { align-self: flex-start; background: #F2EEE8; color: var(--orange); border: none; border-radius: 10px; padding: 7px 12px; font: 700 13px 'Space Grotesk', sans-serif; cursor: pointer; }
+  .reset-f { align-self: flex-start; background: #F2EEE8; color: var(--orange); border: none; border-radius: 10px; padding: 7px 12px; font: 700 13px 'DM Sans', sans-serif; cursor: pointer; }
   .reset-f:hover { background: #fff; }
   .menu-bus { top: calc(100% + 6px); right: 0; left: auto; min-width: 250px; z-index: 60; }
-  .link-bus { margin-top: 6px; width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--muted); border-radius: 8px; padding: 6px 8px; font-size: 12px; }
+  .link-bus { margin-top: 6px; width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--muted); border-radius: 8px; padding: 6px 8px; font-size: 13px; }
   .cal-ops { display: grid; gap: 10px; margin-top: 14px; }
   .cal-ops a { display: block; padding: 12px 14px; border: 1px solid var(--border2); border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 600; }
   .cal-ops a:hover { border-color: var(--orange); }
-  .cal-ops small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+  .cal-ops small { display: block; color: var(--muted); font-weight: 400; font-size: 13px; margin-top: 2px; }
   .card.hl { border-color: rgba(233,104,46,.7); }
 
   /* DIRECCIÓN */
@@ -352,7 +355,7 @@
   .modal-box { width: 620px; max-width: 100%; background: var(--card); border: 1px solid var(--border2); border-radius: 16px; overflow: hidden; position: relative; }
   .modal-map { height: 340px; background: #1a1916; }
   .cerrar-x { position: absolute; top: 12px; right: 12px; z-index: 1000; width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); background: rgba(13,12,11,.8); color: #fff; font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .cerrar-x:hover { background: var(--orange); border-color: var(--orange); }
+  .cerrar-x:hover { background: var(--cta); border-color: var(--cta); }
   .near-pop .cerrar-x { width: 30px; height: 30px; font-size: 16px; top: 8px; right: 8px; }
   .near-pop { padding-top: 46px !important; }
   .modal-info { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
@@ -362,16 +365,16 @@
   .modal-actions > * { flex: 1; text-align: center; }
 
   /* BARES */
-  .horario { font-size: 12px; color: var(--muted); }
+  .horario { font-size: 13px; color: var(--muted); }
   .bar-ico { position: absolute; right: 10px; top: 10px; display: flex; gap: 5px; z-index: 2; }
   .bar-ico span { height: 28px; min-width: 28px; padding: 0 6px; border-radius: 14px; background: rgba(13,12,11,.75); border: 1px solid rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 14px; }
-  .bar-ico .hifi { font-size: 11px; font-weight: 800; letter-spacing: .5px; color: var(--orange); }
+  .bar-ico .hifi { font-size: 12px; font-weight: 800; letter-spacing: .5px; color: var(--orange); }
   .res-wrap { position: relative; justify-self: end; }
   .res-menu { position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 50; width: 260px; background: var(--card); border: 1px solid var(--border2); border-radius: 10px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.6); }
   .res-menu a { display: block; color: var(--text); text-decoration: none; font-size: 13.5px; font-weight: 600; padding: 8px 10px; border-radius: 7px; }
   .res-menu a:hover { background: var(--surface); }
-  .res-menu small { display: block; color: var(--dim); font-weight: 400; font-size: 11.5px; margin-top: 2px; }
-  .osm-note { font-size: 12px; color: var(--dim); margin-top: 18px; }
+  .res-menu small { display: block; color: var(--dim); font-weight: 400; font-size: 13px; margin-top: 2px; }
+  .osm-note { font-size: 13px; color: var(--dim); margin-top: 18px; }
 
   /* CHAT FLOTANTE */
   .chat-dock {
@@ -382,16 +385,16 @@
   .chat-dock.abierto { display: flex !important; }
   .chat-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
   .chat-head b { font-size: 15px; } .chat-head b span { color: var(--orange); }
-  .chat-head small { display: block; font-size: 11.5px; color: var(--dim); font-weight: 400; }
+  .chat-head small { display: block; font-size: 13px; color: var(--dim); font-weight: 400; }
   .chat-head .x { margin-left: auto; background: none; border: 1px solid var(--border2); color: var(--text); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 16px; }
-  .chat-head .x:hover { background: var(--orange); border-color: var(--orange); }
+  .chat-head .x:hover { background: var(--cta); border-color: var(--cta); }
   .chat-thread { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 16px; }
   .chat-vacio { color: var(--muted); font-size: 13.5px; line-height: 1.5; }
   .chat-vacio button { display: block; margin-top: 8px; background: var(--surface); border: 1px solid var(--border2); color: var(--text); border-radius: 10px; padding: 8px 12px; font: 500 13px 'Space Grotesk', sans-serif; cursor: pointer; text-align: left; width: 100%; }
   .chat-vacio button:hover { border-color: var(--orange); }
   .fab {
     position: fixed; right: 22px; bottom: 22px; z-index: 1500; display: flex; align-items: center; gap: 10px;
-    background: var(--orange); color: #fff; border: none; border-radius: 30px; padding: 10px 18px 10px 10px;
+    background: var(--cta); color: #fff; border: none; border-radius: 30px; padding: 10px 18px 10px 10px;
     font: 700 14.5px 'Space Grotesk', sans-serif; cursor: pointer; box-shadow: 0 10px 30px rgba(233,104,46,.35); transition: transform .15s;
   }
   .fab:hover { transform: translateY(-2px); }
@@ -423,6 +426,7 @@
   .landing .lema { color: var(--muted); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin: 4px 0 44px; }
   .landing .paso { width: 100%; text-align: left; }
   .landing .o.o-top { margin: 6px 0 22px; }
+  .landing .o > span { display: inline-flex; align-items: center; text-align: center; }
   .landing .paso h3 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 12px; }
   .landing .hero-ask { max-width: none; }
   .landing .o { width: 100%; display: flex; align-items: center; gap: 18px; color: var(--text); font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin: 46px 0 22px; }
@@ -432,13 +436,13 @@
   .caja-chat .fila { display: flex; align-items: center; gap: 10px; }
   .caja-chat input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font: 19px 'Space Grotesk', sans-serif; padding: 12px 0; }
   .caja-chat input::placeholder { color: var(--muted); }
-  .caja-chat .send { width: 52px; height: 52px; border-radius: 14px; border: none; background: var(--orange); color: #fff; font-size: 21px; cursor: pointer; flex-shrink: 0; }
-  .ideas { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 10px; font-size: 12.5px; color: var(--dim); line-height: 1.9; text-align: left; }
+  .caja-chat .send { width: 52px; height: 52px; border-radius: 14px; border: none; background: var(--cta); color: #fff; font-size: 21px; cursor: pointer; flex-shrink: 0; }
+  .ideas { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 10px; font-size: 13px; color: var(--dim); line-height: 1.9; text-align: left; }
   .ideas span { font-weight: 700; color: var(--muted); margin-right: 4px; }
   .ideas button { background: none; border: none; color: var(--muted); font: 500 12.5px 'Space Grotesk', sans-serif; cursor: pointer; padding: 0 3px; }
   .ideas button:hover { color: var(--orange); text-decoration: underline; }
   .ciudades-top { flex-wrap: wrap !important; gap: 8px !important; justify-content: flex-start !important; }
-  .ciudades-top .que { width: 100%; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.3px; margin: 10px 0 2px; }
+  .ciudades-top .que { width: 100%; font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.3px; margin: 10px 0 2px; }
   .ciudades-top .chip.big { padding: 11px 16px; font-size: 15px; }
   .ciudad-grande .city::after { font-size: 22px; right: 18px; color: var(--text); }
   .detectada { font-size: 14px; color: var(--muted); margin-bottom: 12px; min-height: 20px; }
@@ -448,23 +452,21 @@
   .ciudad-grande .city { flex: 1; }
   .ciudad-grande .city select { font-size: 22px; padding: 16px 44px 16px 48px; border-radius: 16px; }
   .ciudad-grande .city::before { font-size: 20px; left: 17px; }
-  .entrar { background: var(--orange); color: #fff; border: none; border-radius: 16px; padding: 0 28px; font: 800 18px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; }
+  .entrar { background: var(--cta); color: #fff; border: none; border-radius: 16px; padding: 0 28px; font: 800 18px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; }
   .entrar:hover { background: var(--orange2); }
   .ciudades-top { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-  .landing .powered-l { margin-top: 48px; font-size: 13px; color: var(--dim); text-decoration: none; }
-  .landing .powered-l b { font-size: 17px; } .landing .powered-l .s { color: var(--text); } .landing .powered-l .w { color: var(--orange); }
   .msg { max-width: 75%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; }
   .msg.bot { background: var(--card); border: 1px solid var(--border); border-bottom-left-radius: 3px; align-self: flex-start; }
   .msg.me  { background: var(--orange-soft); border: 1px solid rgba(233,104,46,.3); border-bottom-right-radius: 3px; align-self: flex-end; }
   .msg.typing { color: var(--dim); }
   .chat-bar { display: flex; gap: 10px; align-items: center; padding: 12px 14px 14px; border-top: 1px solid var(--line); }
-  .bot-ico { width: 40px; height: 40px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+  .bot-ico { width: 40px; height: 40px; border-radius: 50%; background: var(--cta); display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
   .chat-bar input {
     flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border2); color: var(--text);
     border-radius: 24px; padding: 13px 18px; font: 15px 'Space Grotesk', sans-serif; outline: none;
   }
   .chat-bar input:focus { border-color: var(--orange); }
-  .chat-bar .send { width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--orange); color: #fff; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+  .chat-bar .send { width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--cta); color: #fff; font-size: 18px; cursor: pointer; flex-shrink: 0; }
   .chat-bar .send:disabled { opacity: .4; cursor: default; }
 
   /* MOBILE */
@@ -493,6 +495,7 @@
     .landing-in { padding: 40px 18px 30px; }
     .landing .lema { margin-bottom: 30px; }
     .landing .o { margin: 32px 0 22px; font-size: 13px; }
+    .landing .o.o-top { letter-spacing: 1px; gap: 10px; }
     .caja-chat input { font-size: 17px !important; }
     .powered { display: none; }
     .pic { height: 160px; }
@@ -523,23 +526,24 @@
   }
 
   /* PATRÓN DE CLICS: naranja = acción principal · claro con letras naranjas = acción secundaria · texto naranja = link · sin caja = información */
-  .card .tickets, .card .tickets:hover { background: var(--orange); border-color: var(--orange); color: #fff !important; }
+  .card .tickets, .card .tickets:hover { background: var(--cta); border-color: var(--cta); color: #fff !important; }
+  .card .tickets:hover { background: var(--cta2) !important; border-color: var(--cta2) !important; }
   .card .tickets:hover { filter: brightness(1.1); }
   .card .fav { background: #F2EEE8; border-color: #F2EEE8; color: var(--orange); }
   .card .fav:hover { background: #fff; border-color: #fff; }
-  .card .fav.on { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .card .fav.on { background: var(--cta); border-color: var(--cta); color: #fff; }
   .card .dir-btn { background: #F2EEE8; border-color: #F2EEE8; color: var(--orange); font-weight: 700; }
   .card .dir-btn:hover { background: #fff; color: var(--orange); }
   .card .en-lugar { line-height: 1.9; }
   .card .en-lugar .dir-btn { white-space: nowrap; display: inline-block; line-height: 1.5; }
   .card .ico { background: #F2EEE8; border-color: #F2EEE8; color: var(--orange); font-weight: 700; }
   .card .ico:hover { background: #fff; }
-  .card .tag { border: none; padding: 0; color: var(--dim); font-size: 11.5px; }
+  .card .tag { border: none; padding: 0; color: var(--dim); font-size: 13px; }
   .card .tag + .tag::before { content: '· '; }
   .card .price { background: none !important; padding: 0; font-weight: 700; }
   .card .p-nd { color: var(--dim); } .card .p-gratis { color: #5fd38d; }
   .tag.aire { color: #F5B83D; }
-  .otros-links { margin-top: 8px; font-size: 12px; color: var(--dim); text-align: right; }
+  .otros-links { margin-top: 8px; font-size: 13px; color: var(--dim); text-align: right; }
   .otros-links a { color: var(--orange); text-decoration: none; font-weight: 600; }
   .otros-links a:hover { text-decoration: underline; }
   .lnk { color: var(--orange); cursor: pointer; text-decoration: underline dotted rgba(233,104,46,.6); text-underline-offset: 3px; font-weight: 600; }
@@ -587,14 +591,13 @@ document.addEventListener('click', ev => {
     <button class="tab" data-tab="cine" hidden>🎬 Cine <sup class="beta">BETA</sup></button>
   </nav>
   <div style="display:flex;align-items:center;gap:14px">
-    <button class="saved-btn" id="savedbtn" onclick="verGuardados()">♥<span class="txt-largo dos">Mis planes<small>favoritos</small></span> <b id="nguardados"></b></button>
-    <div class="sig-wrap"><button class="saved-btn" id="sigbtn" onclick="abrirSiguiendo(event)">🔔<span class="txt-largo"> Siguiendo</span> <b id="nsiguiendo"></b></button><div class="sig-pop" id="sigpop"></div></div>
+    <button class="saved-btn" id="savedbtn" onclick="verGuardados()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="txt-largo dos">Mis planes<small>favoritos</small></span> <b id="nguardados"></b></button>
+    <div class="sig-wrap"><button class="saved-btn" id="sigbtn" onclick="abrirSiguiendo(event)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="txt-largo"> Siguiendo</span> <b id="nsiguiendo"></b></button><div class="sig-pop" id="sigpop"></div></div>
     <span id="langhead"></span>
-    <div class="sig-wrap"><button class="user-btn" id="userbtn" onclick="abrirUsuario(event)" aria-label="Mi cuenta" title="Mi cuenta"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></button><div class="sig-pop user-pop" id="userpop"></div></div>
   </div>
 </header>
 <div class="toast" id="toast"></div>
-<button class="fab" id="fab" onclick="toggleChat()"><i>🤖</i><span>Preguntale a Let's PartIA!</span></button>
+<button class="fab" id="fab" onclick="toggleChat()"><i><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></i><span>Preguntale a Let's PartIA!</span></button>
 
 <div class="landing" id="landing">
   <div class="lang-land" id="langland"></div>
@@ -605,12 +608,12 @@ document.addEventListener('click', ev => {
     <div class="lema">Todos tus planes, en un solo lugar</div>
     <div class="avisos" id="avisos-l" hidden></div>
 
-    <div class="o o-top">🤖 Contame qué querés y lo busco</div>
+    <div class="o o-top"><span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>Contame qué querés y lo busco</span></div>
     <div class="paso">
       <div class="caja-chat">
         <div class="fila">
           <input id="askl" placeholder="" onkeydown="if(event.key==='Enter')desdeLanding()" onfocus="pararTipeo()">
-          <button class="send" onclick="desdeLanding()" aria-label="Buscar">↑</button>
+          <button class="send" onclick="desdeLanding()" aria-label="Buscar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
         </div>
       </div>
     </div>
@@ -626,7 +629,6 @@ document.addEventListener('click', ev => {
       <div class="ciudades-top" id="ciudadestop"></div>
     </div>
 
-    <a class="powered-l" href="https://stepwiseconsulting.es/eventos" target="_blank" rel="noopener">powered by <b><span class="s">Step</span><span class="w">Wise</span></b></a>
   </div>
 </div>
 <div class="modal" id="modal" onclick="if(event.target===this)cerrarModal()"><div class="modal-box" id="modalbox"></div></div>
@@ -637,11 +639,11 @@ document.addEventListener('click', ev => {
       <label class="city-label" for="city">Ciudad</label>
       <div class="city-row">
         <div class="city"><select id="city"></select></div>
-        <button class="near" id="near" onclick="abrirCerca(event)">◎ Mi ubicación</button>
+        <button class="near" id="near" onclick="abrirCerca(event)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Mi ubicación</button>
       </div>
       <div class="near-pop" id="nearpop">
         <button class="cerrar-x" onclick="event.stopPropagation();document.getElementById('nearpop').classList.remove('open')" aria-label="Cerrar">✕</button>
-        <button class="near-opt" onclick="usarUbicacion()">◎ Usar mi ubicación actual</button>
+        <button class="near-opt" onclick="usarUbicacion()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Usar mi ubicación actual</button>
         <div class="near-or">o escribí una dirección</div>
         <input id="diri" placeholder="Ej: Carrer de Blai 30, un hotel o un barrio" oninput="sugerirDir()" autocomplete="off">
         <div id="sugs"></div>
@@ -660,7 +662,7 @@ document.addEventListener('click', ev => {
         <button class="chip" data-v="hoy">Hoy</button>
         <button class="chip" data-v="manana">Mañana</button>
         <button class="chip" data-v="finde">Este finde</button>
-        <button class="chip" data-v="cal" id="chip-cal">📅 Elegir fechas</button>
+        <button class="chip" data-v="cal" id="chip-cal"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Elegir fechas</button>
       </div>
       <div class="mini-cal" id="minical"></div>
     </div>
@@ -718,7 +720,7 @@ document.addEventListener('click', ev => {
     </div>
     <div class="group g-lugar" hidden>
       <h4>Ahora</h4>
-      <div class="chips" data-g="abierto"><button class="chip" data-v="si">🟢 Abierto ahora</button></div>
+      <div class="chips" data-g="abierto"><button class="chip" data-v="si"><i class="dot-on"></i>Abierto ahora</button></div>
     </div>
     <div class="group" id="group-km">
       <h4>Distancia <em id="dist-hint">· activá "Mi ubicación"</em></h4>
@@ -735,11 +737,11 @@ document.addEventListener('click', ev => {
   <div class="main-wrap">
     <main class="main" id="main"></main>
     <div class="chat-dock" id="dock">
-      <div class="chat-head"><div class="bot-ico">🤖</div><div><b>Let's <span>Part</span>IA!</b><small>Contame qué querés y te lo busco</small></div><button class="x" onclick="toggleChat(false)" aria-label="Cerrar">✕</button></div>
+      <div class="chat-head"><div class="bot-ico"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></div><div><b>Let's <span>Part</span>IA!</b><small>Contame qué querés y te lo busco</small></div><button class="x" onclick="toggleChat(false)" aria-label="Cerrar">✕</button></div>
       <div class="chat-thread" id="thread"></div>
       <div class="chat-bar">
         <input id="ask" placeholder="¡Hey! Decime qué te gustaría ✨" onkeydown="if(event.key==='Enter')preguntar()">
-        <button class="send" id="sendbtn" onclick="preguntar()" aria-label="Enviar">↑</button>
+        <button class="send" id="sendbtn" onclick="preguntar()" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
       </div>
     </div>
   </div>
@@ -883,15 +885,15 @@ const EN = {
   '🌐 Web': '🌐 Website', 'Mostrando las próximas 6 semanas': 'Showing the next 6 weeks',
   // compartir y avisos
   '💬 WhatsApp': '💬 WhatsApp', '🔗 Copiar link': '🔗 Copy link', '✉️ Mail': '✉️ Email', '📲 Más opciones…': '📲 More options…',
-  '🔗 Link copiado. Pegalo donde quieras': '🔗 Link copied. Paste it anywhere', 'Seleccioná el link de abajo y copialo': 'Select the link below and copy it',
+  'Link copiado. Pegalo donde quieras': '🔗 Link copied. Paste it anywhere', 'Seleccioná el link de abajo y copialo': 'Select the link below and copy it',
   '🔗 Link copiado': '🔗 Link copied', 'No pude copiarlo 😕': 'Couldn’t copy it 😕', '📍 Dirección copiada': '📍 Address copied', 'No pude copiarla 😕': 'Couldn’t copy it 😕',
   'Lo sacaste de tus planes': 'Removed from your plans', '♥ Sumado a tus planes favoritos': '♥ Added to your saved plans', 'Filtros borrados': 'Filters cleared',
   'Buscando tu ubicación…': 'Finding your location…', 'Tu navegador no comparte ubicación. Escribí una dirección 👇': 'Your browser doesn’t share location. Type an address 👇',
   'No pude acceder a tu ubicación. Escribí una dirección 👇': 'I couldn’t get your location. Type an address 👇', 'No encontré esa dirección 🤔': 'I couldn’t find that address 🤔',
   'No pude traer sus fechas 😕': 'Couldn’t load their dates 😕', 'No pude traer lo de ese lugar 😕': 'Couldn’t load that venue 😕',
   '✓ Siguiendo': '✓ Following', '🔔 Lo que seguís': '🔔 What you follow', 'Buscando sus próximas fechas…': 'Looking up their next dates…',
-  'Dejar de seguir': 'Unfollow', 'Sus próximas fechas aparecen en "🔔 Siguiendo", arriba a la derecha': 'Their next dates show up in "🔔 Following", top right',
-  'Queda guardado en "🔔 Siguiendo", arriba a la derecha': 'Saved in "🔔 Following", top right',
+  'Dejar de seguir': 'Unfollow', 'Sus próximas fechas aparecen en "Siguiendo", arriba a la derecha': 'Their next dates show up in "🔔 Following", top right',
+  'Queda guardado en "Siguiendo", arriba a la derecha': 'Saved in "🔔 Following", top right',
   // mis planes
   'Bares y restaurantes': 'Bars & restaurants', 'Todavía no sumaste nada': 'Nothing saved yet',
   'Tocá "♡ Mis planes" en cualquier evento y lo vas a encontrar acá, ordenado por día.': 'Tap "♡ Save" on any event and you’ll find it here, sorted by day.',
@@ -997,6 +999,24 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
   pizza: 'pizza', japonesa: 'Japanese', asiatica: 'Asian', mexicana: 'Mexican', hamburguesas: 'burgers', india: 'Indian', parrilla: 'grill',
   mariscos: 'seafood', mediterranea: 'Mediterranean', latina: 'Latin American', francesa: 'French', veg: 'vegetarian', llevar: 'takeaway',
   'abierto ahora': 'open now', 'fútbol': 'football', 'básquet': 'basketball', tenis: 'tennis', motor: 'motorsport' };
+// Variantes sin el emoji/símbolo inicial (los iconos ahora son SVG aparte del texto)
+(function () {
+  const SIM = /^[^\p{L}\p{N}"'(¿¡<]+\s+/u;
+  for (const [k, v] of Object.entries(EN)) if (SIM.test(k)) { const k2 = k.replace(SIM, ''); if (k2 && !(k2 in EN)) EN[k2] = v.replace(SIM, ''); }
+  // cada variante va justo después de su original, antes que las reglas genéricas
+  const rxs = [];
+  for (const [rx, v] of EN_RX) {
+    rxs.push([rx, v]);
+    const m = rx.source.match(/^\^([^\p{L}\p{N}\\(\[.]+) (.*)$/u);
+    if (m) rxs.push([new RegExp('^' + m[2], rx.flags), typeof v === 'string' ? v.replace(SIM, '') : v]);
+  }
+  EN_RX.splice(0, EN_RX.length, ...rxs);
+  Object.assign(EN, { 'Agregar a mi calendario': 'Add to my calendar', 'Compartir': 'Share', 'Lista': 'List', 'Mapa': 'Map', 'Mail': 'Email',
+    'Sumado a tus planes favoritos': 'Added to your saved plans', 'Link copiado': 'Link copied', 'Dirección copiada': 'Address copied',
+    'Queda guardado en "Siguiendo", arriba a la derecha': 'Saved in "Following", top right',
+    'Sus próximas fechas aparecen en "Siguiendo", arriba a la derecha': 'Their next dates show up in "Following", top right',
+    'Siguiendo': 'Following', 'Aire libre': 'Open air', 'Elegir fechas': 'Pick dates', 'Idioma': 'Language' });
+})();
 function trClave(v) { return LANG === 'en' ? (EN_CLAVES[v] || tr(v)) : v; }
 const ETIQUETAS_EN = { tapas: 'Tapas / Spanish', italiana: 'Italian', pizza: 'Pizza', japonesa: 'Japanese', asiatica: 'Asian', mexicana: 'Mexican',
   hamburguesas: 'Burgers', india: 'Indian', parrilla: 'Grill / Steak', mariscos: 'Fish & seafood', mediterranea: 'Mediterranean', latina: 'Latin American', francesa: 'French' };
@@ -1004,8 +1024,11 @@ function cambiarIdioma(l) {
   try { localStorage.setItem('lp_lang', l); } catch (e) {}
   const u = new URL(location.href); u.searchParams.set('lang', l); location.href = u.toString();
 }
+const IC = {"heart": "<path d=\"M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z\"/>", "bell": "<path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8\"/><path d=\"M10 20a2 2 0 0 0 4 0\"/>", "pin": "<path d=\"M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z\"/><circle cx=\"12\" cy=\"10\" r=\"2.5\"/>", "spark": "<path d=\"M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z\"/><path d=\"M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z\"/>", "send": "<path d=\"M12 19V5M5 12l7-7 7 7\"/>", "cal": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M16 3v4M8 3v4M3 10h18\"/>", "share": "<path d=\"M7 17 17 7M8 7h9v9\"/>", "locate": "<circle cx=\"12\" cy=\"12\" r=\"7\"/><circle cx=\"12\" cy=\"12\" r=\"2.5\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3\"/>", "users": "<circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5\"/><path d=\"M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.8 3 2.6 3.5 5.2\"/>", "list": "<path d=\"M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01\"/>", "map": "<path d=\"m9 4-6 2.5V20l6-2.5 6 2.5 6-2.5V4l-6 2.5z\"/><path d=\"M9 4v13.5M15 6.5V20\"/>", "ticket": "<path d=\"M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z\"/><path d=\"M14 7v2M14 11v2M14 15v2\"/>", "chat": "<path d=\"M21 12a8 8 0 0 1-11.8 7L4 20l1.1-4.6A8 8 0 1 1 21 12z\"/>", "mail": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"m3 7 9 6 9-6\"/>", "link": "<path d=\"M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1\"/>", "globe": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18\"/>", "phone": "<path d=\"M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2\"/>", "star": "<path d=\"m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3l-5.5 2.9 1-6.2L3 9.6l6.2-.9z\"/>", "walk": "<circle cx=\"13\" cy=\"4.5\" r=\"2\"/><path d=\"m9 21 2.5-6.5L14 17v4M7.5 12.5 10 8l4 1.5 2.5 3\"/>", "x": "<path d=\"M18 6 6 18M6 6l12 12\"/>", "check": "<path d=\"m5 12 5 5 9-10\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>", "more": "<circle cx=\"5\" cy=\"12\" r=\"1.2\"/><circle cx=\"12\" cy=\"12\" r=\"1.2\"/><circle cx=\"19\" cy=\"12\" r=\"1.2\"/>"};
+function ic(n) { return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`; }
+function favTxt(on) { return on ? `${ic('heart')}${LANG === 'en' ? 'Saved' : 'En mis planes'}` : `${ic('heart')}${LANG === 'en' ? 'Save' : 'Mis planes'}`; }
 function selectorIdioma() {
-  return `<div class="lang-sel"><button class="${LANG === 'es' ? 'on' : ''}" onclick="cambiarIdioma('es')" aria-label="Español" title="Español"><svg viewBox="0 0 30 20" width="28" height="19"><rect width="30" height="20" fill="#AA151B"/><rect y="5" width="30" height="10" fill="#F1BF00"/></svg></button><button class="${LANG === 'en' ? 'on' : ''}" onclick="cambiarIdioma('en')" aria-label="English" title="English"><svg viewBox="0 0 60 30" width="28" height="19"><clipPath id="ukc"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><rect width="60" height="30" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukc)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></svg></button></div>`;
+  return `<div class="lang-sel" role="group" aria-label="Idioma"><button class="${LANG === 'es' ? 'on' : ''}" onclick="cambiarIdioma('es')" lang="es" aria-label="Español">ES</button><span aria-hidden="true">·</span><button class="${LANG === 'en' ? 'on' : ''}" onclick="cambiarIdioma('en')" lang="en" aria-label="English">EN</button></div>`;
 }
 
 
@@ -1058,9 +1081,9 @@ function rango() {
   return rangoFinde();
 }
 function textoFechas() {
-  if (!cal.a) return '📅 Elegir fechas';
+  if (!cal.a) return 'Elegir fechas';
   const f = d => `${d.getDate()} ${MESES_C[d.getMonth()]}`;
-  return cal.b ? `📅 ${f(cal.a)} → ${f(cal.b)}` : `📅 ${DIAS_L[cal.a.getDay()].slice(0, 3).toLowerCase()} ${f(cal.a)}`;
+  return cal.b ? `${f(cal.a)} → ${f(cal.b)}` : `${DIAS_L[cal.a.getDay()].slice(0, 3).toLowerCase()} ${f(cal.a)}`;
 }
 function ciudad() { return document.getElementById('city').value; }
 function ciudadTxt() { const c = CIUDADES.find(x => x[0] === ciudad()); return c ? c[1] : ciudad(); }
@@ -1084,8 +1107,8 @@ function pintar() {
   document.querySelectorAll('.chips').forEach(g => g.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', MULTI.includes(g.dataset.g) ? valores(st[g.dataset.g]).includes(b.dataset.v) : st[g.dataset.g] === b.dataset.v)));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === st.tab));
   if (MOVIL()) document.querySelector('.tab.on')?.scrollIntoView({ inline: 'center', block: 'nearest' });
-  document.getElementById('chip-cal').textContent = textoFechas();
-  const et = { hoy: tr('Hoy'), manana: tr('Mañana'), finde: tr('Este finde'), cal: textoFechas().replace('📅 ', '') };
+  document.getElementById('chip-cal').innerHTML = ic('cal') + esc(tr(textoFechas()));
+  const et = { hoy: tr('Hoy'), manana: tr('Mañana'), finde: tr('Este finde'), cal: textoFechas() };
   const esBar = esLugar();
   const esCine = st.tab === 'cine';
   document.querySelectorAll('.g-ev').forEach(g => g.hidden = esBar || (esCine && g.id !== 'group-genero') || (g.id === 'group-genero' && !(GENEROS[st.tab] || []).length) || (g.id === 'group-aire' && !['clubs', 'conciertos'].includes(st.tab)));
@@ -1239,7 +1262,7 @@ function tarjeta(e) {
   const precio = cat === 'nd' ? 'PRECIO EN WEB' : cat === 'gratis' ? 'GRATIS' : (e.precio_label || '').toUpperCase();
   const hora = e.hora && e.hora !== '23:59' ? e.hora : null;
   const fin = e.hora_fin && e.hora_fin !== '23:59' ? e.hora_fin : null;
-  const gente = e.asistentes ? `👥 ${e.asistentes} interesados` : (e.destacado && e.escudos ? esc(e.destacado) : `vía ${esc(e.fuente || 'Resident Advisor')}`);
+  const gente = e.asistentes ? `${ic('users')}${e.asistentes} interesados` : (e.destacado && e.escudos ? esc(e.destacado) : `vía ${esc(e.fuente || 'Resident Advisor')}`);
   const lugar = e.ciudad_venue || ciudadTxt();
   const id = idEvento(e);
   EVENTOS[id] = e;
@@ -1252,23 +1275,23 @@ function tarjeta(e) {
       ${pic}
       ${e.d != null ? `<span class="dist">${fmtDist(e.d)} · ${aPie(e.d)}</span>` : ''}
       <div class="acciones">
-        <button class="ico" title="Agregar a mi calendario" onclick="agregarCalendario(event, '${esc(id)}')">📅</button>
-        <button class="ico" title="Compartir" onclick="compartir(event, '${esc(id)}')">↗</button>
+        <button class="ico" title="Agregar a mi calendario" onclick="agregarCalendario(event, '${esc(id)}')" aria-label="Agregar a mi calendario">${ic('cal')}</button>
+        <button class="ico" title="Compartir" onclick="compartir(event, '${esc(id)}')" aria-label="Compartir">${ic('share')}</button>
       </div>
       <div class="inner">
-      <div class="town">📍 ${esc(lugar)}</div>
+      <div class="town">${ic('pin')}${esc(lugar)}</div>
       ${e.fecha ? `<div class="fecha-mini">${fechaMini(e.fecha)}</div>` : ''}
       <div class="title">${esc(e.titulo)}</div>
       ${(e.artistas || []).length ? `<div class="who">${e.artistas.slice(0, 5).map(a => `<span class="lnk" title="Ver sus próximas fechas" onclick="verArtista('${esc(a).replace(/'/g, '&#39;')}')">${esc(a)}</span>`).join(', ')}</div>` : ''}
       <div class="facts">
-        ${e.venue ? `<div class="en-lugar"><span>en:</span> <b class="lnk" title="Ver todo lo que hay en este lugar" onclick="verLugar('${esc(id)}')">${esc(e.venue)}</b> <button class="dir-btn" onclick="verDireccion('${esc(id)}')">📍 Ver dirección</button></div>` : ''}
+        ${e.venue ? `<div class="en-lugar"><span>en:</span> <b class="lnk" title="Ver todo lo que hay en este lugar" onclick="verLugar('${esc(id)}')">${esc(e.venue)}</b> <button class="dir-btn" onclick="verDireccion('${esc(id)}')">${ic('pin')}Ver dirección</button></div>` : ''}
         ${hora ? `<div><span>de</span> ${hora}${fin ? ` <span>a</span> ${fin}` : ''}<span> hs</span></div>` : ''}
         <div class="people">${gente}</div>
       </div>
       <div class="foot">
-        <div class="tags">${e.aire_libre ? '<span class="tag aire">☀️ Aire libre</span>' : ''}${(e.generos || []).slice(0, 2).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
+        <div class="tags">${e.aire_libre ? '<span class="tag aire">Aire libre</span>' : ''}${(e.generos || []).slice(0, 2).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
         <span class="price p-${cat}">${esc(precio)}</span>
-        <button class="fav ${estaGuardado(id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(id)}')">${estaGuardado(id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
+        <button class="fav ${estaGuardado(id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(id)}')">${favTxt(estaGuardado(id))}</button>
         ${(e.otros_links || []).length ? `<div class="res-wrap"><button class="tickets" style="cursor:pointer;font-family:inherit" onclick="menuTickets(event, '${esc(id)}')">Ver tickets ▾</button></div>` : `<a class="tickets" href="${esc(e.url)}" target="_blank" rel="noopener">${e.url_tipo === 'club' ? 'Entradas (web del club) →' : e.url_tipo === 'google' ? 'Buscar entradas →' : 'Ver tickets →'}</a>`}
       </div>
       </div>
@@ -1370,10 +1393,10 @@ function toggleGuardado(ev, id) {
   ev.stopPropagation();
   const g = leerGuardados();
   if (g[id]) { delete g[id]; toast('Lo sacaste de tus planes'); }
-  else { g[id] = EVENTOS[id]; toast('♥ Sumado a tus planes favoritos'); }
+  else { g[id] = EVENTOS[id]; toast('Sumado a tus planes favoritos'); }
   escribirGuardados(g); contarGuardados();
   const b = ev.currentTarget; const on = !!g[id];
-  b.classList.toggle('on', on); b.textContent = on ? '♥ En mis planes' : '♡ Mis planes';
+  b.classList.toggle('on', on); b.innerHTML = favTxt(on);
   const sb = document.getElementById('savedbtn'); sb.classList.remove('pulse'); void sb.offsetWidth; if (on) sb.classList.add('pulse');
   if (vista === 'guardados' && !on) verGuardados();
 }
@@ -1417,12 +1440,12 @@ async function compartir(ev, id) {
   const m = document.createElement('div');
   m.className = 'menu-share';
   const msg = encodeURIComponent(`${texto}\n${e.url}`);
-  m.innerHTML = `<a href="https://wa.me/?text=${msg}" target="_blank" rel="noopener">💬 WhatsApp</a>
-    <a href="mailto:?subject=${encodeURIComponent(e.titulo)}&body=${msg}">✉️ Mail</a>
-    <button>🔗 Copiar link</button>`;
+  m.innerHTML = `<a href="https://wa.me/?text=${msg}" target="_blank" rel="noopener">${ic('chat')}WhatsApp</a>
+    <a href="mailto:?subject=${encodeURIComponent(e.titulo)}&body=${msg}">${ic('mail')}Mail</a>
+    <button>${ic('link')}Copiar link</button>`;
   m.querySelector('button').onclick = async (x) => {
     x.stopPropagation();
-    try { await navigator.clipboard.writeText(`${texto}\n${e.url}`); toast('🔗 Link copiado'); } catch (err) { toast('No pude copiarlo 😕'); }
+    try { await navigator.clipboard.writeText(`${texto}\n${e.url}`); toast('Link copiado'); } catch (err) { toast('No pude copiarlo 😕'); }
     cerrarMenus();
   };
   m.addEventListener('click', x => x.stopPropagation());
@@ -1445,7 +1468,7 @@ function tieneCoords(x) {
 
 // ── RESULTADOS: LISTA O MAPA ───────────────────────────────────────────────
 function segVista() {
-  return `<div class="seg"><button class="${modoVista === 'lista' ? 'on' : ''}" onclick="setModo('lista')">☰ Lista</button><button class="${modoVista === 'mapa' ? 'on' : ''}" onclick="setModo('mapa')">🗺️ Mapa</button></div>`;
+  return `<div class="seg"><button class="${modoVista === 'lista' ? 'on' : ''}" onclick="setModo('lista')">${ic('list')}Lista</button><button class="${modoVista === 'mapa' ? 'on' : ''}" onclick="setModo('mapa')">${ic('map')}Mapa</button></div>`;
 }
 function setModo(m) {
   if (m === modoVista) return;
@@ -1751,17 +1774,17 @@ function tarjetaBar(b) {
       ${b.d != null ? `<span class="dist">${fmtDist(b.d)} · ${aPie(b.d)}</span>` : ''}
       <div class="bar-ico">${b.terraza ? '<span title="Terraza">☀️</span>' : ''}${b.musica ? '<span title="Música en vivo">🎷</span>' : ''}${b.hifi ? '<span title="HiFi / listening bar" class="hifi">HiFi</span>' : ''}</div>
       <div class="inner">
-        <div class="town">📍 ${esc(b.barrio || ciudadTxt())}</div>
+        <div class="town">${ic('pin')}${esc(b.barrio || ciudadTxt())}</div>
         <div class="title"><span class="lnk" style="text-decoration:none;color:inherit" title="Ver detalle y seguir" onclick="verDireccion('${esc(b.id)}')">${esc(b.titulo)} <span style="color:var(--orange);font-size:13px">›</span></span></div>
         <div class="who">${esc(b.categoria)}</div>
         <div class="facts">
-          ${b.direccion ? `<div class="dir-link" onclick="verDireccion('${esc(b.id)}')"><span>📍</span> ${esc(b.direccion)}</div>` : `<div><button class="dir-btn" style="margin:0" onclick="verDireccion('${esc(b.id)}')">📍 Ver en el mapa</button></div>`}
-          ${b.horario ? `<div class="horario"><span>🕐</span> ${estadoAhora(b.horario)}${esc(horarioEs(b.horario))}</div>` : ''}
+          ${b.direccion ? `<div class="dir-link" onclick="verDireccion('${esc(b.id)}')">${ic('pin')}${esc(b.direccion)}</div>` : `<div><button class="dir-btn" style="margin:0" onclick="verDireccion('${esc(b.id)}')">${ic('pin')}Ver en el mapa</button></div>`}
+          ${b.horario ? `<div class="horario">${ic('clock')}${estadoAhora(b.horario)}${esc(horarioEs(b.horario))}</div>` : ''}
         </div>
         <div class="foot">
           <div class="tags">${(b.tags || []).slice(0, 2).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
           <span></span>
-          <button class="fav ${estaGuardado(b.id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(b.id)}')">${estaGuardado(b.id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
+          <button class="fav ${estaGuardado(b.id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(b.id)}')">${favTxt(estaGuardado(b.id))}</button>
           <div class="res-wrap"><button class="tickets" style="cursor:pointer;font-family:inherit" onclick="menuReservar(event, '${esc(b.id)}')">Reservar ▾</button></div>
         </div>
       </div>
@@ -1775,18 +1798,18 @@ function tarjetaRest(b) {
       ${b.d != null ? `<span class="dist">${fmtDist(b.d)} · ${aPie(b.d)}</span>` : ''}
       <div class="bar-ico">${b.terraza ? '<span title="Terraza">☀️</span>' : ''}${b.veg ? '<span title="Opciones vegetarianas">🌱</span>' : ''}${b.llevar ? '<span title="Para llevar">🥡</span>' : ''}</div>
       <div class="inner">
-        <div class="town">📍 ${esc(b.barrio || ciudadTxt())}</div>
+        <div class="town">${ic('pin')}${esc(b.barrio || ciudadTxt())}</div>
         <div class="title"><span class="lnk" style="text-decoration:none;color:inherit" title="Ver detalle y seguir" onclick="verDireccion('${esc(b.id)}')">${esc(b.titulo)} <span style="color:var(--orange);font-size:13px">›</span></span></div>
         <div class="who">${esc(b.categoria)}</div>
         <div class="facts">
-          ${b.direccion ? `<div class="dir-link" onclick="verDireccion('${esc(b.id)}')"><span>📍</span> ${esc(b.direccion)}</div>` : `<div><button class="dir-btn" style="margin:0" onclick="verDireccion('${esc(b.id)}')">📍 Ver en el mapa</button></div>`}
-          ${b.horario ? `<div class="horario"><span>🕐</span> ${estadoAhora(b.horario)}${esc(horarioEs(b.horario))}</div>` : ''}
-          <div><a class="dir-btn" style="margin:0;text-decoration:none" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([b.titulo, b.direccion, ciudadTxt()].filter(Boolean).join(', '))}" target="_blank" rel="noopener">⭐ Reseñas y precios en Google</a></div>
+          ${b.direccion ? `<div class="dir-link" onclick="verDireccion('${esc(b.id)}')">${ic('pin')}${esc(b.direccion)}</div>` : `<div><button class="dir-btn" style="margin:0" onclick="verDireccion('${esc(b.id)}')">${ic('pin')}Ver en el mapa</button></div>`}
+          ${b.horario ? `<div class="horario">${ic('clock')}${estadoAhora(b.horario)}${esc(horarioEs(b.horario))}</div>` : ''}
+          <div><a class="dir-btn" style="margin:0;text-decoration:none" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([b.titulo, b.direccion, ciudadTxt()].filter(Boolean).join(', '))}" target="_blank" rel="noopener">${ic('star')}Reseñas y precios en Google</a></div>
         </div>
         <div class="foot">
           <div class="tags">${(b.tags || []).slice(0, 2).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
           <span></span>
-          <button class="fav ${estaGuardado(b.id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(b.id)}')">${estaGuardado(b.id) ? '♥ En mis planes' : '♡ Mis planes'}</button>
+          <button class="fav ${estaGuardado(b.id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(b.id)}')">${favTxt(estaGuardado(b.id))}</button>
           <div class="res-wrap"><button class="tickets" style="cursor:pointer;font-family:inherit" onclick="menuReservar(event, '${esc(b.id)}')">Reservar ▾</button></div>
         </div>
       </div>
@@ -1799,9 +1822,9 @@ function menuReservar(ev, id) {
   const q = encodeURIComponent([b.titulo, b.direccion, ciudadTxt()].filter(Boolean).join(', '));
   const m = document.createElement('div');
   m.className = 'res-menu';
-  m.innerHTML = `<a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">📍 Ver ficha en Google<small>Fotos, horarios, teléfono y reserva si el lugar la ofrece</small></a>
-    ${b.web ? `<a href="${esc(b.web)}" target="_blank" rel="noopener">🌐 Ir a la web del lugar<small>Reservá directo con ellos</small></a>` : ''}
-    ${b.telefono ? `<a href="tel:${esc(b.telefono.replace(/\s/g, ''))}">📞 Llamar<small>${esc(b.telefono)}</small></a>` : ''}`;
+  m.innerHTML = `<a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">${ic('pin')}Ver ficha en Google<small>Fotos, horarios, teléfono y reserva si el lugar la ofrece</small></a>
+    ${b.web ? `<a href="${esc(b.web)}" target="_blank" rel="noopener">${ic('globe')}Ir a la web del lugar<small>Reservá directo con ellos</small></a>` : ''}
+    ${b.telefono ? `<a href="tel:${esc(b.telefono.replace(/\s/g, ''))}">${ic('phone')}Llamar<small>${esc(b.telefono)}</small></a>` : ''}`;
   m.addEventListener('click', x => x.stopPropagation());
   ev.currentTarget.parentElement.appendChild(m);
 }
@@ -1812,7 +1835,7 @@ function menuTickets(ev, id) {
   const m = document.createElement('div');
   m.className = 'res-menu';
   m.innerHTML = [{ fuente: e.fuente || 'Fever', url: e.url }, ...(e.otros_links || [])]
-    .map(o => `<a href="${esc(o.url)}" target="_blank" rel="noopener">🎟️ ${esc(o.fuente)}</a>`).join('');
+    .map(o => `<a href="${esc(o.url)}" target="_blank" rel="noopener">${ic('ticket')}${esc(o.fuente)}</a>`).join('');
   m.addEventListener('click', x => x.stopPropagation());
   ev.currentTarget.parentElement.appendChild(m);
 }
@@ -1832,20 +1855,20 @@ function verDireccion(id) {
     ${tieneCoords(x) ? '<div class="modal-map" id="modalmap"></div>' : ''}
     <div class="modal-info">
       <h3>${esc(nombre)}</h3>
-      <p>📍 ${esc(dir || 'Dirección no informada')} · ${esc(lugar)}</p>
-      ${d != null ? `<p>🚶 ${fmtDist(d)} desde ${esc(ubic.txt)} · ${aPie(d)}</p>` : ''}
-      ${x.tipo === 'bar' && x.horario ? `<p>🕐 ${estadoAhora(x.horario)}${esc(horarioEs(x.horario))}</p>` : ''}
-      ${x.tipo === 'bar' && (x.web || x.telefono) ? `<p>${x.web ? `<a class="lnk" href="${esc(x.web)}" target="_blank" rel="noopener">🌐 Web</a>` : ''}${x.web && x.telefono ? ' · ' : ''}${x.telefono ? `<a class="lnk" href="tel:${esc(x.telefono.replace(/\s/g, ''))}">📞 ${esc(x.telefono)}</a>` : ''}</p>` : ''}
+      <p>${ic('pin')}${esc(dir || 'Dirección no informada')} · ${esc(lugar)}</p>
+      ${d != null ? `<p>${ic('walk')}${fmtDist(d)} desde ${esc(ubic.txt)} · ${aPie(d)}</p>` : ''}
+      ${x.tipo === 'bar' && x.horario ? `<p>${ic('clock')}${estadoAhora(x.horario)}${esc(horarioEs(x.horario))}</p>` : ''}
+      ${x.tipo === 'bar' && (x.web || x.telefono) ? `<p>${x.web ? `<a class="lnk" href="${esc(x.web)}" target="_blank" rel="noopener">${ic('globe')}Web</a>` : ''}${x.web && x.telefono ? ' · ' : ''}${x.telefono ? `<a class="lnk" href="tel:${esc(x.telefono.replace(/\s/g, ''))}">${ic('phone')}${esc(x.telefono)}</a>` : ''}</p>` : ''}
       <div style="margin:10px 0 4px">${x.tipo === 'bar'
         ? barraSeguir('sitio', nombre, { id: x.id, tipo: 'bar', lugar: x.lugar, titulo: x.titulo, direccion: x.direccion, barrio: x.barrio, ciudadNombre: ciudadTxt(), horario: x.horario, web: x.web, telefono: x.telefono, lat: x.lat, lng: x.lng, cocinas: x.cocinas, tags: x.tags, categoria: x.categoria })
-        : x.venue ? `<div class="seguir-bar"><button class="seguir-btn" onclick="cerrarModal(); verLugar('${esc(id)}')">📅 Ver lo que viene en ${esc(x.venue)}</button></div>` : ''}</div>
+        : x.venue ? `<div class="seguir-bar"><button class="seguir-btn" onclick="cerrarModal(); verLugar('${esc(id)}')">${ic('cal')}Ver lo que viene en ${esc(x.venue)}</button></div>` : ''}</div>
       <div class="modal-actions">
         <button class="fav" id="copiardir">Copiar dirección</button>
         <a class="tickets" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}" target="_blank" rel="noopener">Cómo llegar →</a>
       </div>
     </div>`;
   document.getElementById('copiardir').onclick = async () => {
-    try { await navigator.clipboard.writeText([nombre, dir, lugar].filter(Boolean).join(', ')); toast('📍 Dirección copiada'); } catch (e) { toast('No pude copiarla 😕'); }
+    try { await navigator.clipboard.writeText([nombre, dir, lugar].filter(Boolean).join(', ')); toast('Dirección copiada'); } catch (e) { toast('No pude copiarla 😕'); }
   };
   document.getElementById('modal').classList.add('open');
   if (tieneCoords(x) && window.L) {
@@ -1882,7 +1905,7 @@ function agregarCalendario(ev, id) {
   const icsUrl = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
   document.getElementById('modalbox').innerHTML = `
     <button class="cerrar-x" onclick="cerrarModal()" aria-label="Cerrar">✕</button>
-    <div class="modal-info"><h3>📅 Agregar a mi calendario</h3><p>${esc(e.titulo)} · ${fechaMini(e.fecha)}${todoElDia ? '' : ` · ${e.hora} hs`}</p>
+    <div class="modal-info"><h3>Agregar a mi calendario</h3><p>${esc(e.titulo)} · ${fechaMini(e.fecha)}${todoElDia ? '' : ` · ${e.hora} hs`}</p>
       <div class="cal-ops">
         <a href="${g}" target="_blank" rel="noopener">Google Calendar<small>Se abre con todo cargado, solo tocás Guardar</small></a>
         <a href="${icsUrl}" download="${esc(e.titulo.replace(/[^\w\s-]/g, '').slice(0, 40) || 'plan')}.ics">iPhone, Mac u Outlook<small>Descarga el evento y se abre en tu calendario</small></a>
@@ -1929,10 +1952,10 @@ async function compartirBusqueda(ev) {
   const m = document.createElement('div');
   m.className = 'menu-share menu-bus';
   const msg = encodeURIComponent(`${texto}\n${url}`);
-  m.innerHTML = `<a href="https://wa.me/?text=${msg}" target="_blank" rel="noopener">💬 WhatsApp</a>
-    <button data-copiar>🔗 Copiar link</button>
- <a href="mailto:?subject=${encodeURIComponent("Let's PartIA!")}&body=${msg}">✉️ Mail</a>
-    ${navigator.share ? '<button data-mas>📲 Más opciones…</button>' : ''}
+  m.innerHTML = `<a href="https://wa.me/?text=${msg}" target="_blank" rel="noopener">${ic('chat')}WhatsApp</a>
+    <button data-copiar>${ic('link')}Copiar link</button>
+ <a href="mailto:?subject=${encodeURIComponent("Let's PartIA!")}&body=${msg}">${ic('mail')}Mail</a>
+    ${navigator.share ? `<button data-mas>${ic('more')}Más opciones…</button>` : ''}
     <input class="link-bus" value="${esc(url)}" readonly onclick="this.select()">`;
   m.addEventListener('click', e => e.stopPropagation());
   const mas = m.querySelector('[data-mas]');
@@ -1942,13 +1965,13 @@ async function compartirBusqueda(ev) {
     let ok = false;
     try { await navigator.clipboard.writeText(url); ok = true; } catch (e) {}
     if (!ok) { inp.focus(); inp.select(); try { ok = document.execCommand('copy'); } catch (e) {} }
-    toast(ok ? '🔗 Link copiado. Pegalo donde quieras' : 'Seleccioná el link de abajo y copialo');
+    toast(ok ? 'Link copiado. Pegalo donde quieras' : 'Seleccioná el link de abajo y copialo');
     if (ok) cerrarMenus();
   };
   ev.currentTarget.parentElement.style.position = 'relative';
   ev.currentTarget.parentElement.appendChild(m);
 }
-function botonCompartir() { return `<button class="share-bus" onclick="compartirBusqueda(event)">↗ Compartir</button>`; }
+function botonCompartir() { return `<button class="share-bus" onclick="compartirBusqueda(event)">${ic('share')}Compartir</button>`; }
 // ── SEGUIR ARTISTAS Y EQUIPOS (se guarda en este navegador) ────────────────
 function leerSeguidos() { try { return JSON.parse(localStorage.getItem('lp_sigo') || '[]'); } catch (e) { return []; } }
 function guardarSeguidos(l) { try { localStorage.setItem('lp_sigo', JSON.stringify(l)); } catch (e) {} }
@@ -1958,14 +1981,14 @@ function barraSeguir(tipo, nombre, meta) {
   const on = sigo(tipo, nombre);
   const k = tipo + '|' + nombre.toLowerCase();
   if (meta) SEG_META[k] = meta;
-  const ayuda = tipo === 'sitio' ? 'Queda guardado en "🔔 Siguiendo", arriba a la derecha' : 'Sus próximas fechas aparecen en "🔔 Siguiendo", arriba a la derecha';
-  return `<div class="seguir-bar"><button class="seguir-btn ${on ? 'on' : ''}" onclick="toggleSeguir(this, '${tipo}', '${esc(nombre).replace(/'/g, '&#39;')}')">${on ? '✓ Siguiendo' : `🔔 Seguir a ${esc(nombre)}`}</button>
+  const ayuda = tipo === 'sitio' ? 'Queda guardado en "Siguiendo", arriba a la derecha' : 'Sus próximas fechas aparecen en "Siguiendo", arriba a la derecha';
+  return `<div class="seguir-bar"><button class="seguir-btn ${on ? 'on' : ''}" onclick="toggleSeguir(this, '${tipo}', '${esc(nombre).replace(/'/g, '&#39;')}')">${on ? `${ic('check')}Siguiendo` : `${ic('bell')}Seguir a ${esc(nombre)}`}</button>
     <small>${on ? ayuda : ''}</small></div>`;
 }
 function toggleSeguir(btn, tipo, nombre) {
   let l = leerSeguidos();
   if (sigo(tipo, nombre)) l = l.filter(x => !(x.tipo === tipo && x.nombre.toLowerCase() === nombre.toLowerCase()));
-  else { l.push({ tipo, nombre, meta: SEG_META[tipo + '|' + nombre.toLowerCase()] || null }); toast(`🔔 Listo, seguís a ${nombre}`); }
+  else { l.push({ tipo, nombre, meta: SEG_META[tipo + '|' + nombre.toLowerCase()] || null }); toast(`Listo, seguís a ${nombre}`); }
   guardarSeguidos(l.slice(-15));
   btn.parentElement.outerHTML = barraSeguir(tipo, nombre);
   contarSiguiendo();
@@ -2004,7 +2027,7 @@ async function pintarAvisos(id) {
                   : `${ico} <b>${esc(x.real)}</b> · sin fechas anunciadas por ahora`;
     return `<div class="aviso"><a onclick="verSeguido(${i})">${txt}</a><button title="Dejar de seguir" onclick="dejarSeguir(${i}, '${id}')">✕</button></div>`;
   }).join('');
-  box.innerHTML = `<h4>🔔 Lo que seguís</h4>${filas}`;
+  box.innerHTML = `<h4>${ic('bell')}Lo que seguís</h4>${filas}`;
   box.hidden = false;
 }
 function contarSiguiendo() {
@@ -2016,7 +2039,7 @@ async function abrirSiguiendo(ev) {
   const pop = document.getElementById('sigpop');
   if (pop.classList.toggle('open') === false) return;
   if (!leerSeguidos().length) {
-    pop.innerHTML = `<div class="vacio">🔔 Todavía no seguís a nadie.<br>Preguntale al chat por un DJ o un equipo (ej: "¿cuándo toca Hernán Cattaneo?") y tocá <b>Seguir</b>: acá vas a ver sus próximas fechas.</div>`;
+    pop.innerHTML = `<div class="vacio">Todavía no seguís a nadie.<br>Preguntale al chat por un DJ o un equipo (ej: "¿cuándo toca Hernán Cattaneo?") y tocá <b>Seguir</b>: acá vas a ver sus próximas fechas.</div>`;
     return;
   }
   pop.innerHTML = '<div class="vacio">Buscando sus próximas fechas…</div><div class="avisos" id="avisos-h" hidden></div>';
@@ -2046,22 +2069,10 @@ async function verLugar(id) {
     const d = await r.json();
     const evs = (d.eventos || []).length ? d.eventos : [e];
     mostrar(evs, evs.length, `Lo que viene en <span>${esc(e.venue)}</span>`, {},
-      barraSeguir('lugar', e.venue, { ciudad: ciudad(), cat }) + `<div class="seguir-bar" style="margin-top:-6px"><button class="dir-btn" style="margin:0;padding:8px 12px;font-size:13px" onclick="verDireccion('${esc(id)}')">📍 Cómo llegar</button><small>Mostrando las próximas 6 semanas</small></div>`);
+      barraSeguir('lugar', e.venue, { ciudad: ciudad(), cat }) + `<div class="seguir-bar" style="margin-top:-6px"><button class="dir-btn" style="margin:0;padding:8px 12px;font-size:13px" onclick="verDireccion('${esc(id)}')">${ic('pin')}Cómo llegar</button><small>Mostrando las próximas 6 semanas</small></div>`);
   } catch (err) { toast('No pude traer lo de ese lugar 😕'); }
   main.classList.remove('loading'); main.scrollTop = 0; vista = 'resultados';
 }
-function abrirUsuario(ev) {
-  ev.stopPropagation();
-  const pop = document.getElementById('userpop');
-  if (pop.classList.toggle('open') === false) return;
-  pop.innerHTML = `<div class="u-head"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
-      <div><b>Tu cuenta</b><small>Muy pronto vas a poder crear tu usuario y tener tus planes en todos tus dispositivos.</small></div></div>
-    <button class="u-item" disabled>✉️ Mail <em>Próximamente</em></button>
-    <button class="u-item" disabled>👤 Usuario <em>Próximamente</em></button>
-    <button class="u-item" disabled>⚙️ Configuración <em>Próximamente</em></button>
-    <button class="u-item" disabled>🚪 Cerrar sesión <em>Próximamente</em></button>`;
-}
-document.addEventListener('click', e => { if (!e.target.closest('.sig-wrap')) document.getElementById('userpop')?.classList.remove('open'); });
 function verSitio(i) {
   const x = (AVISOS || [])[i]; if (!x || !x.meta) return;
   document.getElementById('sigpop')?.classList.remove('open');
@@ -2111,7 +2122,7 @@ function sugerirDir() {
       const data = await r.json();
       const res = data.resultados || [];
       document.getElementById('sugs').innerHTML = res.length
-        ? res.map((x, i) => `<div class="sug" data-i="${i}">📍 ${esc(x.nombre)}<small>${esc(x.detalle)}</small></div>`).join('')
+        ? res.map((x, i) => `<div class="sug" data-i="${i}">${ic('pin')}${esc(x.nombre)}<small>${esc(x.detalle)}</small></div>`).join('')
         : '<div class="sug" style="cursor:default;color:var(--dim)">No encontré esa dirección 🤔</div>';
       document.querySelectorAll('#sugs .sug[data-i]').forEach(el => el.onclick = e => {
         e.stopPropagation(); const x = res[Number(el.dataset.i)]; fijarUbic(x.lat, x.lng, x.nombre);
@@ -2139,7 +2150,7 @@ function actualizarNota() {
   const b = document.getElementById('near'), n = document.getElementById('nearnote');
   const manual = ubic && !ubic.auto;
   b.classList.toggle('on', !!manual);
-  b.textContent = manual ? '✕ Mi ubicación' : '◎ Mi ubicación';
+  b.innerHTML = manual ? `${ic('x')}${tr('Mi ubicación')}` : `${ic('locate')}${tr('Mi ubicación')}`;
   n.classList.toggle('show', !!ubic);
   n.innerHTML = ubic ? `Ubicación exacta: <b>${esc(ubic.txt)}</b>` : '';
 }
@@ -2206,7 +2217,7 @@ function toggleChat(abrir) {
   const d = document.getElementById('dock'), f = document.getElementById('fab');
   const on = abrir === undefined ? !d.classList.contains('abierto') : abrir;
   d.classList.toggle('abierto', on); f.classList.toggle('abierto', on);
-  f.querySelector('i').textContent = on ? '✕' : '🤖';
+  f.querySelector('i').innerHTML = on ? ic('x') : ic('spark');
   if (on) {
     const t = document.getElementById('thread');
     if (!t.children.length) t.innerHTML = `<div class="chat-vacio">Pedime lo que quieras, por ejemplo:
@@ -2415,7 +2426,7 @@ function detectarCiudad() {
     }
     if (mejor && dmin < 80) {
       document.getElementById('cityl').value = mejor;
-      box.innerHTML = `📍 Parece que estás en <b>${esc(CIUDADES.find(x => x[0] === mejor)?.[1] || mejor)}</b>. Si no, elegí otra.`;
+      box.innerHTML = `${ic('pin')}Parece que estás en <b>${esc(CIUDADES.find(x => x[0] === mejor)?.[1] || mejor)}</b>. Si no, elegí otra.`;
     } else {
       box.textContent = 'No tenemos tu ciudad todavía. Elegí la más cercana o a la que viajás 👇';
     }
