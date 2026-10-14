@@ -467,7 +467,8 @@
   .msg.rich { white-space: normal; max-width: 92%; }
   .msg-acc { align-self: flex-start; max-width: 92%; }
   .entendi { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .entendi .rap { height: 30px; font-size: 12.5px; padding: 0 10px; }
+  .entendi .rap { height: 28px; font-size: 12.5px; padding: 0 9px; }
+  .entendi .fijo { background: transparent; border: 1px solid var(--border2); }
   .entendi .fijo { cursor: default; color: var(--text); border-color: var(--border2); }
   .rec-t { font: 700 12px 'DM Sans', sans-serif; text-transform: uppercase; letter-spacing: .8px; color: var(--link); margin: 2px 0 6px; }
   .rec-t.alt { color: var(--muted); margin-top: 12px; }
@@ -732,12 +733,16 @@
   .nav-abajo { display: none; }
   .rapidos { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 0 14px; border-bottom: 1px solid var(--line); margin-top: -4px; }
   .rapidos:empty { display: none; }
-  .rap { height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border2); background: transparent; color: var(--muted); font: 600 13px 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap; }
-  .rap:hover { color: var(--text); border-color: var(--muted); }
-  .rap.on { background: rgba(240,138,85,.14); border-color: rgba(240,138,85,.6); color: #F5B08A; }
+  .rap { height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid transparent; background: rgba(242,238,232,.07); color: var(--muted); font: 500 13px 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; }
+  .rap:hover { color: var(--text); background: rgba(242,238,232,.12); }
+  .rap.on { background: rgba(240,138,85,.16); border-color: rgba(240,138,85,.5); color: #F5B08A; }
+  .rap.mas { background: transparent; border: 1px dashed var(--border2); color: var(--text); font-weight: 600; }
+  .rap.mas:hover { border-color: var(--muted); }
+  .rap.mas b { margin-left: 6px; background: var(--cta); color: #fff; border-radius: 999px; min-width: 18px; height: 18px; font-size: 11.5px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
+  .rap.mas b:empty { display: none; }
   .rap.quitar::after { content: '✕'; margin-left: 7px; font-size: 11px; opacity: .8; }
   .tb-barra { border-bottom: none; padding-bottom: 10px; }
-  @media (max-width: 820px) { .rapidos { flex-wrap: nowrap; overflow-x: auto; margin: -4px -16px 0; padding: 0 16px 14px; scrollbar-width: none; } .rapidos::-webkit-scrollbar { display: none; } }
+  @media (max-width: 820px) { .rap.mas { order: -1; } .rapidos { flex-wrap: nowrap; overflow-x: auto; margin: -4px -16px 0; padding: 0 16px 14px; scrollbar-width: none; } .rapidos::-webkit-scrollbar { display: none; } }
   .main-wrap, .topbar, .tb-barra, .cuerpo, .cats, .mom-wrap { min-width: 0; }
   .city-in select { font-size: inherit !important; }
   @media (min-width: 1101px) { .fab:not(.abierto) { display: none; } }
@@ -946,7 +951,6 @@ document.addEventListener('click', ev => {
         </div>
           <div class="mini-cal" id="minical"></div></div>
         <div class="cats" id="cats" role="group" aria-label="Qué buscás"></div>
-        <button class="mas-f" onclick="abrirFiltros()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Más filtros<b id="nfiltros"></b></button>
       </div>
       <div class="rapidos" id="rapidos" role="group" aria-label="Filtros rápidos"></div>
       <div class="avisos avisos-m" id="avisos-m" hidden></div>
@@ -1360,7 +1364,7 @@ function pintar() {
     || st.cuando === 'cal' || st.km !== KM_DEFECTO[kmClave()] || (ubic && !ubic.auto);
   document.getElementById('resetf').hidden = !hayFiltros;
   const n = ['aire', 'franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].reduce((t, k) => t + valores(st[k]).length, 0) + (st.km !== KM_DEFECTO[kmClave()] ? 1 : 0);
-  document.getElementById('nfiltros').textContent = n || '';
+  const nf = document.getElementById('nfiltros'); if (nf) nf.textContent = n || '';
   document.querySelector('.mom-wrap').hidden = esBar || esCine;
   const fsum = document.getElementById('fsummary'); if (fsum) fsum.textContent = (esBar ? [st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar, st.tab === 'restaurantes' ? st.extraRest : null, st.abierto ? 'abierto ahora' : null, kmTxt] : [et[st.cuando], st.aire === 'abierto' ? 'aire libre' : st.aire === 'cerrado' ? 'cerrado' : null, st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map(x => x === kmTxt ? x : valores(x).map(trClave).join(' + ')).join(' · ');
 }
@@ -1394,13 +1398,14 @@ function etiquetaFiltro(k, v) {
 function activo(k, v) { return MULTI.includes(k) ? valores(st[k]).includes(v) : st[k] === v; }
 function pintarRapidos() {
   const box = document.getElementById('rapidos'); if (!box) return;
-  if (st.tab === 'cine') { box.innerHTML = ''; return; }
+  if (st.tab === 'cine') { box.innerHTML = `<button class="rap mas" onclick="abrirFiltros()">+ ${esc(tr('Filtros'))}<b id="nfiltros"></b></button>`; return; }
   const base = (RAPIDOS[st.tab] || []).filter(([k]) => k !== 'genero' || (GENEROS[st.tab] || []).length);
   const extra = [];
   ['aire', 'franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].forEach(k =>
     (MULTI.includes(k) ? valores(st[k]) : st[k] ? [st[k]] : []).forEach(v => { if (!base.some(([a, b]) => a === k && b === v)) extra.push([k, v]); }));
   box.innerHTML = [...extra.map(f => [...f, 'quitar']), ...base].map(([k, v, cl]) =>
-    `<button class="rap ${activo(k, v) ? 'on' : ''} ${cl || ''}" data-k="${k}" data-v="${esc(v)}" aria-pressed="${activo(k, v)}">${esc(etiquetaFiltro(k, v))}</button>`).join('');
+    `<button class="rap ${activo(k, v) ? 'on' : ''} ${cl || ''}" data-k="${k}" data-v="${esc(v)}" aria-pressed="${activo(k, v)}">${esc(etiquetaFiltro(k, v))}</button>`).join('')
+    + `<button class="rap mas" onclick="abrirFiltros()" aria-label="Más filtros">+ ${esc(tr('Filtros'))}<b id="nfiltros"></b></button>`;
 }
 function tocarFiltro(k, v) {
   usoFiltros = true;
@@ -3017,7 +3022,7 @@ document.getElementById('thread').addEventListener('click', e => {
   b.closest('.entendi').innerHTML = chipsEntendido();
 });
 document.getElementById('rapidos').addEventListener('click', e => {
-  const b = e.target.closest('.rap'); if (b) tocarFiltro(b.dataset.k, b.dataset.v);
+  const b = e.target.closest('.rap'); if (b && b.dataset.k) tocarFiltro(b.dataset.k, b.dataset.v);
 });
 document.getElementById('cats').addEventListener('click', e => {
   const b = e.target.closest('.cat'); if (!b) return;
