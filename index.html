@@ -708,6 +708,14 @@
   .side-head .cerrar-x { position: static; }
   .side .search { display: block; position: sticky; bottom: 0; width: 100%; margin-top: 8px; box-shadow: 0 -12px 24px rgba(13,12,11,.9); }
   .nav-abajo { display: none; }
+  .rapidos { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 0 14px; border-bottom: 1px solid var(--line); margin-top: -4px; }
+  .rapidos:empty { display: none; }
+  .rap { height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border2); background: transparent; color: var(--muted); font: 600 13px 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap; }
+  .rap:hover { color: var(--text); border-color: var(--muted); }
+  .rap.on { background: rgba(240,138,85,.14); border-color: rgba(240,138,85,.6); color: #F5B08A; }
+  .rap.quitar::after { content: '✕'; margin-left: 7px; font-size: 11px; opacity: .8; }
+  .tb-barra { border-bottom: none; padding-bottom: 10px; }
+  @media (max-width: 820px) { .rapidos { flex-wrap: nowrap; overflow-x: auto; margin: -4px -16px 0; padding: 0 16px 14px; scrollbar-width: none; } .rapidos::-webkit-scrollbar { display: none; } }
   .main-wrap, .topbar, .tb-barra, .cuerpo, .cats, .mom-wrap { min-width: 0; }
   .city-in select { font-size: inherit !important; }
   @media (min-width: 1101px) { .fab:not(.abierto) { display: none; } }
@@ -918,6 +926,7 @@ document.addEventListener('click', ev => {
         <div class="cats" id="cats" role="group" aria-label="Qué buscás"></div>
         <button class="mas-f" onclick="abrirFiltros()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Más filtros<b id="nfiltros"></b></button>
       </div>
+      <div class="rapidos" id="rapidos" role="group" aria-label="Filtros rápidos"></div>
       <div class="avisos avisos-m" id="avisos-m" hidden></div>
     </div>
     <div class="cuerpo">
@@ -1218,7 +1227,7 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
     'Esta noche': 'Tonight', 'Finde': 'Weekend', 'Fecha': 'Date', 'Todo': 'All', '✨ Todo': '✨ All', '🪩 Fiestas': '🪩 Parties', '🎭 Shows': '🎭 Shows', '🍽️ Comer y beber': '🍽️ Food & drinks', '← Planes': '← Plans',
     'Más filtros': 'More filters', 'Ver mapa grande': 'Open big map', 'Explorar': 'Explore', 'Agente': 'Agent', 'Mis planes': 'My plans', 'Navegación': 'Navigation', 'Qué buscás': 'What are you looking for',
     'Preguntale al agente: techno al aire libre el sábado…': 'Ask the agent: open-air techno on Saturday…', 'Techno al aire libre, algo barato…': 'Open-air techno, something cheap…',
-    'Lo que': 'What you', 'Cerrar mapa': 'Close map', 'seguís': 'follow', 'Nada por acá': 'Nothing here', 'Ver resultados': 'See results', 'Volver': 'Back', 'También en:': 'Also on:', 'Cómo llegar': 'Directions', 'Volver': 'Back', 'Guardar en Mis planes': 'Save to My plans', 'Detalle del plan': 'Plan details' });
+    'Lo que': 'What you', 'Filtros rápidos': 'Quick filters', 'Cerrar mapa': 'Close map', 'seguís': 'follow', 'Nada por acá': 'Nothing here', 'Ver resultados': 'See results', 'Volver': 'Back', 'También en:': 'Also on:', 'Cómo llegar': 'Directions', 'Volver': 'Back', 'Guardar en Mis planes': 'Save to My plans', 'Detalle del plan': 'Plan details' });
 })();
 function trClave(v) { return LANG === 'en' ? (EN_CLAVES[v] || tr(v)) : v; }
 const ETIQUETAS_EN = { tapas: 'Tapas / Spanish', italiana: 'Italian', pizza: 'Pizza', japonesa: 'Japanese', asiatica: 'Asian', mexicana: 'Mexican',
@@ -1307,7 +1316,7 @@ function pintarGeneros() {
 }
 function pintar() {
   document.querySelectorAll('.chips').forEach(g => g.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', MULTI.includes(g.dataset.g) ? valores(st[g.dataset.g]).includes(b.dataset.v) : st[g.dataset.g] === b.dataset.v)));
-  pintarCats(); pintarTitulo();
+  pintarCats(); pintarTitulo(); pintarRapidos();
   document.getElementById('chip-cal').innerHTML = ic('cal') + esc(tr(textoFechas()));
   const et = { hoy: tr('Hoy'), manana: tr('Mañana'), finde: tr('Este finde'), cal: textoFechas() };
   const esBar = esLugar();
@@ -1340,6 +1349,41 @@ function pintarCats() {
     : [...CATS, ...(BETA ? [['cine', '🎬 Cine']] : []), ['bares', '🍽️ Comer y beber']];
   document.getElementById('cats').innerHTML = lista.map(([t, txt, cl]) =>
     `<button class="cat ${cl || ''} ${t === st.tab && !cl ? 'on' : ''}" data-tab="${t}" aria-pressed="${t === st.tab && !cl}">${txt}</button>`).join('');
+}
+// Filtros rápidos: lo más usado a la vista según la categoría + los que estén puestos desde "Más filtros" (con ✕)
+const RAPIDOS = {
+  todo: [['precio', 'gratis'], ['aire', 'abierto'], ['franja', 'sunset'], ['franja', 'afters']],
+  clubs: [['genero', 'techno'], ['genero', 'house'], ['genero', 'tech house'], ['genero', 'melodic'], ['precio', 'gratis'], ['aire', 'abierto'], ['franja', 'afters']],
+  conciertos: [['genero', 'rock'], ['genero', 'pop'], ['genero', 'latin'], ['genero', 'jazz'], ['precio', 'gratis'], ['aire', 'abierto']],
+  teatro: [['precio', 'gratis'], ['precio', 'bajo']],
+  deportes: [['genero', 'fútbol'], ['genero', 'básquet'], ['genero', 'tenis'], ['genero', 'motor']],
+  bares: [['abierto', 'si'], ['tipoBar', 'terraza'], ['tipoBar', 'cocteles'], ['tipoBar', 'vinos'], ['tipoBar', 'musica']],
+  restaurantes: [['abierto', 'si'], ['extraRest', 'terraza'], ['extraRest', 'veg'], ['tipoRest', 'tapas'], ['tipoRest', 'italiana'], ['tipoRest', 'japonesa']],
+};
+function etiquetaFiltro(k, v) {
+  if (k === 'genero') { const g = (GENEROS[st.tab] || []).find(x => x[0] === v); if (g) return g[1]; }
+  const b = document.querySelector(`.side .chips[data-g="${k}"] .chip[data-v="${CSS.escape(v)}"]`);
+  if (!b) return v;
+  const c = b.cloneNode(true); c.querySelectorAll('small, i').forEach(x => x.remove());
+  return c.textContent.trim();
+}
+function activo(k, v) { return MULTI.includes(k) ? valores(st[k]).includes(v) : st[k] === v; }
+function pintarRapidos() {
+  const box = document.getElementById('rapidos'); if (!box) return;
+  if (st.tab === 'cine') { box.innerHTML = ''; return; }
+  const base = (RAPIDOS[st.tab] || []).filter(([k]) => k !== 'genero' || (GENEROS[st.tab] || []).length);
+  const extra = [];
+  ['aire', 'franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].forEach(k =>
+    (MULTI.includes(k) ? valores(st[k]) : st[k] ? [st[k]] : []).forEach(v => { if (!base.some(([a, b]) => a === k && b === v)) extra.push([k, v]); }));
+  box.innerHTML = [...extra.map(f => [...f, 'quitar']), ...base].map(([k, v, cl]) =>
+    `<button class="rap ${activo(k, v) ? 'on' : ''} ${cl || ''}" data-k="${k}" data-v="${esc(v)}" aria-pressed="${activo(k, v)}">${esc(etiquetaFiltro(k, v))}</button>`).join('');
+}
+function tocarFiltro(k, v) {
+  usoFiltros = true;
+  if (MULTI.includes(k)) { const l = valores(st[k]); st[k] = (l.includes(v) ? l.filter(x => x !== v) : [...l, v]).join(',') || null; }
+  else st[k] = st[k] === v ? null : v;
+  if (['tipoBar', 'tipoRest', 'extraRest'].includes(k) && !tipoLugar() && st.km === '99') st.km = '3';
+  pintar(); autoBuscar();
 }
 function pintarTitulo() {
   const T = { hoy: 'Esta noche en', manana: 'Mañana en', finde: 'Este finde en' };
@@ -2878,6 +2922,9 @@ document.querySelectorAll('.chips').forEach(g => {
     if (['tipoBar', 'tipoRest', 'extraRest'].includes(k) && !tipoLugar() && st.km === '99') st.km = '3';  // sin tipo no se puede "toda la ciudad"
     pintar(); autoBuscar();
   });
+});
+document.getElementById('rapidos').addEventListener('click', e => {
+  const b = e.target.closest('.rap'); if (b) tocarFiltro(b.dataset.k, b.dataset.v);
 });
 document.getElementById('cats').addEventListener('click', e => {
   const b = e.target.closest('.cat'); if (!b) return;
