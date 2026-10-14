@@ -1143,7 +1143,7 @@ def chat():
 # Lugares/fiestas que son siempre al aire libre + palabras que lo delatan (en el nombre del evento o del lugar)
 AIRE_LIBRE = re.compile(r"\b(" + "|".join([
     r"la terr+azza", r"brunch[ -]?in(?: the park)?", r"brunch electronik", r"primavera sound", r"sonar by day", r"s[oó]nar de d[ií]a",
-    r"sea ?sea", r"sun ?sea", r"plaza monumental", r"monumental", r"sound ?it", r"output", r"cala mosca", r"ushua[iï]a", r"dc[- ]?10",
+    r"sea ?sea(?: ?club)?", r"sun ?sea(?: ?bar)?", r"plaza monumental", r"monumental", r"sound ?it", r"output", r"cala mosca", r"ushua[iï]a", r"dc[- ]?10",
     r"monegros", r"mad cool", r"medusa", r"arenal sound", r"cruïlla", r"cruilla", r"tomorrowland", r"awakenings",
     r"open[ -]?air", r"outdoor", r"roof ?top", r"azotea", r"terraza", r"terrace", r"terrasse", r"terrassa", r"beach", r"playa", r"platja",
     r"garden", r"jard[ií]n", r"jardins?", r"parque", r"parc", r"park", r"pool ?party", r"day ?party", r"al aire libre", r"sunset",
