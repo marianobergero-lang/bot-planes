@@ -583,6 +583,7 @@
   .ev-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
   .ev-meta { font-size: 12.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
   .ev-meta .aire { color: #F5C26B; }
+  .ev-meta .ciudad { color: var(--link); } .ev-meta .ciudad .ic { margin-right: 3px; }
   .ev-meta .si { color: #5fd38d; } .ev-meta .no { color: var(--dim); } .ev-meta .dest { color: #F5C26B; }
   .card.lugar .th { background: linear-gradient(135deg, #2B211B, #1a1714); }
   .card.ev .title { font-size: 17px; line-height: 1.2; margin-top: 0; letter-spacing: -0.3px; }
@@ -1653,7 +1654,7 @@ function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
     }
   });
   main.innerHTML = html;
-  main.scrollTop = 0;
+  main.scrollTop = 0; const app = document.querySelector('.app'); if (app) app.scrollTop = 0;
   if (EV_PENDIENTE) abrirPendiente();
 }
 
@@ -1709,7 +1710,8 @@ function tarjeta(e) {
   const th = esc2.length === 2 ? `<div class="th escudos"><img src="${esc(esc2[0])}" alt="" loading="lazy"><img src="${esc(esc2[1])}" alt="" loading="lazy"></div>`
     : e.imagen ? `<div class="th"><img src="${esc(e.imagen)}" alt="" loading="lazy"></div>` : `<div class="th" aria-hidden="true">${emojiTab(e)}</div>`;
   const h = horario(e);
-  const meta = [h ? `<span>${h}</span>` : '', e.aire_libre ? '<span class="aire">Aire libre</span>' : ''].filter(Boolean).join(' · ');
+  const otraCiudad = e.ciudad_venue && !ciudadTxt().toLowerCase().includes(e.ciudad_venue.toLowerCase().split(/[ ,-]/)[0]) && !e.ciudad_venue.toLowerCase().includes(ciudad()) ? e.ciudad_venue : '';
+  const meta = [otraCiudad ? `<span class="ciudad">${ic('pin')}${esc(otraCiudad)}</span>` : '', h ? `<span>${h}</span>` : '', e.aire_libre ? '<span class="aire">Aire libre</span>' : ''].filter(Boolean).join(' · ');
   const sub = [esc(e.venue || e.ciudad_venue || ''), e.d != null ? `${fmtDist(e.d)} · ${aPie(e.d)}` : ''].filter(Boolean).join(' · ');
   const who = (e.artistas || []).length ? esc(e.artistas.slice(0, 4).join(', ')) : genteTxt(e);
   const pr = precioCorto(e);
@@ -3146,6 +3148,10 @@ document.getElementById('thread').addEventListener('click', e => {
 });
 document.getElementById('rapidos').addEventListener('click', e => {
   const b = e.target.closest('.rap'); if (b && b.dataset.k) tocarFiltro(b.dataset.k, b.dataset.v);
+});
+document.addEventListener('click', e => {
+  if (!cal.abierto || e.target.closest('#minical') || e.target.closest('#chip-cal')) return;
+  cal.abierto = false; pintarCal();
 });
 document.getElementById('cats').addEventListener('click', e => {
   const b = e.target.closest('.cat'); if (!b) return;
