@@ -668,7 +668,13 @@
   .tl-card b { display: block; font: 700 15px 'Space Grotesk', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tl-card small { display: block; font-size: 13px; color: var(--muted); }
   .tl-card button { background: none; border: none; color: var(--link); font: 700 13.5px 'DM Sans', sans-serif; cursor: pointer; padding: 6px 0 6px 6px; flex-shrink: 0; }
-  .tl-plan { margin-top: 6px; font: 700 15px 'Space Grotesk', sans-serif; }
+  .tl-plan { margin-top: 6px; padding: 14px 16px; border-radius: 14px; background: rgba(233,104,46,.14); border: 1px solid rgba(233,104,46,.55); }
+  .tl-plan b { display: block; font: 700 17px/1.25 'Space Grotesk', sans-serif; }
+  .tl-plan small { display: block; font-size: 13px; color: #F5B08A; margin-top: 3px; }
+  .tl-k.plan { font-size: 13.5px; }
+  .tl-acc { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .tl-acc .res-wrap { position: relative; }
+  .tl-card .tl-ticket { color: var(--link); font: 700 13.5px 'DM Sans', sans-serif; text-decoration: none; padding: 6px; }
   .noche .ghost.wa { width: 100%; border-style: dashed; margin-top: 4px; }
   @keyframes subir { from { transform: translateY(100%); } to { transform: none; } }
   @media (max-width: 820px) {
@@ -2619,12 +2625,16 @@ async function armarNoche(id) {
   if (!e || !box) return;
   const S = minutos(e.hora);
   NOCHE = { id, bares: [], bi: 0, afters: [], ai: 0 };
+  // el after arranca cuando termina el plan (si sabemos la hora de fin) o al menos 2 h después de que empiece
+  let F = minutos(e.hora_fin);
+  if (F != null && S != null && F <= S) F += 1440;
+  const desde = F != null ? F - 30 : (S != null ? S + 120 : null);
   // Después: de lo que ya está en pantalla, algo que arranque al menos 2 h más tarde esa misma noche
   if (S != null) {
     const gen = new Set((e.generos || []).map(g => g.toLowerCase()));
     const sig = e.fecha ? iso(addDays(deIso(e.fecha), 1)) : '';
     NOCHE.afters = (actual.items || []).filter(x => idEvento(x) !== id && x.hora && (
-      (x.fecha === e.fecha && minutos(x.hora) >= S + 120) || (x.fecha === sig && +x.hora.slice(0, 2) < 8 && (+x.hora.slice(0, 2) + 24) * 60 >= S + 120)))
+      (x.fecha === e.fecha && minutos(x.hora) >= desde) || (x.fecha === sig && +x.hora.slice(0, 2) < 8 && (+x.hora.slice(0, 2) + 24) * 60 >= desde)))
       .map(x => ({ x, p: ((x.categoria || st.tab) === 'clubs' || !x.categoria ? 0 : 1) - (x.generos || []).filter(g => gen.has(g.toLowerCase())).length - Math.min(1, (x.asistentes || 0) / 300)
         + (tieneCoords(e) && tieneCoords(x) ? distKm([e.lat, e.lng], [x.lat, x.lng]) / 10 : 0.3) }))
       .sort((a, b) => a.p - b.p).slice(0, 6).map(o => o.x);
@@ -2650,16 +2660,16 @@ function pintarNoche() {
   if (bar) {
     const b = bar.b; EVENTOS[b.id] = b;
     const tipo = b.tags.length ? b.tags.join(' · ') : b.categoria;
-    filas.push(fila(`<div class="tl-k">${en ? 'Before' : 'Previa'}${S != null ? ' · ' + hhmm(S - 60) : ''}</div>`,
-      `<div class="tl-card"><div onclick="verDireccion('${esc(b.id)}')"><b>${esc(b.titulo)}</b><small>${esc(tipo || '')} · ${trayecto(bar.d)} ${en ? 'from the venue' : 'del lugar'}</small></div>${NOCHE.bares.length > 1 ? `<button onclick="NOCHE.bi=(NOCHE.bi+1)%NOCHE.bares.length;pintarNoche()">${en ? 'Change' : 'Cambiar'}</button>` : ''}</div>`));
+    filas.push(fila(`<div class="tl-k">${en ? 'Pre-drinks' : 'La previa'}${S != null ? ' · ' + hhmm(S - 60) : ''}</div>`,
+      `<div class="tl-card"><div onclick="verDireccion('${esc(b.id)}')"><b>${esc(b.titulo)}</b><small>${esc(tipo || '')} · ${trayecto(bar.d)} ${en ? 'from the venue' : 'del lugar'}</small></div><div class="tl-acc"><div class="res-wrap"><button onclick="menuReservar(event, '${esc(b.id)}')">${en ? 'Book' : 'Reservar'}</button></div>${NOCHE.bares.length > 1 ? `<button onclick="NOCHE.bi=(NOCHE.bi+1)%NOCHE.bares.length;pintarNoche()">${en ? 'Change' : 'Cambiar'}</button>` : ''}</div></div>`));
   }
-  filas.push(fila(`<div class="tl-k plan">${en ? 'The plan' : 'El plan'}${e.hora && e.hora !== '23:59' ? ' · ' + e.hora : ''}</div>`, `<div class="tl-plan">${esc(e.titulo)}</div>`, !aft, true));
+  filas.push(fila(`<div class="tl-k plan">${en ? 'The plan' : 'El plan'}${horario(e) ? ' · ' + horario(e) : ''}</div>`, `<div class="tl-plan"><b>${esc(e.titulo)}</b>${e.venue ? `<small>${esc(e.venue)}</small>` : ''}</div>`, !aft, true));
   if (aft) {
     const aid = idEvento(aft); EVENTOS[aid] = aft;
     const d = tieneCoords(e) && tieneCoords(aft) ? distKm([e.lat, e.lng], [aft.lat, aft.lng]) : null;
     const comun = (aft.generos || []).some(g => (e.generos || []).map(x => x.toLowerCase()).includes(g.toLowerCase()));
-    filas.push(fila(`<div class="tl-k">${en ? 'After' : 'Después'} · ${aft.hora}</div>`,
-      `<div class="tl-card"><div onclick="abrirDetalle('${esc(aid).replace(/'/g, '&#39;')}')"><b>${esc(aft.titulo)}</b><small>${esc(aft.venue || '')}${comun ? (en ? ' · same style' : ' · mismo estilo') : ''}${d != null ? ' · ' + trayecto(d) : ''}</small></div>${NOCHE.afters.length > 1 ? `<button onclick="NOCHE.ai=(NOCHE.ai+1)%NOCHE.afters.length;pintarNoche()">${en ? 'Change' : 'Cambiar'}</button>` : ''}</div>`, true));
+    filas.push(fila(`<div class="tl-k">${en ? 'The after' : 'El after'} · ${aft.hora}</div>`,
+      `<div class="tl-card"><div onclick="abrirDetalle('${esc(aid).replace(/'/g, '&#39;')}')"><b>${esc(aft.titulo)}</b><small>${esc(aft.venue || '')}${comun ? (en ? ' · same style' : ' · mismo estilo') : ''}${d != null ? ' · ' + trayecto(d) : ''}</small></div><div class="tl-acc">${aft.url ? `<a class="tl-ticket" href="${esc(aft.url)}" target="_blank" rel="noopener">Tickets</a>` : ''}${NOCHE.afters.length > 1 ? `<button onclick="NOCHE.ai=(NOCHE.ai+1)%NOCHE.afters.length;pintarNoche()">${en ? 'Change' : 'Cambiar'}</button>` : ''}</div></div>`, true));
   }
   box.innerHTML = `<div class="noche-k">${en ? 'Nobody else plans this for you' : 'Lo que nadie más te arma'}</div><h2>${en ? 'Plan your night' : 'Armá tu noche'}</h2>${filas.join('')}
     <button class="ghost wa" onclick="compartirNoche()">${ic('chat')}${en ? 'Share the whole night on WhatsApp' : 'Compartir la noche entera por WhatsApp'}</button>`;
@@ -2671,9 +2681,9 @@ function compartirNoche() {
   const bar = NOCHE.bares[NOCHE.bi], aft = NOCHE.afters[NOCHE.ai];
   const d = e.fecha ? deIso(e.fecha) : null;
   const l = [`${en ? 'Our night' : 'Nuestra noche'} 🔥${d ? ` ${DIAS_L[d.getDay()]} ${d.getDate()}` : ''}`];
-  if (bar) l.push(`🍸 ${en ? 'Before' : 'Previa'}${S != null ? ' ' + hhmm(S - 60) : ''} — ${bar.b.titulo}${bar.b.direccion ? ` (${bar.b.direccion})` : ''}`);
+  if (bar) l.push(`🍸 ${en ? 'Pre-drinks' : 'La previa'}${S != null ? ' ' + hhmm(S - 60) : ''} — ${bar.b.titulo}${bar.b.direccion ? ` (${bar.b.direccion})` : ''}`);
   l.push(`🎉 ${e.hora && e.hora !== '23:59' ? e.hora + ' ' : ''}— ${e.titulo}${e.venue ? ` @ ${e.venue}` : ''}`);
-  if (aft) l.push(`🌙 ${en ? 'After' : 'Después'} ${aft.hora} — ${aft.titulo}${aft.venue ? ` @ ${aft.venue}` : ''}`);
+  if (aft) l.push(`🌙 ${en ? 'The after' : 'El after'} ${aft.hora} — ${aft.titulo}${aft.venue ? ` @ ${aft.venue}` : ''}`);
   l.push(linkEvento(e));
   track('noche/whatsapp');
   window.open(`https://wa.me/?text=${encodeURIComponent(l.join('\n'))}`, '_blank', 'noopener');
