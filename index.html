@@ -543,6 +543,98 @@
   .card .price { background: none !important; padding: 0; font-weight: 700; }
   .card .p-nd { color: var(--dim); } .card .p-gratis { color: #5fd38d; }
   .tag.aire { color: #F5B83D; }
+  /* TARJETA COMPACTA DE EVENTO (toda la tarjeta abre el detalle) */
+  .grid:has(> .card.ev) { grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr)); }
+  .card.ev { min-width: 0; overflow: visible; padding: 14px !important; gap: 12px; cursor: pointer; border-radius: 16px; }
+  .card.ev:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .ev-top { display: flex; gap: 14px; align-items: flex-start; }
+  .th { width: 80px; height: 80px; border-radius: 12px; flex-shrink: 0; overflow: hidden; background: #2B211B; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+  .th img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+  .th.escudos { gap: 2px; background: radial-gradient(circle at 50% 120%, #2a5a2e, #121110 75%); }
+  .th.escudos img { width: 34px; height: 34px; object-fit: contain; }
+  .ev-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .ev-meta { font-size: 12.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  .ev-meta .aire { color: #F5C26B; }
+  .card.ev .title { font-size: 17px; line-height: 1.2; margin-top: 0; letter-spacing: -0.3px; }
+  .ev-sub { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fav-ic { width: 40px; height: 40px; margin: -6px -6px 0 0; border-radius: 50%; border: none; background: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .fav-ic .ic { margin: 0; width: 22px; height: 22px; }
+  .fav-ic:hover { color: var(--text); }
+  .fav-ic.on { color: #F08A55; } .fav-ic.on .ic { fill: currentColor; }
+  .ev-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .ev-who { font-size: 14px; color: #E6E1D9; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ev-who .people { font-size: 13.5px; color: var(--muted); }
+  .ev-buy { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .ev-precio { font-weight: 700; font-size: 14.5px; white-space: nowrap; }
+  .ev-precio.p-gratis { color: #5fd38d; }
+  .card.ev .tickets { padding: 10px 16px; border-radius: 11px; font-size: 14px; }
+  .card.ev .res-wrap .tickets { font-family: inherit; cursor: pointer; }
+  .mapa-lista:has(.card.ev) { grid-template-columns: 1fr; }
+  .ev-fecha { display: none; } .mapa-lista .ev-fecha, .guardados .ev-fecha { display: inline; color: var(--link); }
+  .mapa-lista .card.ev .title { font-size: 15px; }
+  .mapa-lista .card.ev .th { width: 56px; height: 56px; font-size: 22px; }
+  .mapa-lista .card.ev .tickets { justify-self: auto; padding: 7px 12px; }
+
+  /* DETALLE: hoja deslizable en celular, ventana en escritorio */
+  .sheet { display: none; position: fixed; inset: 0; z-index: 1500; background: rgba(0,0,0,.6); align-items: center; justify-content: center; padding: 24px; }
+  .sheet.open { display: flex; }
+  .sheet-box { width: 560px; max-width: 100%; max-height: calc(100vh - 48px); background: var(--bg); border: 1px solid var(--border2); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+  .det-scroll { overflow-y: auto; flex: 1; overscroll-behavior: contain; }
+  .det-hero { height: 260px; position: relative; background: #2B211B center / cover no-repeat; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .det-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.35), transparent 35%, transparent 70%, rgba(13,12,11,.85)); pointer-events: none; }
+  .det-hero.vacia b { font: 700 26px 'Space Grotesk', sans-serif; letter-spacing: -0.8px; text-align: center; padding: 0 60px; color: rgba(242,238,232,.85); }
+  .det-hero.vacia i { position: absolute; right: 18px; bottom: 16px; font-style: normal; font-size: 30px; z-index: 1; }
+  .det-hero.escudos { gap: 36px; background: radial-gradient(circle at 50% 120%, #2a5a2e, #121110 75%); }
+  .det-hero.escudos img { width: 96px; height: 96px; object-fit: contain; }
+  .det-top { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; z-index: 2; }
+  .det-top > div { display: flex; gap: 8px; }
+  .det-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(13,12,11,.66); backdrop-filter: blur(6px); color: #F2EEE8; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .det-btn .ic { margin: 0; width: 20px; height: 20px; }
+  .det-btn:hover { background: rgba(13,12,11,.9); }
+  .det-btn.on { color: #F08A55; } .det-btn.on .ic { fill: currentColor; }
+  .det-hero .menu-share { top: 64px; right: 14px; }
+  .det-body { padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 10px; }
+  .det-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .det-tags span { font-size: 12.5px; font-weight: 700; padding: 5px 9px; border-radius: 8px; background: #2A2622; color: #E6E1D9; }
+  .det-tags .aire { color: #F5C26B; }
+  .det-body h1 { font: 700 28px/1.1 'Space Grotesk', sans-serif; letter-spacing: -1px; margin: 0; }
+  .det-when { font-size: 15px; color: var(--muted); }
+  .det-who { font-size: 15px; }
+  .det-who .lnk { font-weight: 700; }
+  .det-gente { font-size: 14px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+  .det-lugar { margin-top: 8px; padding: 14px 16px; border-radius: 16px; background: var(--card); display: flex; align-items: center; gap: 12px; }
+  .det-lugar > .ic { width: 22px; height: 22px; margin: 0; color: var(--muted); }
+  .det-lugar div { flex: 1; min-width: 0; }
+  .det-lugar b { display: block; font: 700 15px 'Space Grotesk', sans-serif; }
+  .det-lugar small { display: block; font-size: 13.5px; color: var(--muted); margin-top: 2px; }
+  .det-lugar button { background: none; border: none; color: var(--link); font: 700 14px 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap; padding: 8px 0 8px 8px; }
+  .det-acc { display: flex; gap: 8px; flex-wrap: wrap; }
+  .det-acc > * { flex: 1 1 180px; }
+  .ghost { display: flex; align-items: center; justify-content: center; height: 44px; border-radius: 12px; border: 1px solid var(--border2); background: transparent; color: var(--text); font: 600 14px 'DM Sans', sans-serif; cursor: pointer; padding: 0 12px; }
+  .ghost:hover { border-color: var(--muted); }
+  .det-acc .seguir-bar { margin: 0; display: block; }
+  .det-acc .seguir-bar small { display: none; }
+  .det-acc .seguir-btn { width: 100%; height: 44px; border-radius: 12px; border: 1px solid var(--border2); background: transparent; color: var(--text); font: 600 14px 'DM Sans', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .det-acc .seguir-btn.on { border-color: var(--cta); color: var(--link); }
+  .det-foot { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-top: 1px solid var(--border); background: rgba(13,12,11,.97); flex-shrink: 0; }
+  .det-precio { flex: 1; min-width: 0; }
+  .det-precio b { display: block; font: 700 18px 'Space Grotesk', sans-serif; }
+  .det-precio b.p-gratis { color: #5fd38d; }
+  .det-precio small { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .det-precio small a { color: var(--link); text-decoration: none; font-weight: 600; }
+  .det-cta { background: var(--cta); color: #fff; text-decoration: none; font: 700 16px 'DM Sans', sans-serif; padding: 14px 24px; border-radius: 14px; white-space: nowrap; }
+  .det-cta:hover { background: var(--cta2); }
+  @keyframes subir { from { transform: translateY(100%); } to { transform: none; } }
+  @media (max-width: 820px) {
+    .grid:has(> .card.ev) { grid-template-columns: minmax(0, 1fr); }
+    .card.ev .tickets { padding: 9px 13px; }
+    .ev-buy { gap: 10px; }
+    .th { width: 84px; height: 84px; }
+    .sheet { padding: 0; align-items: flex-end; }
+    .sheet-box { width: 100%; max-height: 94vh; border-radius: 20px 20px 0 0; border-bottom: none; animation: subir .22s ease-out; }
+    .det-hero { height: 240px; }
+    .det-foot { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+  }
   .otros-links { margin-top: 8px; font-size: 13px; color: var(--dim); text-align: right; }
   .otros-links a { color: var(--orange); text-decoration: none; font-weight: 600; }
   .otros-links a:hover { text-decoration: underline; }
@@ -632,6 +724,7 @@ document.addEventListener('click', ev => {
   </div>
 </div>
 <div class="modal" id="modal" onclick="if(event.target===this)cerrarModal()"><div class="modal-box" id="modalbox"></div></div>
+<div class="sheet" id="sheet" onclick="if(event.target===this)cerrarDetalle()"><div class="sheet-box" id="sheetbox" role="dialog" aria-modal="true" aria-label="Detalle del plan"></div></div>
 
 <div class="app">
   <aside class="side" id="side">
@@ -1015,7 +1108,9 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
     'Sumado a tus planes favoritos': 'Added to your saved plans', 'Link copiado': 'Link copied', 'Dirección copiada': 'Address copied',
     'Queda guardado en "Siguiendo", arriba a la derecha': 'Saved in "Following", top right',
     'Sus próximas fechas aparecen en "Siguiendo", arriba a la derecha': 'Their next dates show up in "Following", top right',
-    'Siguiendo': 'Following', 'Aire libre': 'Open air', 'Elegir fechas': 'Pick dates', 'Idioma': 'Language' });
+    'Siguiendo': 'Following', 'Aire libre': 'Open air', 'Elegir fechas': 'Pick dates', 'Idioma': 'Language',
+    'Tickets ▾': 'Tickets ▾', 'Entradas': 'Tickets', 'Comprar tickets': 'Get tickets', 'Entradas en la web del club': 'Tickets on the club website', 'Al calendario': 'Add to calendar',
+    'Con': 'With', 'También en:': 'Also on:', 'Cómo llegar': 'Directions', 'Volver': 'Back', 'Guardar en Mis planes': 'Save to My plans', 'Detalle del plan': 'Plan details' });
 })();
 function trClave(v) { return LANG === 'en' ? (EN_CLAVES[v] || tr(v)) : v; }
 const ETIQUETAS_EN = { tapas: 'Tapas / Spanish', italiana: 'Italian', pizza: 'Pizza', japonesa: 'Japanese', asiatica: 'Asian', mexicana: 'Mexican',
@@ -1025,6 +1120,7 @@ function cambiarIdioma(l) {
   const u = new URL(location.href); u.searchParams.set('lang', l); location.href = u.toString();
 }
 const IC = {"heart": "<path d=\"M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z\"/>", "bell": "<path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8\"/><path d=\"M10 20a2 2 0 0 0 4 0\"/>", "pin": "<path d=\"M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z\"/><circle cx=\"12\" cy=\"10\" r=\"2.5\"/>", "spark": "<path d=\"M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z\"/><path d=\"M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z\"/>", "send": "<path d=\"M12 19V5M5 12l7-7 7 7\"/>", "cal": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M16 3v4M8 3v4M3 10h18\"/>", "share": "<path d=\"M7 17 17 7M8 7h9v9\"/>", "locate": "<circle cx=\"12\" cy=\"12\" r=\"7\"/><circle cx=\"12\" cy=\"12\" r=\"2.5\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3\"/>", "users": "<circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5\"/><path d=\"M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.8 3 2.6 3.5 5.2\"/>", "list": "<path d=\"M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01\"/>", "map": "<path d=\"m9 4-6 2.5V20l6-2.5 6 2.5 6-2.5V4l-6 2.5z\"/><path d=\"M9 4v13.5M15 6.5V20\"/>", "ticket": "<path d=\"M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z\"/><path d=\"M14 7v2M14 11v2M14 15v2\"/>", "chat": "<path d=\"M21 12a8 8 0 0 1-11.8 7L4 20l1.1-4.6A8 8 0 1 1 21 12z\"/>", "mail": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"m3 7 9 6 9-6\"/>", "link": "<path d=\"M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1\"/>", "globe": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18\"/>", "phone": "<path d=\"M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2\"/>", "star": "<path d=\"m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3l-5.5 2.9 1-6.2L3 9.6l6.2-.9z\"/>", "walk": "<circle cx=\"13\" cy=\"4.5\" r=\"2\"/><path d=\"m9 21 2.5-6.5L14 17v4M7.5 12.5 10 8l4 1.5 2.5 3\"/>", "x": "<path d=\"M18 6 6 18M6 6l12 12\"/>", "check": "<path d=\"m5 12 5 5 9-10\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>", "more": "<circle cx=\"5\" cy=\"12\" r=\"1.2\"/><circle cx=\"12\" cy=\"12\" r=\"1.2\"/><circle cx=\"19\" cy=\"12\" r=\"1.2\"/>"};
+IC.back = '<path d="M15 18l-6-6 6-6"/>';
 function ic(n) { return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`; }
 function favTxt(on) { return on ? `${ic('heart')}${LANG === 'en' ? 'Saved' : 'En mis planes'}` : `${ic('heart')}${LANG === 'en' ? 'Save' : 'Mis planes'}`; }
 function selectorIdioma() {
@@ -1233,6 +1329,7 @@ function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
   });
   main.innerHTML = html;
   main.scrollTop = 0;
+  if (EV_PENDIENTE) abrirPendiente();
 }
 
 async function verDia(dia) {
@@ -1257,43 +1354,55 @@ function picNombre(nombre, emoji) {
   let hsh = 0; for (const ch of String(nombre || '')) hsh = (hsh * 31 + ch.charCodeAt(0)) % 360;
   return `<div class="pic vacia nombre" style="background:linear-gradient(135deg, hsl(${hsh} 32% 20%), #121110 75%)"><b>${esc(nombre || '')}</b><i>${emoji}</i></div>`;
 }
-function tarjeta(e) {
+function precioCorto(e) {
   const cat = e.precio_cat || (e.gratis ? 'gratis' : 'nd');
-  const precio = cat === 'nd' ? 'PRECIO EN WEB' : cat === 'gratis' ? 'GRATIS' : (e.precio_label || '').toUpperCase();
+  if (cat === 'gratis') return { t: 'Gratis', c: 'gratis' };
+  if (cat === 'nd' || !e.precio_label) return null;
+  const l = e.precio_label.includes('·') ? e.precio_label.split('·').slice(1).join('·').trim() : e.precio_label;
+  return { t: l, c: cat };
+}
+function horario(e) {
   const hora = e.hora && e.hora !== '23:59' ? e.hora : null;
   const fin = e.hora_fin && e.hora_fin !== '23:59' ? e.hora_fin : null;
-  const gente = e.asistentes ? `${ic('users')}${e.asistentes} interesados` : (e.destacado && e.escudos ? esc(e.destacado) : `vía ${esc(e.fuente || 'Resident Advisor')}`);
-  const lugar = e.ciudad_venue || ciudadTxt();
+  return hora ? hora + (fin ? ` – ${fin}` : '') : '';
+}
+function genteTxt(e) {
+  return e.asistentes ? `<span class="people">${ic('users')}<span>${e.asistentes} interesados</span></span>`
+    : e.destacado && e.escudos ? `<span class="people">${esc(e.destacado)}</span>` : `<span class="people">vía ${esc(e.fuente || 'Resident Advisor')}</span>`;
+}
+function emojiTab(e) { return { conciertos: '🎤', teatro: '🎭', deportes: '⚽', cine: '🎬' }[e.categoria || st.tab] || '🪩'; }
+function botonTickets(e, id) {
+  if ((e.otros_links || []).length) return `<div class="res-wrap"><button class="tickets" onclick="menuTickets(event, '${esc(id)}')">Tickets ▾</button></div>`;
+  if (!e.url) return '';
+  const t = e.url_tipo === 'club' ? 'Entradas' : e.url_tipo === 'google' ? 'Buscar entradas' : 'Tickets';
+  return `<a class="tickets" href="${esc(e.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${t}</a>`;
+}
+function tarjeta(e) {
   const id = idEvento(e);
   EVENTOS[id] = e;
-  const emoji = { conciertos: '🎤', teatro: '🎭', deportes: '⚽' }[st.tab] || '🪩';
-  const pic = (e.escudos || []).filter(Boolean).length === 2
-    ? `<div class="pic escudos"><img src="${esc(e.escudos[0])}" alt="" loading="lazy"><i>VS</i><img src="${esc(e.escudos[1])}" alt="" loading="lazy"></div>`
-    : e.imagen ? `<div class="pic" style="background-image:url('${esc(e.imagen)}')"></div>` : picNombre(e.venue || e.titulo, emoji);
+  const esc2 = (e.escudos || []).filter(Boolean);
+  const th = esc2.length === 2 ? `<div class="th escudos"><img src="${esc(esc2[0])}" alt="" loading="lazy"><img src="${esc(esc2[1])}" alt="" loading="lazy"></div>`
+    : e.imagen ? `<div class="th"><img src="${esc(e.imagen)}" alt="" loading="lazy"></div>` : `<div class="th" aria-hidden="true">${emojiTab(e)}</div>`;
+  const h = horario(e);
+  const meta = [h ? `<span>${h}</span>` : '', e.aire_libre ? '<span class="aire">Aire libre</span>' : ''].filter(Boolean).join(' · ');
+  const sub = [esc(e.venue || e.ciudad_venue || ''), e.d != null ? `${fmtDist(e.d)} · ${aPie(e.d)}` : ''].filter(Boolean).join(' · ');
+  const who = (e.artistas || []).length ? esc(e.artistas.slice(0, 4).join(', ')) : genteTxt(e);
+  const pr = precioCorto(e);
+  const g = estaGuardado(id);
   return `
-    <article class="card" data-id="${esc(id)}" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
-      ${pic}
-      ${e.d != null ? `<span class="dist">${fmtDist(e.d)} · ${aPie(e.d)}</span>` : ''}
-      <div class="acciones">
-        <button class="ico" title="Agregar a mi calendario" onclick="agregarCalendario(event, '${esc(id)}')" aria-label="Agregar a mi calendario">${ic('cal')}</button>
-        <button class="ico" title="Compartir" onclick="compartir(event, '${esc(id)}')" aria-label="Compartir">${ic('share')}</button>
+    <article class="card ev" data-id="${esc(id)}" tabindex="0" onclick="abrirDetalle(this.dataset.id)" onkeydown="if(event.key==='Enter'&&event.target===this)abrirDetalle(this.dataset.id)" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
+      <div class="ev-top">
+        ${th}
+        <div class="ev-info">
+          ${meta || e.fecha ? `<div class="ev-meta">${e.fecha ? `<span class="ev-fecha">${fechaMini(e.fecha)}${meta ? ' · ' : ''}</span>` : ''}${meta}</div>` : ''}
+          <div class="title">${esc(e.titulo)}</div>
+          ${sub ? `<div class="ev-sub">${sub}</div>` : ''}
+        </div>
+        <button class="fav-ic ${g ? 'on' : ''}" data-fav="${esc(id)}" aria-pressed="${g}" aria-label="Guardar en Mis planes" title="Mis planes" onclick="toggleGuardado(event, '${esc(id)}')">${ic('heart')}</button>
       </div>
-      <div class="inner">
-      <div class="town">${ic('pin')}${esc(lugar)}</div>
-      ${e.fecha ? `<div class="fecha-mini">${fechaMini(e.fecha)}</div>` : ''}
-      <div class="title">${esc(e.titulo)}</div>
-      ${(e.artistas || []).length ? `<div class="who">${e.artistas.slice(0, 5).map(a => `<span class="lnk" title="Ver sus próximas fechas" onclick="verArtista('${esc(a).replace(/'/g, '&#39;')}')">${esc(a)}</span>`).join(', ')}</div>` : ''}
-      <div class="facts">
-        ${e.venue ? `<div class="en-lugar"><span>en:</span> <b class="lnk" title="Ver todo lo que hay en este lugar" onclick="verLugar('${esc(id)}')">${esc(e.venue)}</b> <button class="dir-btn" onclick="verDireccion('${esc(id)}')">${ic('pin')}Ver dirección</button></div>` : ''}
-        ${hora ? `<div><span>de</span> ${hora}${fin ? ` <span>a</span> ${fin}` : ''}<span> hs</span></div>` : ''}
-        <div class="people">${gente}</div>
-      </div>
-      <div class="foot">
-        <div class="tags">${e.aire_libre ? '<span class="tag aire">Aire libre</span>' : ''}${(e.generos || []).slice(0, 2).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
-        <span class="price p-${cat}">${esc(precio)}</span>
-        <button class="fav ${estaGuardado(id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(id)}')">${favTxt(estaGuardado(id))}</button>
-        ${(e.otros_links || []).length ? `<div class="res-wrap"><button class="tickets" style="cursor:pointer;font-family:inherit" onclick="menuTickets(event, '${esc(id)}')">Ver tickets ▾</button></div>` : `<a class="tickets" href="${esc(e.url)}" target="_blank" rel="noopener">${e.url_tipo === 'club' ? 'Entradas (web del club) →' : e.url_tipo === 'google' ? 'Buscar entradas →' : 'Ver tickets →'}</a>`}
-      </div>
+      <div class="ev-foot">
+        <div class="ev-who">${who}</div>
+        <div class="ev-buy">${pr ? `<span class="ev-precio ${pr.c === 'gratis' ? 'p-gratis' : ''}">${esc(pr.t)}</span>` : ''}${botonTickets(e, id)}</div>
       </div>
     </article>`;
 }
@@ -1396,7 +1505,8 @@ function toggleGuardado(ev, id) {
   else { g[id] = EVENTOS[id]; toast('Sumado a tus planes favoritos'); }
   escribirGuardados(g); contarGuardados();
   const b = ev.currentTarget; const on = !!g[id];
-  b.classList.toggle('on', on); b.innerHTML = favTxt(on);
+  if (b.dataset.fav) document.querySelectorAll(`[data-fav="${CSS.escape(id)}"]`).forEach(x => { x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); });
+  else { b.classList.toggle('on', on); b.innerHTML = favTxt(on); }
   const sb = document.getElementById('savedbtn'); sb.classList.remove('pulse'); void sb.offsetWidth; if (on) sb.classList.add('pulse');
   if (vista === 'guardados' && !on) verGuardados();
 }
@@ -1432,20 +1542,20 @@ async function compartir(ev, id) {
   const e = EVENTOS[id]; if (!e) return;
   const texto = textoCompartir(e);
   if (navigator.share && matchMedia('(max-width: 820px)').matches) {
-    try { await navigator.share({ title: e.titulo, text: texto, url: e.url }); } catch (err) {}
+    try { await navigator.share({ title: e.titulo, text: texto, url: linkEvento(e) }); } catch (err) {}
     return;
   }
   cerrarMenus();
-  const card = ev.currentTarget.closest('.card');
+  const card = ev.currentTarget.closest('.card, .det-hero');
   const m = document.createElement('div');
   m.className = 'menu-share';
-  const msg = encodeURIComponent(`${texto}\n${e.url}`);
+  const msg = encodeURIComponent(`${texto}\n${linkEvento(e)}`);
   m.innerHTML = `<a href="https://wa.me/?text=${msg}" target="_blank" rel="noopener">${ic('chat')}WhatsApp</a>
     <a href="mailto:?subject=${encodeURIComponent(e.titulo)}&body=${msg}">${ic('mail')}Mail</a>
     <button>${ic('link')}Copiar link</button>`;
   m.querySelector('button').onclick = async (x) => {
     x.stopPropagation();
-    try { await navigator.clipboard.writeText(`${texto}\n${e.url}`); toast('Link copiado'); } catch (err) { toast('No pude copiarlo 😕'); }
+    try { await navigator.clipboard.writeText(`${texto}\n${linkEvento(e)}`); toast('Link copiado'); } catch (err) { toast('No pude copiarlo 😕'); }
     cerrarMenus();
   };
   m.addEventListener('click', x => x.stopPropagation());
@@ -2093,8 +2203,100 @@ function dejarSeguir(i, id) {
   guardarSeguidos(leerSeguidos().filter(y => !(y.tipo === x.tipo && y.nombre === x.nombre)));
   AVISOS = null; pintarAvisos(id); contarSiguiendo();
 }
+// ── DETALLE DEL PLAN ───────────────────────────────────────────────────────
+let EV_PENDIENTE = new URLSearchParams(location.search).get('ev');
+function linkEvento(e) {
+  const u = new URL(location.origin + urlEstado());
+  if (e.fecha) u.searchParams.set('w', 'cal:' + e.fecha);
+  u.searchParams.set('ev', idEvento(e));
+  return u.toString();
+}
+function abrirDetalle(id, sinHistorial) {
+  const e = EVENTOS[id]; if (!e) return;
+  cerrarMenus(); document.querySelectorAll('.res-menu').forEach(m => m.remove());
+  const d = e.fecha ? deIso(e.fecha) : null;
+  const h = horario(e);
+  const cuando = d ? (LANG === 'en' ? `${DIAS_L[d.getDay()]} ${d.getDate()} ${MESES_L[d.getMonth()]}` : `${DIAS_L[d.getDay()]} ${d.getDate()} de ${MESES_L[d.getMonth()]}`) + (h ? ` · ${h}` : '') : h;
+  const esc2 = (e.escudos || []).filter(Boolean);
+  const hero = esc2.length === 2 ? `<div class="det-hero escudos"><img src="${esc(esc2[0])}" alt=""><img src="${esc(esc2[1])}" alt="">`
+    : e.imagen ? `<div class="det-hero" style="background-image:url('${esc(e.imagen)}')">`
+    : `<div class="det-hero vacia"><b>${esc(e.venue || e.titulo)}</b><i>${emojiTab(e)}</i>`;
+  const tags = [...(e.generos || []).slice(0, 3).map(g => `<span>${esc(g)}</span>`), e.aire_libre ? '<span class="aire">Aire libre</span>' : ''].join('');
+  const artistas = (e.artistas || []).slice(0, 8);
+  const quien = artistas.length ? `<div class="det-who">Con ${artistas.map(a => `<span class="lnk" onclick="cerrarDetalle(); verArtista('${esc(a).replace(/'/g, '&#39;')}')">${esc(a)}</span>`).join(', ')}</div>` : '';
+  const cat = e.categoria || st.tab;
+  const seguir = artistas.length ? barraSeguir('artista', artistas[0]) : e.venue ? barraSeguir('lugar', e.venue, { ciudad: ciudad(), cat }) : '';
+  const lugarSub = [e.direccion || e.ciudad_venue || ciudadTxt(), e.d != null ? `${fmtDist(e.d)} · ${aPie(e.d)}` : ''].filter(Boolean).join(' · ');
+  const pr = precioCorto(e);
+  const otros = (e.otros_links || []);
+  const cta = !e.url ? '' : e.url_tipo === 'club' ? 'Entradas en la web del club' : e.url_tipo === 'google' ? 'Buscar entradas' : 'Comprar tickets';
+  const g = estaGuardado(id);
+  document.getElementById('sheetbox').innerHTML = `
+    <div class="det-scroll">
+      ${hero}
+        <div class="det-top">
+          <button class="det-btn" onclick="cerrarDetalle()" aria-label="Volver" title="Volver">${ic('back')}</button>
+          <div>
+            <button class="det-btn" onclick="compartir(event, '${esc(id)}')" aria-label="Compartir" title="Compartir">${ic('share')}</button>
+            <button class="det-btn ${g ? 'on' : ''}" data-fav="${esc(id)}" aria-pressed="${g}" onclick="toggleGuardado(event, '${esc(id)}')" aria-label="Guardar en Mis planes" title="Mis planes">${ic('heart')}</button>
+          </div>
+        </div>
+      </div>
+      <div class="det-body">
+        ${tags ? `<div class="det-tags">${tags}</div>` : ''}
+        <h1>${esc(e.titulo)}</h1>
+        ${cuando ? `<div class="det-when">${cuando}</div>` : ''}
+        ${quien}
+        <div class="det-gente">${genteTxt(e)}</div>
+        ${e.venue || e.direccion ? `<div class="det-lugar">${ic('pin')}<div><b>${e.venue ? `<span class="lnk" onclick="cerrarDetalle(); verLugar('${esc(id)}')">${esc(e.venue)}</span>` : esc(e.direccion)}</b><small>${esc(lugarSub)}</small></div><button onclick="verDireccion('${esc(id)}')">Cómo llegar</button></div>` : ''}
+        <div class="det-acc">
+          ${e.fecha ? `<button class="ghost" onclick="agregarCalendario(event, '${esc(id)}')">${ic('cal')}Al calendario</button>` : ''}
+          ${seguir}
+        </div>
+      </div>
+    </div>
+    ${cta || pr ? `<div class="det-foot">
+      <div class="det-precio">${pr ? `<b class="${pr.c === 'gratis' ? 'p-gratis' : ''}">${esc(pr.t)}</b>` : ''}${otros.length ? `<small>También en: ${otros.map(o => `<a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.fuente)}</a>`).join(' · ')}</small>` : ''}</div>
+      ${cta ? `<a class="det-cta" href="${esc(e.url)}" target="_blank" rel="noopener">${cta}</a>` : ''}
+    </div>` : ''}`;
+  const sh = document.getElementById('sheet');
+  const yaAbierto = sh.classList.contains('open');
+  sh.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  sh.querySelector('.det-scroll').scrollTop = 0;
+  if (!sinHistorial && !yaAbierto) {
+    try { const u = new URL(location.href); u.searchParams.set('ev', id); history.pushState({ det: id }, '', u); } catch (err) {}
+  }
+  setTimeout(() => sh.querySelector('.det-btn')?.focus(), 50);
+  track('detalle/' + (e.fuente || 'x'), e.titulo);
+}
+function cerrarDetalle(desdeHistorial) {
+  const sh = document.getElementById('sheet');
+  if (!sh.classList.contains('open')) return;
+  sh.classList.remove('open');
+  document.body.style.overflow = '';
+  if (desdeHistorial) return;
+  if (history.state && history.state.det) history.back();
+  else { try { const u = new URL(location.href); u.searchParams.delete('ev'); history.replaceState(null, '', u); } catch (err) {} }
+}
+window.addEventListener('popstate', () => cerrarDetalle(true));
+// Link a un plan (?ev=…): se abre cuando llegan los resultados; si no está entre los destacados, lo busca en todo el día
+async function abrirPendiente() {
+  if (!EV_PENDIENTE) return;
+  const id = EV_PENDIENTE; EV_PENDIENTE = null;
+  if (EVENTOS[id]) return abrirDetalle(id, true);
+  const w = new URLSearchParams(location.search).get('w') || '';
+  if (!ultimaBusqueda || !w.startsWith('cal:')) return;
+  const dia = w.slice(4, 14);
+  const p = new URLSearchParams(ultimaBusqueda); p.set('desde', dia); p.set('hasta', dia); p.set('max', 300);
+  try {
+    const data = await (await fetch(`${API}/eventos?${p}`)).json();
+    const e = (data.eventos || []).find(x => idEvento(x) === id);
+    if (e) { EVENTOS[id] = e; abrirDetalle(id, true); }
+  } catch (err) {}
+}
 function cerrarModal() { document.getElementById('modal').classList.remove('open'); }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
+document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (document.getElementById('modal').classList.contains('open')) cerrarModal(); else cerrarDetalle(); });
 
 // ── CERCA MÍO ──────────────────────────────────────────────────────────────
 function abrirCerca(ev) {
