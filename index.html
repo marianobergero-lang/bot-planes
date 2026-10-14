@@ -2832,7 +2832,7 @@ function aplicarFiltrosDelBot(f) {
   }
   st.franja = ['tarde', 'sunset', 'noche', 'afters'].includes(f.franja) ? f.franja : null;
   st.precio = f.gratis ? 'gratis' : f.precio_max ? (f.precio_max <= 15 ? 'bajo' : f.precio_max <= 30 ? 'medio' : null) : null;
-  st.genero = f.genero ? String(f.genero).toLowerCase() : null;
+  st.genero = f.genero ? String(f.genero).toLowerCase().split(',').map(v => { v = v.trim(); const g = (GENEROS[st.tab] || []).find(x => x[0] === v || x[0].includes(v) || v.includes(x[0])); return g ? g[0] : v; }).join(',') : null;
   st.aire = ['abierto', 'cerrado'].includes(f.ambiente) ? f.ambiente : null;
   preciosCiudad(); pintarGeneros(); pintar();
 }
@@ -2850,7 +2850,7 @@ async function preguntar(textoFijo) {
   track('chat/mensaje');
   const esperando = burbuja('…', 'bot typing');
   try {
-    const r = await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: historial, lang: LANG }) });
+    const r = await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: historial, lang: LANG, ciudad: ciudad() }) });
     const data = await r.json();
     esperando.remove();
     const reply = (data.reply || '').replace(/\*\*/g, '');

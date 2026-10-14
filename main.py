@@ -4,6 +4,7 @@ import requests
 import json
 import os
 import re
+import unicodedata
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
@@ -779,14 +780,14 @@ IDIOMA_EN = """
 IMPORTANT — LANGUAGE: the app is being used in ENGLISH. Write every message to the user in natural, friendly English (short, no markdown).
 The JSON block between ###FILTROS### and ###FIN### stays EXACTLY as specified above (same keys and the same Spanish values like "finde", "hoy", "noche", "clubs", "restaurantes", "japonesa", etc.). Understand the user's English: "this weekend" → cuando "finde", "tonight" → cuando "hoy" + franja "noche", "tomorrow" → "mañana", "free" → gratis, "cheap" → precio_max 15, "concerts" → categoria "conciertos", "theatre/shows" → "teatro", "sports/match" → "deportes", "bar" → tipo "lugar" categoria "bares", "restaurant/dinner/food" → categoria "restaurantes"."""
 
-def call_groq(messages, lang="es"):
+def call_groq(messages, lang="es", extra=""):
     print(f"[GROQ] msgs: {len(messages)} lang: {lang}")
     resp = requests.post(
         "https://api.groq.com/openai/v1/chat/completions",
         headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
         json={
             "model": "openai/gpt-oss-120b",
-            "messages": [{"role": "system", "content": SYSTEM_PROMPT + fecha_de_hoy() + (IDIOMA_EN if lang == "en" else "")}] + messages,
+            "messages": [{"role": "system", "content": SYSTEM_PROMPT + fecha_de_hoy() + extra + (IDIOMA_EN if lang == "en" else "")}] + messages,
             "max_tokens": 800,
             "temperature": 0.7,
         },
@@ -873,8 +874,16 @@ def chat():
     if not messages:
         return jsonify({"error": "messages requerido"}), 400
 
+    # Ciudad que el usuario está mirando en la página: si no nombra otra, se usa esa (no hay que preguntarla)
+    ciudad_pag = (body.get("ciudad") or "").lower().strip()
+    extra = ""
+    if ciudad_pag and re.fullmatch(r"[a-z ]{2,30}", ciudad_pag):
+        extra = (f"\n\nCIUDAD ACTUAL: el usuario está mirando {ciudad_pag}. Si no menciona otra ciudad, usá \"{ciudad_pag}\" y NO le preguntes la ciudad. "
+                 f"Si nombra otra ciudad (ej: Berlín), usá esa.")
+    extra += ("\nIMPORTANTE con \"cuando\": si el usuario nombra un día de la semana (lunes…domingo) o hoy/mañana/finde, poné esa PALABRA "
+              "(ej: \"sabado\"), nunca la conviertas vos a fecha. Tolerá errores de tipeo en géneros (rogressive → progressive).")
     try:
-        reply = call_groq(messages, lang)
+        reply = call_groq(messages, lang, extra)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1083,6 +1092,14 @@ def chat():
 
     if filtros and (filtros.get("tipo") or "fecha") == "fecha":
         try:
+            c = str(filtros.get("cuando") or "")
+            ultimos = " ".join(m.get("content", "") for m in messages[-3:] if m.get("role") == "user").lower()
+            ultimos = "".join(ch for ch in unicodedata.normalize("NFD", ultimos) if unicodedata.category(ch) != "Mn")
+            if re.search(r"\d{4}-\d{2}-\d{2}", c) and not re.search(r"\b\d{1,2}\b", ultimos):
+                for nombre in ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo", "manana", "hoy", "finde", "fin de semana"]:
+                    if re.search(rf"\b{nombre}\b", ultimos):
+                        filtros["cuando"] = {"manana": "mañana", "fin de semana": "finde"}.get(nombre, nombre)
+                        break
             filtros["desde"], filtros["hasta"] = calc_fechas(filtros.get("cuando", "todo"))
             filtros["ciudad"] = ciudad_corregida
         except Exception:
