@@ -1631,7 +1631,7 @@ const BETA = (() => {
   try { if (q !== null) localStorage.setItem('lp_beta', q === '1' ? '1' : '0'); return localStorage.getItem('lp_beta') === '1'; }
   catch (e) { return q === '1'; }
 })();
-if (BETA) document.querySelector('.tab[data-tab=cine]').hidden = false;
+// (el chip de Cine aparece en pintarCats si BETA)
 
 // ── CINE ───────────────────────────────────────────────────────────────────
 let cineTipo = 'cartelera', cineData = {};
