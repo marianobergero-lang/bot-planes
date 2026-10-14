@@ -715,8 +715,10 @@
   .city-in select:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 6px; }
   .city-in select option { color: #111; background: #fff; font: 16px 'DM Sans', sans-serif; letter-spacing: 0; }
   .city-in::after { content: ''; position: absolute; right: .12em; top: 52%; width: .28em; height: .28em; border-right: 3px solid var(--orange); border-bottom: 3px solid var(--orange); transform: translateY(-75%) rotate(45deg); pointer-events: none; }
-  .tb-ubic { position: relative; margin-left: auto; }
-  .tb-ubic .near { height: 40px; border-radius: 999px; font: 600 14px 'DM Sans', sans-serif; }
+  .tb-ubic-row { display: flex; align-items: center; gap: 6px 12px; flex-wrap: wrap; margin-top: 6px; }
+  .tb-ubic-row .near-note { margin-top: 0 !important; }
+  .tb-ubic { position: relative; }
+  .tb-ubic .near { height: 34px; padding: 0 12px; border-radius: 999px; font: 600 13px 'DM Sans', sans-serif; }
   .tb-ubic .near-pop { top: calc(100% + 8px); left: auto; right: 0; width: 340px; }
   .topbar .near-note { margin-top: 2px; }
   .ask-m { display: none; }
@@ -784,8 +786,6 @@
     .app { overflow-y: auto; }
     .topbar { padding: 14px 16px 0; }
     .tb-h1 { font-size: 26px; letter-spacing: -0.9px; }
-    .tb-ubic { margin-left: 0; }
-    .tb-ubic .near { height: 36px; font-size: 13px; padding: 0 12px; }
     .tb-ubic .near-pop { left: 0; right: auto; width: calc(100vw - 32px); }
     .ask-m { display: flex; align-items: center; gap: 10px; height: 54px; margin-top: 14px; padding: 0 7px 0 14px; border-radius: 16px; background: #1C1A17; border: 1px solid rgba(233,104,46,.45); }
     .ask-m input { font-size: 16px; }
@@ -961,6 +961,8 @@ document.addEventListener('click', ev => {
     <div class="topbar" id="topbar">
       <div class="tb-head">
         <h1 class="tb-h1"><span id="h1mom">Esta noche en</span> <span class="city-in"><select id="city" aria-label="Ciudad"></select></span></h1>
+      </div>
+      <div class="tb-ubic-row"><div class="near-note" id="nearnote"></div>
         <div class="tb-ubic"><button class="near" id="near" onclick="abrirCerca(event)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Mi ubicación</button>
           <div class="near-pop" id="nearpop">
         <button class="cerrar-x" onclick="event.stopPropagation();document.getElementById('nearpop').classList.remove('open')" aria-label="Cerrar">✕</button>
@@ -969,9 +971,8 @@ document.addEventListener('click', ev => {
         <input id="diri" placeholder="Ej: Carrer de Blai 30, un hotel o un barrio" oninput="sugerirDir()" autocomplete="off">
         <div id="sugs"></div>
       </div>
+        </div>
       </div>
-      </div>
-      <div class="near-note" id="nearnote"></div>
       <label class="ask-m"><span class="ask-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><input id="askm" placeholder="Techno al aire libre, algo barato…" aria-label="Preguntale a Let's PartIA!" onkeydown="if(event.key==='Enter')desdeCaja('askm')"><button class="send" onclick="desdeCaja('askm')" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></label>
       <div class="tb-barra">
         <div class="mom-wrap"><div class="chips mom" data-g="cuando" role="group" aria-label="Cuándo">
@@ -1281,7 +1282,7 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
     'Esta noche': 'Tonight', 'Finde': 'Weekend', 'Fecha': 'Date', 'Todo': 'All', '✨ Todo': '✨ All', '🪩 Fiestas': '🪩 Parties', '🎭 Shows': '🎭 Shows', '🍽️ Comer y beber': '🍽️ Food & drinks', '← Planes': '← Plans', '← Volver a eventos': '← Back to events',
     'Más filtros': 'More filters', 'Ver mapa grande': 'Open big map', 'Explorar': 'Explore', 'Agente': 'Agent', 'Mis planes': 'My plans', 'Navegación': 'Navigation', 'Qué buscás': 'What are you looking for',
     'Preguntale al agente: techno al aire libre el sábado…': 'Ask the agent: open-air techno on Saturday…', 'Techno al aire libre, algo barato…': 'Open-air techno, something cheap…',
-    'Lo que': 'What you', 'Vegetariana': 'Vegetarian', 'Esto es lo que entendí:': 'Here’s what I understood:', 'Mi favorito': 'My pick', 'Otras opciones': 'Other options', 'en total, en pantalla.': 'in total, on screen.',
+    'Lo que': 'What you', 'Horario no informado': 'Hours not listed', 'Vegetariana': 'Vegetarian', 'Esto es lo que entendí:': 'Here’s what I understood:', 'Mi favorito': 'My pick', 'Otras opciones': 'Other options', 'en total, en pantalla.': 'in total, on screen.',
     'Sumá un bar para la previa': 'Add a bar for drinks before', 'Algo más temprano': 'Something earlier', 'Ver en el mapa': 'See on the map', 'Elijo lo mejor para vos…': 'Picking the best for you…', 'Sacar este filtro': 'Remove this filter',
     'No encontré nada con eso 😕 Probá sacando algún filtro de arriba o pedime otra cosa.': 'Couldn’t find anything for that 😕 Try removing a filter above or ask me something else.', 'Filtros rápidos': 'Quick filters', 'Cerrar mapa': 'Close map', 'seguís': 'follow', 'Nada por acá': 'Nothing here', 'Ver resultados': 'See results', 'Volver': 'Back', 'También en:': 'Also on:', 'Cómo llegar': 'Directions', 'Volver': 'Back', 'Guardar en Mis planes': 'Save to My plans', 'Detalle del plan': 'Plan details' });
 })();
@@ -1413,7 +1414,7 @@ const RAPIDOS = {
   conciertos: [['genero', 'rock'], ['genero', 'pop'], ['genero', 'latin'], ['genero', 'jazz'], ['precio', 'gratis'], ['aire', 'abierto']],
   teatro: [['precio', 'gratis'], ['precio', 'bajo']],
   deportes: [['genero', 'fútbol'], ['genero', 'básquet'], ['genero', 'tenis'], ['genero', 'motor']],
-  bares: [['abierto', 'si'], ['tipoBar', 'terraza'], ['tipoBar', 'cocteles'], ['tipoBar', 'vinos'], ['tipoBar', 'musica']],
+  bares: [['abierto', 'si'], ['tipoBar', 'terraza'], ['tipoBar', 'cocteles'], ['tipoBar', 'vinos'], ['tipoBar', 'cervezas'], ['tipoBar', 'musica'], ['tipoBar', 'hifi']],
   restaurantes: [['abierto', 'si'], ['extraRest', 'terraza'], ['extraRest', 'veg'], ['tipoRest', 'tapas'], ['tipoRest', 'italiana'], ['tipoRest', 'japonesa']],
 };
 function etiquetaFiltro(k, v) {
@@ -2227,9 +2228,9 @@ function tarjetaBar(b) {
   const dest = [b.terraza && 'Terraza', b.musica && 'Música en vivo', b.hifi && 'HiFi', b.veg && 'Vegetariana', b.llevar && 'Para llevar'].filter(Boolean);
   const meta = [ab === true ? '<span class="si">Abierto ahora</span>' : ab === false ? '<span class="no">Cerrado ahora</span>' : '',
     ...dest.map(t => `<span class="dest">${t}</span>`)].filter(Boolean).join(' · ');
-  const tipo = rest ? (b.cocinas || []).slice(0, 2).map(c => etiquetaFiltro('tipoRest', c)).join(' · ') || b.categoria : b.categoria;
+  const tipo = rest ? (b.cocinas || []).slice(0, 2).map(c => etiquetaFiltro('tipoRest', c)).join(' · ') || b.categoria : ((b.tags || []).join(' · ') || b.categoria);
   const sub = [esc(tipo || ''), esc(b.barrio || b.direccion || ''), b.d != null ? `${fmtDist(b.d)} · ${aPie(b.d)}` : ''].filter(Boolean).join(' · ');
-  const abajo = (!rest && (b.tags || []).length) ? esc(b.tags.join(' · ')) : b.horario ? `<span class="people">${ic('clock')}${esc(horarioEs(b.horario))}</span>` : b.direccion && b.barrio ? `<span class="people">${ic('pin')}${esc(b.direccion)}</span>` : '';
+  const abajo = `<span class="people">${ic('clock')}${b.horario ? esc(horarioEs(b.horario)) : tr('Horario no informado')}</span>`;
   const g = estaGuardado(b.id);
   return `
     <article class="card ev lugar" data-id="${esc(b.id)}" tabindex="0" onclick="verDireccion(this.dataset.id)" onkeydown="if(event.key==='Enter'&&event.target===this)verDireccion(this.dataset.id)" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
