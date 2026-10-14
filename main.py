@@ -808,6 +808,62 @@ def parse_filters(text):
 def home():
     return jsonify({"status": "ok", "version": "fase1", "ciudades": list(AREAS_RA.keys())})
 
+# ── RECOMENDAR: el agente elige 1 favorito + 2 alternativas de los resultados y dice por qué ──
+@app.route("/recomendar", methods=["POST"])
+def recomendar():
+    body = request.json or {}
+    pedido = (body.get("pedido") or "")[:300]
+    lang = "en" if body.get("lang") == "en" else "es"
+    evs = (body.get("eventos") or [])[:15]
+    if len(evs) < 1:
+        return jsonify({"favorito": None, "alternativas": []})
+    lineas = []
+    for i, e in enumerate(evs):
+        partes = [f"#{i}", e.get("titulo", "")[:90], f"en {e.get('venue', '')}"[:60], f"{e.get('fecha', '')} {e.get('hora', '')}".strip()]
+        if e.get("generos"): partes.append("géneros: " + ", ".join(e["generos"][:3]))
+        if e.get("artistas"): partes.append("artistas: " + ", ".join(e["artistas"][:3]))
+        if e.get("asistentes"): partes.append(f"{e['asistentes']} interesados")
+        if e.get("precio"): partes.append("precio: " + str(e["precio"])[:30])
+        if e.get("aire_libre"): partes.append("al aire libre")
+        if e.get("categoria"): partes.append("tipo: " + e["categoria"])
+        lineas.append(" · ".join(p for p in partes if p))
+    idioma = "Escribí los 'porque' en español rioplatense, cálido y concreto." if lang == "es" else "Write each 'porque' in natural, friendly English."
+    prompt = f"""Sos el agente de Let's PartIA!, experto en salir de noche. El usuario pidió: "{pedido}".
+Estos son los planes que encontramos:
+{chr(10).join(lineas)}
+
+Elegí el plan que mejor encaja con lo que pidió (favorito) y 2 alternativas distintas entre sí (otro estilo, otro horario u otro precio).
+Para cada uno escribí "porque": UNA frase de máximo 14 palabras con razones concretas sacadas de los datos (género, artistas, horario, precio, interesados, aire libre). No inventes nada que no esté en los datos.
+{idioma}
+Respondé SOLO con este JSON, sin nada más:
+{{"favorito": {{"i": 0, "porque": "..."}}, "alternativas": [{{"i": 1, "porque": "..."}}, {{"i": 2, "porque": "..."}}]}}"""
+    try:
+        resp = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+            json={"model": "openai/gpt-oss-120b", "messages": [{"role": "user", "content": prompt}], "max_tokens": 700, "temperature": 0.3},
+            timeout=25)
+        resp.raise_for_status()
+        txt = resp.json()["choices"][0]["message"]["content"]
+        m = re.search(r"\{[\s\S]*\}", txt)
+        data = json.loads(m.group(0)) if m else {}
+    except Exception as e:
+        print(f"[RECOMENDAR] error: {e}")
+        return jsonify({"favorito": None, "alternativas": []})
+    def ok(x):
+        try:
+            i = int(x.get("i"))
+            return {"i": i, "porque": str(x.get("porque", ""))[:160]} if 0 <= i < len(evs) else None
+        except Exception:
+            return None
+    fav = ok(data.get("favorito") or {})
+    alts, vistos = [], {fav["i"]} if fav else set()
+    for a in data.get("alternativas") or []:
+        a = ok(a or {})
+        if a and a["i"] not in vistos:
+            alts.append(a); vistos.add(a["i"])
+    return jsonify({"favorito": fav, "alternativas": alts[:2]})
+
 @app.route("/chat", methods=["POST"])
 def chat():
     body     = request.json or {}
