@@ -583,6 +583,8 @@
   .ev-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
   .ev-meta { font-size: 12.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
   .ev-meta .aire { color: #F5C26B; }
+  .ev-meta .si { color: #5fd38d; } .ev-meta .no { color: var(--dim); } .ev-meta .dest { color: #F5C26B; }
+  .card.lugar .th { background: linear-gradient(135deg, #2B211B, #1a1714); }
   .card.ev .title { font-size: 17px; line-height: 1.2; margin-top: 0; letter-spacing: -0.3px; }
   .ev-sub { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .fav-ic { width: 40px; height: 40px; margin: -6px -6px 0 0; border-radius: 50%; border: none; background: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -743,6 +745,7 @@
   .avisos-m { margin-top: 14px; }
   body.sin-col .cuerpo { grid-template-columns: minmax(0, 1fr); } body.sin-col .col-der { display: none; }
   .res-count { font: 600 15px 'DM Sans', sans-serif; color: var(--muted); }
+  .res-count span { color: var(--text); }
   .back { display: inline-flex; align-items: center; font-size: 14px; }
   .back .ic { margin-right: .3em; }
   /* Cajón "Más filtros" */
@@ -1278,7 +1281,7 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
     'Esta noche': 'Tonight', 'Finde': 'Weekend', 'Fecha': 'Date', 'Todo': 'All', '✨ Todo': '✨ All', '🪩 Fiestas': '🪩 Parties', '🎭 Shows': '🎭 Shows', '🍽️ Comer y beber': '🍽️ Food & drinks', '← Planes': '← Plans',
     'Más filtros': 'More filters', 'Ver mapa grande': 'Open big map', 'Explorar': 'Explore', 'Agente': 'Agent', 'Mis planes': 'My plans', 'Navegación': 'Navigation', 'Qué buscás': 'What are you looking for',
     'Preguntale al agente: techno al aire libre el sábado…': 'Ask the agent: open-air techno on Saturday…', 'Techno al aire libre, algo barato…': 'Open-air techno, something cheap…',
-    'Lo que': 'What you', 'Esto es lo que entendí:': 'Here’s what I understood:', 'Mi favorito': 'My pick', 'Otras opciones': 'Other options', 'en total, en pantalla.': 'in total, on screen.',
+    'Lo que': 'What you', 'Vegetariana': 'Vegetarian', 'Esto es lo que entendí:': 'Here’s what I understood:', 'Mi favorito': 'My pick', 'Otras opciones': 'Other options', 'en total, en pantalla.': 'in total, on screen.',
     'Sumá un bar para la previa': 'Add a bar for drinks before', 'Algo más temprano': 'Something earlier', 'Ver en el mapa': 'See on the map', 'Elijo lo mejor para vos…': 'Picking the best for you…', 'Sacar este filtro': 'Remove this filter',
     'No encontré nada con eso 😕 Probá sacando algún filtro de arriba o pedime otra cosa.': 'Couldn’t find anything for that 😕 Try removing a filter above or ask me something else.', 'Filtros rápidos': 'Quick filters', 'Cerrar mapa': 'Close map', 'seguís': 'follow', 'Nada por acá': 'Nothing here', 'Ver resultados': 'See results', 'Volver': 'Back', 'También en:': 'Also on:', 'Cómo llegar': 'Directions', 'Volver': 'Back', 'Guardar en Mis planes': 'Save to My plans', 'Detalle del plan': 'Plan details' });
 })();
@@ -1937,7 +1940,7 @@ function mostrarBares(items) {
   const plural = TAB_TXT[st.tab][1];
   const h2 = total > items.length ? `Los ${plural} más recomendados ${donde}` : `${total} ${TAB_TXT[st.tab][total === 1 ? 0 : 1]} ${donde}`;
   const sub = total > items.length ? `<div class="res-sub" style="margin-top:6px">Te muestro ${items.length} de ${total.toLocaleString('es-ES')} · ${st.tab === 'restaurantes' ? 'Elegí un tipo de cocina' : 'Elegí un tipo de bar'} para afinar</div>` : '';
-  let html = volver() + cartelGuia() + `<div class="res-head"><h2>${h2}</h2><div class="head-tools">${botonCompartir()}${segVista()}</div></div>${sub}`;
+  let html = volver() + cartelGuia() + `<div class="res-head"><div class="res-count">${h2}</div><div class="head-tools">${botonCompartir()}${segVista()}</div></div>${sub}`;
   if (!items.length) {
     html += `<div class="empty"><b>No encontré ${TAB_TXT[st.tab][1]} con esos filtros 😕</b>${st.km !== '99' ? 'Probá ampliando la distancia a "Cerca < 3 km".' : 'Probá con otro tipo.'}</div>`;
   } else {
@@ -2219,55 +2222,33 @@ function iconoPin(x, extra = '') {
 }
 function tarjetaBar(b) {
   EVENTOS[b.id] = b;
-  if (b.lugar === 'rest') return tarjetaRest(b);
-  const emoji = (b.tags || []).includes('Vinos') ? '🍷' : (b.tags || []).includes('Cervezas') || b.categoria === 'Pub' ? '🍺' : '🍸';
+  const rest = b.lugar === 'rest';
+  const ab = abiertoAhora(b.horario);
+  const dest = [b.terraza && 'Terraza', b.musica && 'Música en vivo', b.hifi && 'HiFi', b.veg && 'Vegetariana', b.llevar && 'Para llevar'].filter(Boolean);
+  const meta = [ab === true ? '<span class="si">Abierto ahora</span>' : ab === false ? '<span class="no">Cerrado ahora</span>' : '',
+    ...dest.map(t => `<span class="dest">${t}</span>`)].filter(Boolean).join(' · ');
+  const tipo = rest ? (b.cocinas || []).slice(0, 2).map(c => etiquetaFiltro('tipoRest', c)).join(' · ') || b.categoria : b.categoria;
+  const sub = [esc(tipo || ''), esc(b.barrio || b.direccion || ''), b.d != null ? `${fmtDist(b.d)} · ${aPie(b.d)}` : ''].filter(Boolean).join(' · ');
+  const abajo = (!rest && (b.tags || []).length) ? esc(b.tags.join(' · ')) : b.horario ? `<span class="people">${ic('clock')}${esc(horarioEs(b.horario))}</span>` : b.direccion && b.barrio ? `<span class="people">${ic('pin')}${esc(b.direccion)}</span>` : '';
+  const g = estaGuardado(b.id);
   return `
-    <article class="card" data-id="${esc(b.id)}" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
-      ${picNombre(b.titulo, emoji)}
-      ${b.d != null ? `<span class="dist">${fmtDist(b.d)} · ${aPie(b.d)}</span>` : ''}
-      <div class="bar-ico">${b.terraza ? '<span title="Terraza">☀️</span>' : ''}${b.musica ? '<span title="Música en vivo">🎷</span>' : ''}${b.hifi ? '<span title="HiFi / listening bar" class="hifi">HiFi</span>' : ''}</div>
-      <div class="inner">
-        <div class="town">${ic('pin')}${esc(b.barrio || ciudadTxt())}</div>
-        <div class="title"><span class="lnk" style="text-decoration:none;color:inherit" title="Ver detalle y seguir" onclick="verDireccion('${esc(b.id)}')">${esc(b.titulo)} <span style="color:var(--orange);font-size:13px">›</span></span></div>
-        <div class="who">${esc(b.categoria)}</div>
-        <div class="facts">
-          ${b.direccion ? `<div class="dir-link" onclick="verDireccion('${esc(b.id)}')">${ic('pin')}${esc(b.direccion)}</div>` : `<div><button class="dir-btn" style="margin:0" onclick="verDireccion('${esc(b.id)}')">${ic('pin')}Ver en el mapa</button></div>`}
-          ${b.horario ? `<div class="horario">${ic('clock')}${estadoAhora(b.horario)}${esc(horarioEs(b.horario))}</div>` : ''}
+    <article class="card ev lugar" data-id="${esc(b.id)}" tabindex="0" onclick="verDireccion(this.dataset.id)" onkeydown="if(event.key==='Enter'&&event.target===this)verDireccion(this.dataset.id)" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
+      <div class="ev-top">
+        <div class="th" aria-hidden="true">${emojiLugar(b)}</div>
+        <div class="ev-info">
+          ${meta ? `<div class="ev-meta">${meta}</div>` : ''}
+          <div class="title">${esc(b.titulo)}</div>
+          ${sub ? `<div class="ev-sub">${sub}</div>` : ''}
         </div>
-        <div class="foot">
-          <div class="tags">${(b.tags || []).slice(0, 2).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
-          <span></span>
-          <button class="fav ${estaGuardado(b.id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(b.id)}')">${favTxt(estaGuardado(b.id))}</button>
-          <div class="res-wrap"><button class="tickets" style="cursor:pointer;font-family:inherit" onclick="menuReservar(event, '${esc(b.id)}')">Reservar ▾</button></div>
-        </div>
+        <button class="fav-ic ${g ? 'on' : ''}" data-fav="${esc(b.id)}" aria-pressed="${g}" aria-label="Guardar en Mis planes" title="Mis planes" onclick="toggleGuardado(event, '${esc(b.id)}')">${ic('heart')}</button>
+      </div>
+      <div class="ev-foot">
+        <div class="ev-who">${abajo}</div>
+        <div class="ev-buy"><div class="res-wrap"><button class="tickets" onclick="menuReservar(event, '${esc(b.id)}')">Reservar ▾</button></div></div>
       </div>
     </article>`;
 }
-function tarjetaRest(b) {
-  const emoji = COCINA_EMOJI[(b.cocinas || [])[0]] || '🍽️';
-  return `
-    <article class="card" data-id="${esc(b.id)}" onmouseenter="resaltar(this, true)" onmouseleave="resaltar(this, false)">
-      ${picNombre(b.titulo, emoji)}
-      ${b.d != null ? `<span class="dist">${fmtDist(b.d)} · ${aPie(b.d)}</span>` : ''}
-      <div class="bar-ico">${b.terraza ? '<span title="Terraza">☀️</span>' : ''}${b.veg ? '<span title="Opciones vegetarianas">🌱</span>' : ''}${b.llevar ? '<span title="Para llevar">🥡</span>' : ''}</div>
-      <div class="inner">
-        <div class="town">${ic('pin')}${esc(b.barrio || ciudadTxt())}</div>
-        <div class="title"><span class="lnk" style="text-decoration:none;color:inherit" title="Ver detalle y seguir" onclick="verDireccion('${esc(b.id)}')">${esc(b.titulo)} <span style="color:var(--orange);font-size:13px">›</span></span></div>
-        <div class="who">${esc(b.categoria)}</div>
-        <div class="facts">
-          ${b.direccion ? `<div class="dir-link" onclick="verDireccion('${esc(b.id)}')">${ic('pin')}${esc(b.direccion)}</div>` : `<div><button class="dir-btn" style="margin:0" onclick="verDireccion('${esc(b.id)}')">${ic('pin')}Ver en el mapa</button></div>`}
-          ${b.horario ? `<div class="horario">${ic('clock')}${estadoAhora(b.horario)}${esc(horarioEs(b.horario))}</div>` : ''}
-          <div><a class="dir-btn" style="margin:0;text-decoration:none" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([b.titulo, b.direccion, ciudadTxt()].filter(Boolean).join(', '))}" target="_blank" rel="noopener">${ic('star')}Reseñas y precios en Google</a></div>
-        </div>
-        <div class="foot">
-          <div class="tags">${(b.tags || []).slice(0, 2).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
-          <span></span>
-          <button class="fav ${estaGuardado(b.id) ? 'on' : ''}" onclick="toggleGuardado(event, '${esc(b.id)}')">${favTxt(estaGuardado(b.id))}</button>
-          <div class="res-wrap"><button class="tickets" style="cursor:pointer;font-family:inherit" onclick="menuReservar(event, '${esc(b.id)}')">Reservar ▾</button></div>
-        </div>
-      </div>
-    </article>`;
-}
+function tarjetaRest(b) { return tarjetaBar(b); }
 function menuReservar(ev, id) {
   ev.stopPropagation();
   document.querySelectorAll('.res-menu').forEach(m => m.remove());
