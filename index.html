@@ -316,6 +316,11 @@
   .pin.ev { background: #E9682E; } .pin.bar { background: #F2EEE8; }
   .pin.me { background: #4da3ff; box-shadow: 0 0 0 6px rgba(77,163,255,.25); }
   .pin.big { transform: scale(1.5); }
+  .pin.multi { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #F5C26B; color: #0D0C0B; font: 800 12px 'DM Sans', sans-serif; box-shadow: 0 0 0 3px rgba(245,194,107,.35); }
+  .mapa-wrap { position: relative; }
+  .cerrar-mapa { position: absolute; top: 12px; right: calc(430px + 12px); z-index: 1000; display: flex; align-items: center; height: 40px; padding: 0 14px; border-radius: 999px; border: none; background: #F2EEE8; color: #0D0C0B; font: 700 14px 'DM Sans', sans-serif; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.45); }
+  .cerrar-mapa:hover { background: #fff; }
+  @media (max-width: 820px) { .cerrar-mapa { right: 12px; } }
   .pin.emo { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 15px; background: #1d1a17; border: 1.5px solid rgba(233,104,46,.85); box-shadow: 0 2px 8px rgba(0,0,0,.5); }
   .abierto-si { color: #5fd38d; font-weight: 700; } .abierto-no { color: var(--muted); }
   .share-bus { background: transparent; border: 1px solid var(--border2); color: var(--text); border-radius: 10px; padding: 7px 12px; font: 600 13px 'Space Grotesk', sans-serif; cursor: pointer; white-space: nowrap; }
@@ -1213,7 +1218,7 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
     'Esta noche': 'Tonight', 'Finde': 'Weekend', 'Fecha': 'Date', 'Todo': 'All', '✨ Todo': '✨ All', '🪩 Fiestas': '🪩 Parties', '🎭 Shows': '🎭 Shows', '🍽️ Comer y beber': '🍽️ Food & drinks', '← Planes': '← Plans',
     'Más filtros': 'More filters', 'Ver mapa grande': 'Open big map', 'Explorar': 'Explore', 'Agente': 'Agent', 'Mis planes': 'My plans', 'Navegación': 'Navigation', 'Qué buscás': 'What are you looking for',
     'Preguntale al agente: techno al aire libre el sábado…': 'Ask the agent: open-air techno on Saturday…', 'Techno al aire libre, algo barato…': 'Open-air techno, something cheap…',
-    'Lo que': 'What you', 'seguís': 'follow', 'Nada por acá': 'Nothing here', 'Ver resultados': 'See results', 'Volver': 'Back', 'También en:': 'Also on:', 'Cómo llegar': 'Directions', 'Volver': 'Back', 'Guardar en Mis planes': 'Save to My plans', 'Detalle del plan': 'Plan details' });
+    'Lo que': 'What you', 'Cerrar mapa': 'Close map', 'seguís': 'follow', 'Nada por acá': 'Nothing here', 'Ver resultados': 'See results', 'Volver': 'Back', 'También en:': 'Also on:', 'Cómo llegar': 'Directions', 'Volver': 'Back', 'Guardar en Mis planes': 'Save to My plans', 'Detalle del plan': 'Plan details' });
 })();
 function trClave(v) { return LANG === 'en' ? (EN_CLAVES[v] || tr(v)) : v; }
 const ETIQUETAS_EN = { tapas: 'Tapas / Spanish', italiana: 'Italian', pizza: 'Pizza', japonesa: 'Japanese', asiatica: 'Asian', mexicana: 'Mexican',
@@ -1413,10 +1418,10 @@ function pintarMiniMapa(items) {
     if (miniMapa2) { miniMapa2.remove(); miniMapa2 = null; }
     miniMapa2 = L.map('minimapa', { zoomControl: false, attributionControl: false });
     capaBase(miniMapa2);
-    conC.forEach(x => {
-      const id = x.tipo === 'bar' ? x.id : idEvento(x);
-      L.marker([x.lat, x.lng], { icon: iconoPin(x) }).bindTooltip(x.titulo, { direction: 'top', offset: [0, -10] })
-        .on('click', () => x.tipo === 'bar' ? verDireccion(id) : abrirDetalle(id)).addTo(miniMapa2);
+    agruparPorLugar(conC).forEach(gr => {
+      const x = gr[0], id = x.tipo === 'bar' ? x.id : idEvento(x);
+      L.marker([x.lat, x.lng], { icon: x.tipo === 'bar' ? iconoPin(x) : iconoGrupo(gr) }).bindTooltip(tipGrupo(gr), { direction: 'top', offset: [0, -12] })
+        .on('click', () => x.tipo === 'bar' ? verDireccion(id) : gr.length > 1 ? (modoVista = 'lista', setModo('mapa')) : abrirDetalle(id)).addTo(miniMapa2);
     });
     miniMapa2.fitBounds(conC.map(x => [x.lat, x.lng]), { padding: [24, 24], maxZoom: 14 });
     setTimeout(() => miniMapa2 && miniMapa2.invalidateSize(), 60);
@@ -1857,7 +1862,7 @@ function renderMapa(items, esBar) {
   const sin = items.length - itemsMapa.length;
   const que = TAB_TXT[st.tab][1];
   main.innerHTML = volver() + `<div class="res-head"><h2>${items.length} ${que} en <span>${esc(ubic ? ubic.txt : ciudadTxt())}</span></h2><div class="head-tools">${botonCompartir()}${segVista()}</div></div>
-    <div class="mapa-wrap"><div id="mapa"></div><div class="mapa-lista" id="mapalista"></div></div>
+    <div class="mapa-wrap"><div id="mapa"></div><div class="mapa-lista" id="mapalista"></div><button class="cerrar-mapa" onclick="setModo('lista')">${ic('x')}Cerrar mapa</button></div>
     ${sin ? `<div class="res-sub" style="margin-top:8px">${sin} sin ubicación exacta no aparecen en el mapa (sí en la lista).</div>` : ''}`;
   if (!window.L) { document.getElementById('mapalista').innerHTML = '<div class="mapa-info">No pude cargar el mapa. Probá recargar la página.</div>'; return; }
   if (mapa) { mapa.remove(); mapa = null; }
@@ -1896,26 +1901,30 @@ function actualizarMapa() {
   let vis = itemsMapa.filter(x => b.contains([x.lat, x.lng]));
   vis.sort((a, c) => ubic ? (a.d ?? 999) - (c.d ?? 999) : esBarMapa ? 0 : ((c.asistentes || 0) - (a.asistentes || 0)));
   const total = vis.length;
-  vis = vis.slice(0, MAX_MAPA);
-  capaPines.clearLayers(); pines = {};
-  vis.forEach(x => {
-    const id = esBarMapa ? x.id : idEvento(x);
-    const m = L.marker([x.lat, x.lng], { icon: iconoPin(x) })
-      .bindTooltip(x.titulo, { direction: 'top', offset: [0, -10] })
-      .on('click', () => seleccionar(id, true));
-    m.addTo(capaPines); pines[id] = m;
+  const grupos = agruparPorLugar(vis).slice(0, MAX_MAPA);
+  vis = grupos.flat();
+  capaPines.clearLayers(); pines = {}; GRUPO_DE = {};
+  grupos.forEach(gr => {
+    const ids = gr.map(x => esBarMapa ? x.id : idEvento(x));
+    const m = L.marker([gr[0].lat, gr[0].lng], { icon: esBarMapa ? iconoPin(gr[0]) : iconoGrupo(gr) })
+      .bindTooltip(tipGrupo(gr), { direction: 'top', offset: [0, -12] })
+      .on('click', () => seleccionar(ids[0], true));
+    m.addTo(capaPines);
+    ids.forEach(id => { pines[id] = m; GRUPO_DE[id] = ids; });
   });
   const info = total ? `${vis.length} en esta zona${total > MAX_MAPA ? ` · los ${MAX_MAPA} más destacados de ${total}, acercate para ver más` : ''}` : 'No hay nada en esta zona del mapa. Alejate o movete un poco 🗺️';
   document.getElementById('mapalista').innerHTML = `<div class="mapa-info">${info}</div>` + vis.map(x => esBarMapa ? tarjetaBar(x) : tarjeta(x)).join('');
   if (seleccionado && pines[seleccionado]) seleccionar(seleccionado);
 }
-let seleccionado = null;
+let seleccionado = null, GRUPO_DE = {};
 function seleccionar(id, desdeMapa) {
   seleccionado = id;
   document.querySelectorAll('#mapalista .card.sel').forEach(c => c.classList.remove('sel'));
   Object.values(pines).forEach(m => m._icon && m._icon.firstChild.classList.remove('big'));
-  const c = document.querySelector(`#mapalista .card[data-id="${CSS.escape(id)}"]`);
-  if (c) { c.classList.add('sel'); if (desdeMapa) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  (GRUPO_DE[id] || [id]).forEach((x, i) => {
+    const c = document.querySelector(`#mapalista .card[data-id="${CSS.escape(x)}"]`);
+    if (c) { c.classList.add('sel'); if (desdeMapa && i === 0) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  });
   const m = pines[id]; if (m && m._icon) m._icon.firstChild.classList.add('big');
 }
 function resaltar(card, on) {
@@ -2089,6 +2098,22 @@ function horarioEs(h) {
 function emojiLugar(x) {
   if (x.lugar === 'rest') return COCINA_EMOJI[(x.cocinas || [])[0]] || '🍽️';
   return (x.tags || []).includes('Vinos') ? '🍷' : (x.tags || []).includes('Cervezas') || x.categoria === 'Pub' ? '🍺' : '🍸';
+}
+// Varios planes en el mismo lugar (por ejemplo viernes y sábado en el mismo club): un solo pin con el número
+function agruparPorLugar(items) {
+  const g = new Map();
+  items.forEach(x => { const k = (+x.lat).toFixed(4) + ',' + (+x.lng).toFixed(4); if (!g.has(k)) g.set(k, []); g.get(k).push(x); });
+  return [...g.values()];
+}
+function iconoGrupo(grupo) {
+  if (grupo.length === 1) return iconoPin(grupo[0]);
+  return L.divIcon({ className: '', html: `<div class="pin multi">${grupo.length}</div>`, iconSize: [24, 24], iconAnchor: [12, 12] });
+}
+function tipGrupo(grupo) {
+  if (grupo.length === 1) return grupo[0].titulo;
+  const lugar = grupo[0].venue || grupo[0].titulo;
+  const fechas = [...new Set(grupo.map(x => x.fecha).filter(Boolean))].sort().map(fechaMini).join(' · ');
+  return `${lugar} · ${grupo.length} ${LANG === 'en' ? 'plans' : 'planes'}${fechas ? ' · ' + fechas : ''}`;
 }
 function iconoPin(x, extra = '') {
   if (x.tipo === 'bar') return L.divIcon({ className: '', html: `<div class="pin emo ${extra}">${emojiLugar(x)}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
