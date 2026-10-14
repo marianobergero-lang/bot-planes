@@ -1278,7 +1278,7 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
     'Siguiendo': 'Following', 'Aire libre': 'Open air', 'Elegir fechas': 'Pick dates', 'Idioma': 'Language',
     'Tickets ▾': 'Tickets ▾', 'Entradas': 'Tickets', 'Comprar tickets': 'Get tickets', 'Entradas en la web del club': 'Tickets on the club website', 'Al calendario': 'Add to calendar',
     'Con': 'With', 'Esta noche en': 'Tonight in', 'Mañana en': 'Tomorrow in', 'Este finde en': 'This weekend in', 'Bares en': 'Bars in', 'Restaurantes en': 'Restaurants in', 'Cine en': 'Movies in',
-    'Esta noche': 'Tonight', 'Finde': 'Weekend', 'Fecha': 'Date', 'Todo': 'All', '✨ Todo': '✨ All', '🪩 Fiestas': '🪩 Parties', '🎭 Shows': '🎭 Shows', '🍽️ Comer y beber': '🍽️ Food & drinks', '← Planes': '← Plans',
+    'Esta noche': 'Tonight', 'Finde': 'Weekend', 'Fecha': 'Date', 'Todo': 'All', '✨ Todo': '✨ All', '🪩 Fiestas': '🪩 Parties', '🎭 Shows': '🎭 Shows', '🍽️ Comer y beber': '🍽️ Food & drinks', '← Planes': '← Plans', '← Volver a eventos': '← Back to events',
     'Más filtros': 'More filters', 'Ver mapa grande': 'Open big map', 'Explorar': 'Explore', 'Agente': 'Agent', 'Mis planes': 'My plans', 'Navegación': 'Navigation', 'Qué buscás': 'What are you looking for',
     'Preguntale al agente: techno al aire libre el sábado…': 'Ask the agent: open-air techno on Saturday…', 'Techno al aire libre, algo barato…': 'Open-air techno, something cheap…',
     'Lo que': 'What you', 'Vegetariana': 'Vegetarian', 'Esto es lo que entendí:': 'Here’s what I understood:', 'Mi favorito': 'My pick', 'Otras opciones': 'Other options', 'en total, en pantalla.': 'in total, on screen.',
@@ -1401,7 +1401,7 @@ function pintar() {
 const CATS = [['todo', 'Todo'], ['clubs', '🪩 Fiestas'], ['conciertos', '🎤 Conciertos'], ['teatro', '🎭 Shows'], ['deportes', '⚽ Deportes']];
 function pintarCats() {
   const lista = esLugar()
-    ? [['todo', '← Planes', 'volver-cat'], ['bares', '🍸 Bares'], ['restaurantes', '🍽️ Restaurantes']]
+    ? [['todo', '← Volver a eventos', 'volver-cat'], ['bares', '🍸 Bares'], ['restaurantes', '🍽️ Restaurantes']]
     : [...CATS, ...(BETA ? [['cine', '🎬 Cine']] : []), ['bares', '🍽️ Comer y beber']];
   document.getElementById('cats').innerHTML = lista.map(([t, txt, cl]) =>
     `<button class="cat ${cl || ''} ${t === st.tab && !cl ? 'on' : ''}" data-tab="${t}" aria-pressed="${t === st.tab && !cl}">${txt}</button>`).join('');
