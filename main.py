@@ -227,6 +227,11 @@ Venue/disco:
 {"tipo": "venue", "venue": "Les Enfants Brillants", "ciudad": "barcelona", "cuando": "todo", "max": 8}
 ###FIN###
 
+ANTES / DESPUÉS DE ALGO: si el usuario dice que ya va a ir a algo (un artista, una fiesta, un venue, un partido, una cena) y pide qué hacer antes, después, luego o para seguir → tipo "despues". Poné "artista" y/o "venue" si los nombró, "cuando" (palabra: domingo, sabado, hoy…), "hora_fin" (HH:MM) si dijo a qué hora termina, "momento": "despues" o "antes". Si no nombró nada concreto NI la hora, preguntale a qué hora termina y dónde (sin bloque).
+###FILTROS###
+{"tipo": "despues", "artista": "mariano mellino", "venue": null, "ciudad": "barcelona", "cuando": "domingo", "hora_fin": null, "momento": "despues"}
+###FIN###
+
 Evento específico por nombre:
 ###FILTROS###
 {"tipo": "busqueda", "query": "Brunch Elektronik", "ciudad": "barcelona", "max": 5}
@@ -918,6 +923,29 @@ def chat():
 
         if tipo == "lugar":
             filtros["ciudad"] = ciudad_corregida  # la app filtra bares y restaurantes con sus propios datos
+
+        elif tipo == "despues":
+            # Buscamos el evento al que va (por artista o venue) en la fecha que dijo; la app arma previa y after
+            filtros["ciudad"] = ciudad_corregida
+            desde, hasta = calc_fechas(filtros.get("cuando") or "hoy")
+            filtros["desde"], filtros["hasta"] = desde, hasta
+            candidatos = []
+            try:
+                if filtros.get("artista"):
+                    evs, _ = proximos_artista(filtros["artista"])
+                    candidatos += [e for e in (evs or []) if desde <= e.get("fecha", "") <= hasta]
+                if filtros.get("venue") and not candidatos:
+                    candidatos += [e for e in eventos_lugar(filtros["venue"], ciudad_corregida) if desde <= e.get("fecha", "") <= hasta]
+                if not candidatos and (filtros.get("artista") or filtros.get("venue")):
+                    q = (filtros.get("artista") or filtros.get("venue")).lower()
+                    todos, _ = buscar_por_fecha(ciudad_corregida, desde, hasta, 100000)
+                    candidatos = [e for e in todos if q in (e.get("titulo", "") + " " + " ".join(e.get("artistas") or []) + " " + (e.get("venue") or "")).lower()]
+            except Exception as e:
+                print(f"[DESPUES] {e}")
+            # si hay varios, el de la ciudad que mira
+            candidatos.sort(key=lambda e: (0 if ciudad_corregida in (e.get("ciudad_venue") or "").lower() or not e.get("ciudad_venue") else 1, e.get("fecha", "")))
+            eventos_out = candidatos[:1]
+            total_ra = len(eventos_out)
 
         elif tipo == "equipo":
             eventos_out, nombre_eq = buscar_equipo(filtros.get("equipo", ""))

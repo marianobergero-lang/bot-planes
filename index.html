@@ -2602,40 +2602,55 @@ let NOCHE = null;
 function minutos(h) { if (!h || h === '23:59') return null; const [a, b] = h.split(':').map(Number); return (a < 8 ? a + 24 : a) * 60 + (b || 0); }
 function hhmm(m) { m = ((m % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; }
 function trayecto(d) { return d <= 1.5 ? `${Math.max(1, Math.round(d * 13))}' ${LANG === 'en' ? 'walk' : 'a pie'}` : `~${Math.round(5 + d * 2.5)}' ${LANG === 'en' ? 'by taxi' : 'en taxi'}`; }
-async function armarNoche(id) {
-  const e = EVENTOS[id]; const box = document.getElementById('noche');
-  if (!e || !box) return;
+// Fiestas que arrancan desde cierta hora esa noche (busca en el servidor, no solo en lo que está en pantalla)
+const DESPUES_CACHE = {};
+async function buscarDespues(fecha, desde, ref) {
+  if (!fecha || desde == null) return [];
+  const sig = iso(addDays(deIso(fecha), 1));
+  const k = ciudad() + fecha;
+  if (!DESPUES_CACHE[k]) {
+    const p = new URLSearchParams({ ciudad: ciudad(), categoria: 'clubs', desde: fecha, hasta: sig, max: 300 });
+    DESPUES_CACHE[k] = fetch(`${API}/eventos?${p}`).then(r => r.json()).then(d => d.eventos || []).catch(() => []);
+  }
+  const vistos = new Set(), lista = [];
+  [...(actual.items || []), ...(await DESPUES_CACHE[k])].forEach(x => { const i = idEvento(x); if (!vistos.has(i)) { vistos.add(i); lista.push(x); } });
+  const gen = new Set(((ref && ref.generos) || []).map(g => g.toLowerCase()));
+  return lista.filter(x => (!ref || idEvento(x) !== idEvento(ref)) && x.hora && x.hora !== '23:59' && (
+      (x.fecha === fecha && minutos(x.hora) >= desde) || (x.fecha === sig && +x.hora.slice(0, 2) < 8 && (+x.hora.slice(0, 2) + 24) * 60 >= desde)))
+    .map(x => ({ x, p: ((x.categoria || 'clubs') === 'clubs' ? 0 : 1) - (x.generos || []).filter(g => gen.has(g.toLowerCase())).length - Math.min(1, (x.asistentes || 0) / 300)
+      + (ref && tieneCoords(ref) && tieneCoords(x) ? distKm([ref.lat, ref.lng], [x.lat, x.lng]) / 10 : 0.3) + Math.max(0, (minutos(x.hora) - desde) / 240) }))
+    .sort((a, b) => a.p - b.p).slice(0, 6).map(o => o.x);
+}
+// Calcula la noche alrededor de un plan: previa (bar a < 1 km) y after (desde que termina el plan)
+async function calcularNoche(e) {
   const S = minutos(e.hora);
-  NOCHE = { id, bares: [], bi: 0, afters: [], ai: 0 };
-  // el after arranca cuando termina el plan (si sabemos la hora de fin) o al menos 2 h después de que empiece
   let F = minutos(e.hora_fin);
   if (F != null && S != null && F <= S) F += 1440;
   const desde = F != null ? F - 30 : (S != null ? S + 120 : null);
-  // Después: de lo que ya está en pantalla, algo que arranque al menos 2 h más tarde esa misma noche
-  if (S != null) {
-    const gen = new Set((e.generos || []).map(g => g.toLowerCase()));
-    const sig = e.fecha ? iso(addDays(deIso(e.fecha), 1)) : '';
-    NOCHE.afters = (actual.items || []).filter(x => idEvento(x) !== id && x.hora && (
-      (x.fecha === e.fecha && minutos(x.hora) >= desde) || (x.fecha === sig && +x.hora.slice(0, 2) < 8 && (+x.hora.slice(0, 2) + 24) * 60 >= desde)))
-      .map(x => ({ x, p: ((x.categoria || st.tab) === 'clubs' || !x.categoria ? 0 : 1) - (x.generos || []).filter(g => gen.has(g.toLowerCase())).length - Math.min(1, (x.asistentes || 0) / 300)
-        + (tieneCoords(e) && tieneCoords(x) ? distKm([e.lat, e.lng], [x.lat, x.lng]) / 10 : 0.3) }))
-      .sort((a, b) => a.p - b.p).slice(0, 6).map(o => o.x);
-  }
-  // Previa: bares a menos de 1 km del lugar, primero los de cócteles / terraza / música y con más datos
-  if (tieneCoords(e) && !esLugar()) {
-    const bares = await baresLocales(ciudad());
-    if (NOCHE.id !== id) return;
-    if (bares) NOCHE.bares = bares.map(b => ({ b, d: distKm([e.lat, e.lng], [b.lat, b.lng]) })).filter(o => o.d <= 1)
+  const afters = await buscarDespues(e.fecha, desde, e);
+  let bares = [];
+  if (tieneCoords(e)) {
+    const bs = await baresLocales(ciudad());
+    if (bs) bares = bs.map(b => ({ b, d: distKm([e.lat, e.lng], [b.lat, b.lng]) })).filter(o => o.d <= 1)
       .map(o => ({ ...o, p: o.d - 0.25 * ['cocteles', 'terraza', 'musica', 'vinos'].filter(t => o.b.tipos.includes(t)).length - 0.05 * (o.b.info || 0) }))
       .sort((a, b) => a.p - b.p).slice(0, 8);
   }
+  return { bares, afters, desde };
+}
+async function armarNoche(id) {
+  const e = EVENTOS[id]; const box = document.getElementById('noche');
+  if (!e || !box || esLugar()) return;
+  NOCHE = { id, bares: [], bi: 0, afters: [], ai: 0, desde: null };
+  const r = await calcularNoche(e);
+  if (!NOCHE || NOCHE.id !== id) return;
+  Object.assign(NOCHE, r);
   pintarNoche();
 }
 function pintarNoche() {
   const box = document.getElementById('noche'); if (!box || !NOCHE) return;
   const e = EVENTOS[NOCHE.id]; const S = minutos(e.hora);
   const bar = NOCHE.bares[NOCHE.bi], aft = NOCHE.afters[NOCHE.ai];
-  if (!bar && !aft) { box.hidden = true; return; }
+  if (!bar && !aft && NOCHE.desde == null) { box.hidden = true; return; }
   const en = LANG === 'en';
   const fila = (k, cont, ult, lleno) => `<div class="tl-fila"><div class="tl-eje"><span class="tl-dot ${lleno ? 'lleno' : ''}"></span>${ult ? '' : '<span class="tl-linea"></span>'}</div><div class="tl-cont">${k}${cont}</div></div>`;
   const filas = [];
@@ -2645,7 +2660,8 @@ function pintarNoche() {
     filas.push(fila(`<div class="tl-k">${en ? 'Pre-drinks' : 'La previa'}${S != null ? ' · ' + hhmm(S - 60) : ''}</div>`,
       `<div class="tl-card"><div onclick="verDireccion('${esc(b.id)}')"><b>${esc(b.titulo)}</b><small>${esc(tipo || '')} · ${trayecto(bar.d)} ${en ? 'from the venue' : 'del lugar'}</small></div><div class="tl-acc"><div class="res-wrap"><button onclick="menuReservar(event, '${esc(b.id)}')">${en ? 'Book' : 'Reservar'}</button></div>${NOCHE.bares.length > 1 ? `<button onclick="NOCHE.bi=(NOCHE.bi+1)%NOCHE.bares.length;pintarNoche()">${en ? 'Change' : 'Cambiar'}</button>` : ''}</div></div>`));
   }
-  filas.push(fila(`<div class="tl-k plan">${en ? 'The plan' : 'El plan'}${horario(e) ? ' · ' + horario(e) : ''}</div>`, `<div class="tl-plan"><b>${esc(e.titulo)}</b>${e.venue ? `<small>${esc(e.venue)}</small>` : ''}</div>`, !aft, true));
+  filas.push(fila(`<div class="tl-k plan">${en ? 'The plan' : 'El plan'}${horario(e) ? ' · ' + horario(e) : ''}</div>`, `<div class="tl-plan"><b>${esc(e.titulo)}</b>${e.venue ? `<small>${esc(e.venue)}</small>` : ''}</div>`, !aft && NOCHE.desde == null, true));
+  if (!aft && NOCHE.desde != null) filas.push(fila(`<div class="tl-k">${en ? 'The after' : 'El after'}</div>`, `<div class="tl-card"><div><small>${en ? `Nothing found after ${hhmm(NOCHE.desde + 30)} that night` : `No encontré fiestas después de las ${hhmm(NOCHE.desde + 30)} esa noche`}</small></div></div>`, true));
   if (aft) {
     const aid = idEvento(aft); EVENTOS[aid] = aft;
     const d = tieneCoords(e) && tieneCoords(aft) ? distKm([e.lat, e.lng], [aft.lat, aft.lng]) : null;
@@ -2940,6 +2956,31 @@ async function preguntar(textoFijo) {
     const f = data.filtros;
     if (!f) {
       burbuja(reply || 'Contame un poco más y te busco algo 🙂', 'bot');
+    } else if (f.tipo === 'despues') {
+      if (f.ciudad && CIUDADES.some(c => c[0] === f.ciudad) && f.ciudad !== ciudad()) { document.getElementById('city').value = f.ciudad; preciosCiudad(); ubic = puntoCentro(); actualizarNota(); pintar(); }
+      const ev = (data.eventos || [])[0];
+      const en = LANG === 'en';
+      if (ev) {
+        const id = idEvento(ev); EVENTOS[id] = ev;
+        burbujaHTML(`<div class="rec-t">${en ? 'Your plan' : 'Tu plan'}</div>${recCard(ev, '', true)}`);
+        const pensando = burbuja(en ? 'Planning your night…' : 'Te armo la noche…', 'bot typing');
+        const r = await calcularNoche(ev);
+        pensando.remove();
+        const partes = [];
+        if (r.bares[0]) { EVENTOS[r.bares[0].b.id] = r.bares[0].b; partes.push(`<div class="rec-t alt">${en ? 'Pre-drinks' : 'La previa'}</div><button class="rec-card" onclick="verDireccion('${esc(r.bares[0].b.id)}')"><div class="th">${emojiLugar(r.bares[0].b)}</div><span><b>${esc(r.bares[0].b.titulo)}</b><small>${esc(r.bares[0].b.tags.join(' · ') || r.bares[0].b.categoria)} · ${trayecto(r.bares[0].d)} ${en ? 'from the venue' : 'del lugar'}</small></span></button>`); }
+        if (r.afters.length) partes.push(`<div class="rec-t alt">${en ? 'The after' : 'El after'}${r.desde != null ? ` · ${en ? 'from' : 'desde las'} ${hhmm(r.desde + 30)}` : ''}</div>${r.afters.slice(0, 3).map(x => recCard(x, '')).join('')}`);
+        else if (r.desde != null) partes.push(`<div class="res-sub">${en ? `I found nothing after ${hhmm(r.desde + 30)} that night.` : `No encontré fiestas después de las ${hhmm(r.desde + 30)} esa noche.`}</div>`);
+        if (partes.length) burbujaHTML(partes.join(''));
+        burbujaHTML(`<div class="rapidas"><button class="ver" onclick="abrirDetalle('${esc(id).replace(/'/g, '&#39;')}'); setTimeout(() => document.getElementById('noche')?.scrollIntoView({ behavior: 'smooth' }), 400)">${en ? 'See the whole night' : 'Ver la noche armada'}</button></div>`, 'msg-acc');
+      } else if (f.hora_fin && f.desde) {
+        const afters = await buscarDespues(f.desde, minutos(f.hora_fin), null);
+        burbujaHTML(afters.length ? `<div class="rec-t">${en ? 'From' : 'Desde las'} ${esc(f.hora_fin)}</div>${afters.slice(0, 3).map(x => recCard(x, '')).join('')}`
+          : esc(en ? `I found nothing after ${f.hora_fin} that night 😕` : `No encontré nada después de las ${f.hora_fin} esa noche 😕`));
+      } else {
+        const que = f.artista || f.venue;
+        burbuja(que ? (en ? `I couldn't find ${que} on that day 😕 What time does it end and where is it? I'll find you something for after.` : `No encontré a ${que} ese día 😕 ¿A qué hora termina y dónde es? Así te busco qué hacer después.`)
+          : (reply || (en ? 'What time does it end and where is it?' : '¿A qué hora termina y dónde es?')), 'bot');
+      }
     } else if (f.tipo === 'lugar') {
       await aplicarLugarDelBot(f);
       burbuja(`¡Listo! Te dejé ${f.categoria === 'bares' ? 'los bares' : 'los restaurantes'} en pantalla. Podés afinarlos con los filtros o seguir preguntándome por acá.`, 'bot');
