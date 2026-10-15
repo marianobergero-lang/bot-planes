@@ -1844,7 +1844,7 @@ function tarjeta(e) {
   const otraCiudad = e.ciudad_venue && !ciudadTxt().toLowerCase().includes(e.ciudad_venue.toLowerCase().split(/[ ,-]/)[0]) && !e.ciudad_venue.toLowerCase().includes(ciudad()) ? e.ciudad_venue : '';
   const meta = [otraCiudad ? `<span class="ciudad">${ic('pin')}${esc(otraCiudad)}</span>` : '', h ? `<span>${h}</span>` : '', e.aire_libre ? '<span class="aire">Aire libre</span>' : ''].filter(Boolean).join(' · ');
   const sub = [esc(e.venue || e.ciudad_venue || ''), e.d != null ? `${fmtDist(e.d)} · ${aPie(e.d)}` : ''].filter(Boolean).join(' · ');
-  const who = (e.artistas || []).length ? esc(e.artistas.slice(0, 4).join(', ')) : genteTxt(e);
+  const who = [(e.artistas || []).length ? esc(e.artistas.slice(0, 3).join(', ')) : '', e.asistentes ? `<span class="people">${ic('users')}<span>${e.asistentes} interesados</span></span>` : '', !(e.artistas || []).length && !e.asistentes && e.destacado && e.escudos ? `<span class="people">${esc(e.destacado)}</span>` : ''].filter(Boolean).join(' · ');
   const pr = precioCorto(e);
   const g = estaGuardado(id);
   return `
@@ -2753,7 +2753,7 @@ function abrirDetalle(id, sinHistorial) {
         <h1>${esc(e.titulo)}</h1>
         ${cuando ? `<div class="det-when">${cuando}</div>` : ''}
         ${quien}
-        <div class="det-gente">${genteTxt(e)}</div>
+        ${e.asistentes || (e.destacado && e.escudos) ? `<div class="det-gente">${genteTxt(e)}</div>` : ''}
         ${e.venue || e.direccion ? `<div class="det-lugar">${ic('pin')}<div><b>${e.venue ? `<span class="lnk" onclick="cerrarDetalle(); verLugar('${esc(id)}')">${esc(e.venue)}</span>` : esc(e.direccion)}</b><small>${esc(lugarSub)}</small></div><button onclick="verDireccion('${esc(id)}')">Cómo llegar</button></div>` : ''}
         <div class="det-acc">
           ${e.fecha ? `<button class="ghost" onclick="agregarCalendario(event, '${esc(id)}')">${ic('cal')}Al calendario</button>` : ''}
