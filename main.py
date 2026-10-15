@@ -579,7 +579,11 @@ def pasa_filtros(ev_fmt, hora_min=None, hora_max=None, gratis=False, precio_max=
             return False
     if genero:
         gs = [g.strip() for g in genero.lower().split(",") if g.strip()]
-        if not any(g in x.lower() or x.lower() in g for g in gs for x in ev_fmt.get("generos") or []):
+        # sinónimos (Teatro y cine: Ticketmaster viene en inglés, Fever en español)
+        ALIAS = {"teatro": ["teatro", "theatre", "theater", "drama"], "musical": ["musical"], "comedia": ["comedia", "comedy", "stand-up", "humor", "magia", "magic"]}
+        gs = [a for g in gs for a in ALIAS.get(g, [g])]
+        texto_ev = [x.lower() for x in (ev_fmt.get("generos") or [])] + ([ev_fmt.get("titulo", "").lower()] if any(g in ALIAS for g in genero.lower().split(",")) else [])
+        if not any(g in x or (len(x) > 2 and x in g) for g in gs for x in texto_ev):
             return False
     return True
 

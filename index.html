@@ -618,7 +618,11 @@
   .det-hero.vacia i { position: absolute; right: 18px; bottom: 16px; font-style: normal; font-size: 30px; z-index: 1; }
   .det-hero.escudos { gap: 36px; background: radial-gradient(circle at 50% 120%, #2a5a2e, #121110 75%); }
   .det-hero.escudos img { width: 96px; height: 96px; object-fit: contain; }
-  .det-top { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; z-index: 2; }
+  .det-top { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; z-index: 3; }
+  .det-hero.foto { overflow: hidden; }
+  .det-hero.foto::before { content: ''; position: absolute; inset: -30px; background: var(--img) center / cover no-repeat; filter: blur(22px) brightness(.45) saturate(1.2); }
+  .det-hero.foto img { position: relative; z-index: 1; max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+  .det-hero.foto::after { z-index: 2; background: linear-gradient(180deg, rgba(0,0,0,.35), transparent 30%, transparent 85%, rgba(13,12,11,.6)); }
   .det-top > div { display: flex; gap: 8px; }
   .det-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(13,12,11,.66); backdrop-filter: blur(6px); color: #F2EEE8; display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .det-btn .ic { margin: 0; width: 20px; height: 20px; }
@@ -656,7 +660,7 @@
   .det-precio small a { color: var(--link); text-decoration: none; font-weight: 600; }
   .det-cta { background: var(--cta); color: #fff; text-decoration: none; font: 700 16px 'DM Sans', sans-serif; padding: 14px 24px; border-radius: 14px; white-space: nowrap; }
   .det-cta:hover { background: var(--cta2); }
-  .noche { margin-top: 18px; }
+  .noche { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border2); }
   .noche-k { font: 600 12px 'DM Sans', sans-serif; color: var(--link); text-transform: uppercase; letter-spacing: 1px; }
   .noche h2 { margin: 4px 0 14px; font: 700 21px 'Space Grotesk', sans-serif; letter-spacing: -0.6px; }
   .tl-fila { display: flex; gap: 14px; }
@@ -1128,7 +1132,7 @@ const MONEDA = {
 const GENEROS = {
   clubs: [['techno', 'Techno'], ['house', 'House'], ['tech house', 'Tech House'], ['progressive house', 'Progressive'], ['melodic', 'Melodic'], ['disco', 'Disco']],
   conciertos: [['rock', 'Rock'], ['pop', 'Pop'], ['latin', 'Latino'], ['hip-hop', 'Hip-Hop'], ['alternative', 'Alternativo'], ['jazz', 'Jazz']],
-  teatro: [], deportes: [['fútbol', 'Fútbol'], ['básquet', 'Básquet'], ['tenis', 'Tenis'], ['motor', 'Motor']],
+  teatro: [['teatro', 'Teatro'], ['musical', 'Musicales'], ['comedia', 'Comedia']], deportes: [['fútbol', 'Fútbol'], ['básquet', 'Básquet'], ['tenis', 'Tenis'], ['motor', 'Motor']],
   cine: [['Acción', 'Acción'], ['Comedia', 'Comedia'], ['Drama', 'Drama'], ['Terror', 'Terror'], ['Animación', 'Animación'], ['Ciencia ficción', 'Ciencia ficción'], ['Familia', 'Familia'], ['Romance', 'Romance']],
 };
 const TAB_TXT = { todo: ['plan', 'planes'], bares: ['bar', 'bares'], restaurantes: ['restaurante', 'restaurantes'], clubs: ['plan', 'planes'], conciertos: ['concierto', 'conciertos'], teatro: ['show', 'shows'], deportes: ['evento deportivo', 'eventos deportivos'], cine: ['película', 'películas'] };
@@ -1363,7 +1367,7 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
     'Esta noche': 'Tonight', 'Finde': 'Weekend', 'Fecha': 'Date', 'Todo': 'All', '✨ Todo': '✨ All', '🪩 Fiestas': '🪩 Parties', '🎭 Shows': '🎭 Shows', '🍽️ Comer y beber': '🍽️ Food & drinks', '← Planes': '← Plans', '← Volver a eventos': '← Back to events',
     'Más filtros': 'More filters', 'Ver mapa grande': 'Open big map', 'Explorar': 'Explore', 'Agente': 'Agent', 'Mis planes': 'My plans', 'Navegación': 'Navigation', 'Qué buscás': 'What are you looking for',
     'Preguntale al agente: techno al aire libre el sábado…': 'Ask the agent: open-air techno on Saturday…', 'Techno al aire libre, algo barato…': 'Open-air techno, something cheap…',
-    'Lo que': 'What you', 'Sin ubicación en el mapa': 'No location on the map', 'Cerca de': 'Near', 'Cambiar ubicación': 'Change location', 'Cambiar': 'Change', 'Volver al centro': 'Back to centre', 'Afinar': 'Refine', 'Fiestas': 'Parties', 'Conciertos': 'Concerts', 'Shows': 'Shows', 'Deportes': 'Sports',
+    'Lo que': 'What you', 'Teatro': 'Theatre', 'Teatro y cine': 'Theatre & film', 'Musicales': 'Musicals', 'Comedia': 'Comedy', 'Sin ubicación en el mapa': 'No location on the map', 'Cerca de': 'Near', 'Cambiar ubicación': 'Change location', 'Cambiar': 'Change', 'Volver al centro': 'Back to centre', 'Afinar': 'Refine', 'Fiestas': 'Parties', 'Conciertos': 'Concerts', 'Shows': 'Shows', 'Deportes': 'Sports',
     'Comer y beber': 'Food & drinks', '← Eventos': '← Events', 'Bares': 'Bars', 'Restaurantes': 'Restaurants', 'Cine': 'Movies', 'Los más cercanos primero': 'Closest first', 'Elegí un tipo en Afinar para ver más': 'Pick a type in Refine to see more',
     'juega': 'plays', 'tiene fecha nueva': 'has a new date', 'anunció fecha': 'announced a date', 'Ver': 'See', 'Ocultar': 'Hide', 'Compartir búsqueda': 'Share search', 'Ver en el mapa': 'See on the map', 'Ver categorías anteriores': 'Previous categories', 'Ver más categorías': 'More categories', 'Horario no informado': 'Hours not listed', 'Vegetariana': 'Vegetarian', 'Esto es lo que entendí:': 'Here’s what I understood:', 'Mi favorito': 'My pick', 'Otras opciones': 'Other options', 'en total, en pantalla.': 'in total, on screen.',
     'Sumá un bar para la previa': 'Add a bar for drinks before', 'Algo más temprano': 'Something earlier', 'Ver en el mapa': 'See on the map', 'Elijo lo mejor para vos…': 'Picking the best for you…', 'Sacar este filtro': 'Remove this filter',
@@ -1408,7 +1412,7 @@ const KM_DEFECTO = { bares: '1.5', otros: '99' };
 function kmClave() { return esLugar() ? 'bares' : 'otros'; }
 let modoVista = 'lista';  // 'lista' | 'mapa'
 let actual = { items: [], total: 0, porDia: {}, titulo: null };
-const MAX_MAPA = 20;
+const MAX_MAPA = 60;
 let usoFiltros = false;  // el cartel guía se muestra hasta que tocan el primer filtro del costado
 function cartelGuia() { return ''; }
 const cal = { abierto: false, a: null, b: null, mes: null };
@@ -1483,13 +1487,13 @@ function pintar() {
 }
 
 // ── CATEGORÍAS Y TÍTULO DE LA HOME ──────────────────────────────────────────
-const CATS = [['todo', 'Todo'], ['clubs', 'Fiestas'], ['conciertos', 'Conciertos'], ['teatro', 'Shows'], ['deportes', 'Deportes']];
+const CATS = [['todo', 'Todo'], ['clubs', 'Fiestas'], ['conciertos', 'Conciertos'], ['teatro', 'Teatro'], ['deportes', 'Deportes']];
 function pintarCats() {
   const tabOn = st.tab === 'cine' ? 'teatro' : st.tab;
   const btn = ([t, txt, cl]) => `<button class="cat ${cl || ''} ${t === tabOn && !cl ? 'on' : ''}" data-tab="${t}" aria-current="${t === tabOn && !cl ? 'true' : 'false'}">${txt}</button>`;
   document.getElementById('cats').innerHTML = esLugar()
     ? [btn(['todo', '← Eventos', 'volver-cat']), '<span class="cat-sep" aria-hidden="true"></span>', btn(['bares', 'Bares']), btn(['restaurantes', 'Restaurantes'])].join('')
-    : CATS.map(btn).join('') + '<span class="cat-sep" aria-hidden="true"></span>' + btn(['bares', 'Comer y beber']);
+    : CATS.map(([t, txt]) => btn([t, t === 'teatro' && BETA ? 'Teatro y cine' : txt])).join('') + '<span class="cat-sep" aria-hidden="true"></span>' + btn(['bares', 'Comer y beber']);
   setTimeout(flechasCats, 0);
 }
 // Celular: la fila de "Qué" se desliza; flechas ‹ › según haya más para ver
@@ -1501,12 +1505,13 @@ function flechasCats() {
 }
 function moverCats(dir) { const c = document.getElementById('cats'); c.scrollBy({ left: dir * c.clientWidth * 0.6, behavior: 'smooth' }); }
 // Filtros rápidos: lo más usado a la vista según la categoría + los que estén puestos desde "Más filtros" (con ✕)
+const COMUNES = [['precio', 'gratis'], ['aire', 'abierto'], ['franja', 'sunset'], ['franja', 'afters']];
 const RAPIDOS = {
-  todo: [['precio', 'gratis'], ['aire', 'abierto'], ['franja', 'sunset'], ['franja', 'afters']],
-  clubs: [['genero', 'techno'], ['genero', 'house'], ['genero', 'tech house'], ['genero', 'melodic'], ['precio', 'gratis'], ['aire', 'abierto'], ['franja', 'afters']],
-  conciertos: [['genero', 'rock'], ['genero', 'pop'], ['genero', 'latin'], ['genero', 'jazz'], ['precio', 'gratis'], ['aire', 'abierto']],
-  teatro: [['precio', 'gratis'], ['precio', 'bajo']],
-  deportes: [['genero', 'fútbol'], ['genero', 'básquet'], ['genero', 'tenis'], ['genero', 'motor']],
+  todo: COMUNES,
+  clubs: [['genero', 'techno'], ['genero', 'house'], ['genero', 'tech house'], ['genero', 'melodic'], ...COMUNES],
+  conciertos: [['genero', 'rock'], ['genero', 'pop'], ['genero', 'latin'], ['genero', 'jazz'], ...COMUNES],
+  teatro: [['genero', 'teatro'], ['genero', 'musical'], ['genero', 'comedia'], ...COMUNES],
+  deportes: [['genero', 'fútbol'], ['genero', 'básquet'], ['genero', 'tenis'], ['genero', 'motor'], ...COMUNES],
   bares: [['abierto', 'si'], ['tipoBar', 'terraza'], ['tipoBar', 'cocteles'], ['tipoBar', 'vinos'], ['tipoBar', 'cervezas'], ['tipoBar', 'musica'], ['tipoBar', 'hifi']],
   restaurantes: [['abierto', 'si'], ['extraRest', 'terraza'], ['extraRest', 'veg'], ['tipoRest', 'tapas'], ['tipoRest', 'italiana'], ['tipoRest', 'japonesa']],
 };
@@ -1527,8 +1532,12 @@ function pintarRapidos() {
   const extra = [];
   clavesTab().forEach(k =>
     (MULTI.includes(k) ? valores(st[k]) : st[k] ? [st[k]] : []).forEach(v => { if (!base.some(([a, b]) => a === k && b === v)) extra.push([k, v]); }));
-  box.innerHTML = cine + [...extra, ...base].map(([k, v]) => { const on = activo(k, v);
-    return `<button class="rap ${on ? 'on' : ''}" data-k="${k}" data-v="${esc(v)}" aria-pressed="${on}">${on ? ic('check') : ''}${esc(etiquetaFiltro(k, v))}</button>`; }).join('') + mas;
+  const chip = ([k, v]) => { const on = activo(k, v);
+    return `<button class="rap ${on ? 'on' : ''}" data-k="${k}" data-v="${esc(v)}" aria-pressed="${on}">${on ? ic('check') : ''}${esc(etiquetaFiltro(k, v))}</button>`; };
+  const subs = base.filter(([k]) => k === 'genero' || ['tipoBar', 'tipoRest', 'extraRest', 'abierto'].includes(k)), resto = base.filter(f => !subs.includes(f));
+  const subsHtml = subs.map(chip);
+  if (cine) subsHtml.splice(st.tab === 'teatro' ? 1 : 0, 0, cine);
+  box.innerHTML = subsHtml.join('') + extra.map(chip).join('') + resto.map(chip).join('') + mas;
 }
 function tocarFiltro(k, v) {
   usoFiltros = true;
@@ -2670,7 +2679,7 @@ function abrirDetalle(id, sinHistorial) {
   const cuando = d ? (LANG === 'en' ? `${DIAS_L[d.getDay()]} ${d.getDate()} ${MESES_L[d.getMonth()]}` : `${DIAS_L[d.getDay()]} ${d.getDate()} de ${MESES_L[d.getMonth()]}`) + (h ? ` · ${h}` : '') : h;
   const esc2 = (e.escudos || []).filter(Boolean);
   const hero = esc2.length === 2 ? `<div class="det-hero escudos"><img src="${esc(esc2[0])}" alt=""><img src="${esc(esc2[1])}" alt="">`
-    : e.imagen ? `<div class="det-hero" style="background-image:url('${esc(e.imagen)}')">`
+    : e.imagen ? `<div class="det-hero foto" style="--img:url('${esc(e.imagen)}')"><img src="${esc(e.imagen)}" alt="">`
     : `<div class="det-hero vacia"><b>${esc(e.venue || e.titulo)}</b><i>${emojiTab(e)}</i>`;
   const tags = [...(e.generos || []).slice(0, 3).map(g => `<span>${esc(g)}</span>`), e.aire_libre ? '<span class="aire">Aire libre</span>' : ''].join('');
   const artistas = (e.artistas || []).slice(0, 8);
@@ -2795,7 +2804,7 @@ function pintarNoche() {
     filas.push(fila(`<div class="tl-k">${en ? 'The after' : 'El after'} · ${aft.hora}</div>`,
       `<div class="tl-card"><div onclick="abrirDetalle('${esc(aid).replace(/'/g, '&#39;')}')"><b>${esc(aft.titulo)}</b><small>${esc(aft.venue || '')}${comun ? (en ? ' · same style' : ' · mismo estilo') : ''}${d != null ? ' · ' + trayecto(d) : ''}</small></div><div class="tl-acc">${aft.url ? `<a class="tl-ticket" href="${esc(aft.url)}" target="_blank" rel="noopener">Tickets</a>` : ''}${NOCHE.afters.length > 1 ? `<button onclick="NOCHE.ai=(NOCHE.ai+1)%NOCHE.afters.length;pintarNoche()">${en ? 'Change' : 'Cambiar'}</button>` : ''}</div></div>`, true));
   }
-  box.innerHTML = `<div class="noche-k">${en ? 'Nobody else plans this for you' : 'Lo que nadie más te arma'}</div><h2>${en ? 'Plan your night' : 'Armá tu noche'}</h2>${filas.join('')}
+  box.innerHTML = `<div class="noche-k">${en ? 'What about before and after?' : '¿Y la previa y el after?'}</div><h2>${en ? 'We planned your night' : 'Te armamos la noche'}</h2>${filas.join('')}
     <button class="ghost wa" onclick="compartirNoche()">${ic('chat')}${en ? 'Share the whole night on WhatsApp' : 'Compartir la noche entera por WhatsApp'}</button>`;
   box.hidden = false;
 }
