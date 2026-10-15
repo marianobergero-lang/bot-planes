@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install requests
-      - run: python tools/extraer_promotores.py ${{ github.event.inputs.area || '20' }}
+      - run: mkdir -p extracciones && (python tools/extraer_promotores.py ${{ github.event.inputs.area || '20' }} > extracciones/salida.txt 2>&1 || true)
       - name: Guardar
         run: |
           git config user.name "github-actions[bot]"

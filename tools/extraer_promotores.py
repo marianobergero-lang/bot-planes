@@ -14,6 +14,8 @@ Q = """query($filters: FilterInputDtoInput, $pageSize: Int, $page: Int) {
       promoters { id name contentUrl website instagram facebook followerCount upcomingEventsCount area { name } } } }
     totalResults } }"""
 
+Q_MIN = Q.replace("website instagram facebook followerCount upcomingEventsCount area { name } ", "")
+LOG = []
 hoy = dt.date.today()
 vie = hoy + dt.timedelta(days=(4 - hoy.weekday()) % 7)
 area = int(sys.argv[1]) if len(sys.argv) > 1 else 20
@@ -23,10 +25,13 @@ hasta = sys.argv[3] if len(sys.argv) > 3 else (vie + dt.timedelta(days=2)).isofo
 filas, page = [], 1
 while True:
     v = {"filters": {"areas": {"eq": area}, "listingDate": {"gte": desde, "lte": hasta}}, "pageSize": 100, "page": page}
-    r = requests.post(URL, headers=H, json={"query": Q, "variables": v}, timeout=30)
-    r.raise_for_status()
-    d = r.json()
-    if d.get("errors"): print(json.dumps(d["errors"])[:2000]); sys.exit(1)
+    d = None
+    for q in (Q, Q_MIN):
+        r = requests.post(URL, headers=H, json={"query": q, "variables": v}, timeout=30)
+        LOG.append(f"HTTP {r.status_code} ({'completa' if q is Q else 'mínima'}): {r.text[:600]}" if r.status_code != 200 or '"errors"' in r.text[:2000] else f"HTTP 200 ok ({'completa' if q is Q else 'mínima'})")
+        if r.status_code == 200 and r.json().get("data", {}).get("eventListings"):
+            d = r.json(); break
+    if not d: break
     el = d["data"]["eventListings"]
     for it in el["data"]:
         e = it["event"]
@@ -56,4 +61,6 @@ for f in filas:
 sal = f"extracciones/promotores_{area}_{desde}_{hasta}.csv"
 with open(sal, "w", newline="", encoding="utf-8") as fh:
     w = csv.DictWriter(fh, fieldnames=list(unicas[0].keys()) if unicas else ["fiesta"]); w.writeheader(); w.writerows(unicas)
-print(f"{len(unicas)} filas → {sal}")
+LOG.append(f"{len(unicas)} filas → {sal}")
+open("extracciones/log.txt", "w").write("\n".join(LOG))
+print("\n".join(LOG))
