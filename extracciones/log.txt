@@ -1,0 +1,7 @@
+HTTP 200 ok (completa)
+2026-10-16 página 1: 46 de 46
+HTTP 200 ok (completa)
+2026-10-17 página 1: 43 de 43
+HTTP 200 ok (completa)
+2026-10-18 página 1: 11 de 11
+123 filas → extracciones/promotores_20_2026-10-16_2026-10-18.csv
