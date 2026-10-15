@@ -1,0 +1,2 @@
+HTTP 200 ok (completa)
+123 filas → extracciones/promotores_20_2026-10-16_2026-10-18.csv
