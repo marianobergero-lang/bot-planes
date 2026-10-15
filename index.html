@@ -44,6 +44,21 @@
   .main-wrap { display: flex; flex-direction: column; min-height: 0; }
   .main { flex: 1; overflow-y: auto; padding: 24px 28px 30px; transition: opacity .2s; }
   .main.loading { opacity: .35; pointer-events: none; }
+  .main.loading.esq-on { opacity: 1; }
+  .main:not(.loading) .cargando { display: none; }
+  .cargando { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 26px 0 22px; }
+  .carg-logo { font: 700 30px 'Space Grotesk', sans-serif; letter-spacing: -1px; color: var(--text); animation: latido 1.6s ease-in-out infinite; }
+  .carg-logo span { color: var(--orange); display: inline-block; animation: armar 1.6s ease-in-out infinite; }
+  .carg-txt { font-size: 14px; color: var(--muted); }
+  @keyframes latido { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+  @keyframes armar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  .card.esq { cursor: default; }
+  .sk { display: block; border-radius: 6px; background: linear-gradient(90deg, #1d1b18 0%, #2a2622 50%, #1d1b18 100%); background-size: 200% 100%; animation: brillo-sk 1.3s linear infinite; }
+  .th.sk { border-radius: 12px; }
+  .sk.l1 { width: 30%; height: 11px; } .sk.l2 { width: 85%; height: 16px; margin-top: 4px; } .sk.l3 { width: 60%; height: 12px; margin-top: 4px; }
+  .sk.l4 { width: 40%; height: 12px; } .sk.bt { width: 84px; height: 38px; border-radius: 11px; }
+  @keyframes brillo-sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) { .carg-logo, .carg-logo span, .sk { animation: none; } }
 
   /* CIUDAD */
   .city-label, .group h4 { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; display: block; }
@@ -924,7 +939,7 @@ document.addEventListener('click', ev => {
 
 <header>
   <a class="brand" href="./" onclick="irHome(event)" title="Volver al inicio">Let's <span>Part</span>IA!<small>Todos tus planes, en un solo lugar</small></a>
-  <label class="ask-h"><span class="ask-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><input id="askh" placeholder="Preguntale al agente: techno al aire libre el sábado…" aria-label="Preguntale a Let's PartIA!" onkeydown="if(event.key==='Enter')desdeCaja('askh')"><button class="send" onclick="desdeCaja('askh')" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></label>
+  <label class="ask-h"><span class="ask-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><input id="askh" placeholder="Decime qué tenés ganas de hacer y te lo busco ✨" aria-label="Preguntale a Let's PartIA!" onkeydown="if(event.key==='Enter')desdeCaja('askh')"><button class="send" onclick="desdeCaja('askh')" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></label>
   <div class="hdr-der">
     <button class="saved-btn" id="savedbtn" onclick="verGuardados()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="txt-largo dos">Mis planes<small>favoritos</small></span> <b id="nguardados"></b></button>
     <div class="sig-wrap"><button class="saved-btn" id="sigbtn" onclick="abrirSiguiendo(event)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="txt-largo"> Siguiendo</span> <b id="nsiguiendo"></b></button><div class="sig-pop" id="sigpop"></div></div>
@@ -1056,7 +1071,7 @@ document.addEventListener('click', ev => {
         <div id="sugs"></div>
       </div></span></div>
         </div>
-        <label class="ask-m"><span class="ask-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><input id="askm" placeholder="Techno al aire libre, algo barato…" aria-label="Preguntale a Let's PartIA!" onkeydown="if(event.key==='Enter')desdeCaja('askm')"><button class="send" onclick="desdeCaja('askm')" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></label>
+        <label class="ask-m"><span class="ask-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><input id="askm" placeholder="Decime qué tenés ganas de hacer…" aria-label="Preguntale a Let's PartIA!" onkeydown="if(event.key==='Enter')desdeCaja('askm')"><button class="send" onclick="desdeCaja('askm')" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></label>
         <div class="cats-wrap" id="catswrap">
           <button class="cats-flecha izq" id="catsizq" onclick="moverCats(-1)" aria-label="Ver categorías anteriores" hidden><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
           <nav class="cats" id="cats" aria-label="Qué buscás"></nav>
@@ -1080,7 +1095,7 @@ document.addEventListener('click', ev => {
       <div class="chat-head"><div class="bot-ico"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></div><div><b>Let's <span>Part</span>IA!</b><small>Contame qué querés y te lo busco</small></div><button class="x" onclick="toggleChat(false)" aria-label="Cerrar">✕</button></div>
       <div class="chat-thread" id="thread"></div>
       <div class="chat-bar">
-        <input id="ask" placeholder="¡Hey! Decime qué te gustaría ✨" onkeydown="if(event.key==='Enter')preguntar()">
+        <input id="ask" placeholder="Decime qué tenés ganas de hacer y te lo busco ✨" onkeydown="if(event.key==='Enter')preguntar()">
         <button class="send" id="sendbtn" onclick="preguntar()" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
       </div>
     </div>
@@ -1367,7 +1382,7 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
     'Esta noche': 'Tonight', 'Finde': 'Weekend', 'Fecha': 'Date', 'Todo': 'All', '✨ Todo': '✨ All', '🪩 Fiestas': '🪩 Parties', '🎭 Shows': '🎭 Shows', '🍽️ Comer y beber': '🍽️ Food & drinks', '← Planes': '← Plans', '← Volver a eventos': '← Back to events',
     'Más filtros': 'More filters', 'Ver mapa grande': 'Open big map', 'Explorar': 'Explore', 'Agente': 'Agent', 'Mis planes': 'My plans', 'Navegación': 'Navigation', 'Qué buscás': 'What are you looking for',
     'Preguntale al agente: techno al aire libre el sábado…': 'Ask the agent: open-air techno on Saturday…', 'Techno al aire libre, algo barato…': 'Open-air techno, something cheap…',
-    'Lo que': 'What you', 'Teatro': 'Theatre', 'Teatro y cine': 'Theatre & film', 'Musicales': 'Musicals', 'Comedia': 'Comedy', 'Sin ubicación en el mapa': 'No location on the map', 'Cerca de': 'Near', 'Cambiar ubicación': 'Change location', 'Cambiar': 'Change', 'Volver al centro': 'Back to centre', 'Afinar': 'Refine', 'Fiestas': 'Parties', 'Conciertos': 'Concerts', 'Shows': 'Shows', 'Deportes': 'Sports',
+    'Lo que': 'What you', 'Buscando tus planes…': 'Finding your plans…', 'Buscando bares…': 'Finding bars…', 'Buscando restaurantes…': 'Finding restaurants…', 'Decime qué tenés ganas de hacer y te lo busco ✨': 'Tell me what you feel like doing and I’ll find it ✨', 'Decime qué tenés ganas de hacer…': 'Tell me what you feel like doing…', 'Teatro': 'Theatre', 'Teatro y cine': 'Theatre & film', 'Musicales': 'Musicals', 'Comedia': 'Comedy', 'Sin ubicación en el mapa': 'No location on the map', 'Cerca de': 'Near', 'Cambiar ubicación': 'Change location', 'Cambiar': 'Change', 'Volver al centro': 'Back to centre', 'Afinar': 'Refine', 'Fiestas': 'Parties', 'Conciertos': 'Concerts', 'Shows': 'Shows', 'Deportes': 'Sports',
     'Comer y beber': 'Food & drinks', '← Eventos': '← Events', 'Bares': 'Bars', 'Restaurantes': 'Restaurants', 'Cine': 'Movies', 'Los más cercanos primero': 'Closest first', 'Elegí un tipo en Afinar para ver más': 'Pick a type in Refine to see more',
     'juega': 'plays', 'tiene fecha nueva': 'has a new date', 'anunció fecha': 'announced a date', 'Ver': 'See', 'Ocultar': 'Hide', 'Compartir búsqueda': 'Share search', 'Ver en el mapa': 'See on the map', 'Ver categorías anteriores': 'Previous categories', 'Ver más categorías': 'More categories', 'Horario no informado': 'Hours not listed', 'Vegetariana': 'Vegetarian', 'Esto es lo que entendí:': 'Here’s what I understood:', 'Mi favorito': 'My pick', 'Otras opciones': 'Other options', 'en total, en pantalla.': 'in total, on screen.',
     'Sumá un bar para la previa': 'Add a bar for drinks before', 'Algo más temprano': 'Something earlier', 'Ver en el mapa': 'See on the map', 'Elijo lo mejor para vos…': 'Picking the best for you…', 'Sacar este filtro': 'Remove this filter',
@@ -1667,6 +1682,16 @@ function elegirDia(y, m, i) {
 
 // ── BÚSQUEDA ───────────────────────────────────────────────────────────────
 let timer = null, ctrl = null, ultimaBusqueda = null;
+function esqueleto(txt) {
+  const main = document.getElementById('main');
+  clearTimeout(esqueleto.t);
+  esqueleto.t = setTimeout(() => {
+    if (!main.classList.contains('loading') || modoVista === 'mapa') return;
+    const card = `<div class="card ev esq" aria-hidden="true"><div class="ev-top"><div class="th sk"></div><div class="ev-info"><i class="sk l1"></i><i class="sk l2"></i><i class="sk l3"></i></div></div><div class="ev-foot"><i class="sk l4"></i><i class="sk bt"></i></div></div>`;
+    main.classList.add('esq-on');
+    main.innerHTML = `<div class="cargando" role="status"><div class="carg-logo">Let's <span>Part</span>IA!</div><div class="carg-txt">${esc(tr(txt || 'Buscando tus planes…'))}</div></div><div class="grid">${card.repeat(6)}</div>`;
+  }, 250);
+}
 function autoBuscar() {
   document.getElementById('main').classList.add('loading');
   clearTimeout(timer);
@@ -1683,6 +1708,7 @@ async function buscar() {
   trackBusqueda(st.tab, ciudad());
   const main = document.getElementById('main');
   main.classList.add('loading');
+  esqueleto();
   const [a, b] = rango();
   const completo = (ubic && (!ubic.auto || st.km !== '99')) || modoVista === 'mapa';
   const p = new URLSearchParams({ ciudad: ciudad(), categoria: st.tab, desde: iso(a), hasta: iso(b), max: completo ? 300 : 30 });
@@ -1729,6 +1755,7 @@ function volver() { return vista === 'resultados' || vista === 'inicio' ? '' : `
 
 function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
   const main = document.getElementById('main');
+  main.classList.remove('esq-on');
   if (titulo && vista !== 'guardados') vista = 'especial';
   const activos = [...valores(st.franja).map(trClave), ...valores(st.precio).map(trClave), ...valores(st.genero).map(x => (GENEROS[st.tab] || []).find(g => g[0] === x)?.[1] || x)].map(x => `<span>${esc(x)}</span>`).join('');
   const n = Math.max(total, eventos.length);
@@ -2043,6 +2070,7 @@ function renderActual() {
 
 function mostrarBares(items) {
   const main = document.getElementById('main');
+  main.classList.remove('esq-on');
   const donde = ubic ? `cerca de <span>${esc(ubic.txt)}</span>` : `en <span>${esc(ciudadTxt())}</span>`;
   // Cercanía con un empujón a los que tienen más datos (cocina, horario, web)
   items.sort((a, b) => ((a.d ?? 999) - 0.1 * (a.info || 0)) - ((b.d ?? 999) - 0.1 * (b.info || 0)));
@@ -2107,13 +2135,30 @@ function renderMapa(items, esBar) {
   });
   setTimeout(() => { mapa.invalidateSize(); actualizarMapa(); }, 60);
 }
+// Si hay más lugares que puntos, los reparte por la zona visible (cuadrícula de 6×6) en vez de amontonarlos en el centro
+function repartirEnMapa(grupos, b, max) {
+  if (grupos.length <= max || !b.getSouth) return grupos.slice(0, max);
+  const N = 6, s = b.getSouth(), w = b.getWest(), dl = (b.getNorth() - s) / N || 1, dg = (b.getEast() - w) / N || 1;
+  const celdas = new Map();
+  grupos.forEach(g => {
+    const k = Math.min(N - 1, Math.max(0, Math.floor((g[0].lat - s) / dl))) + ',' + Math.min(N - 1, Math.max(0, Math.floor((g[0].lng - w) / dg)));
+    if (!celdas.has(k)) celdas.set(k, []); celdas.get(k).push(g);
+  });
+  const listas = [...celdas.values()], out = [];
+  for (let i = 0; out.length < max; i++) {
+    let alguno = false;
+    for (const l of listas) { if (l[i]) { out.push(l[i]); alguno = true; if (out.length >= max) break; } }
+    if (!alguno) break;
+  }
+  return out;
+}
 function actualizarMapa() {
   if (!mapa) return;
   const b = mapa.getBounds();
   let vis = itemsMapa.filter(x => b.contains([x.lat, x.lng]));
   vis.sort((a, c) => ubic ? (a.d ?? 999) - (c.d ?? 999) : esBarMapa ? 0 : ((c.asistentes || 0) - (a.asistentes || 0)));
   const total = vis.length;
-  const grupos = agruparPorLugar(vis).slice(0, MAX_MAPA);
+  const grupos = repartirEnMapa(agruparPorLugar(vis), b, MAX_MAPA);
   vis = grupos.flat();
   capaPines.clearLayers(); pines = {}; GRUPO_DE = {};
   grupos.forEach(gr => {
@@ -2193,6 +2238,7 @@ async function buscarBares() {
   guardarURL();
   const main = document.getElementById('main');
   main.classList.add('loading');
+  esqueleto(st.tab === 'restaurantes' ? 'Buscando restaurantes…' : 'Buscando bares…');
   const esRest = st.tab === 'restaurantes';
   const locales = esRest ? await restLocales(ciudad()) : await baresLocales(ciudad());
   if (esRest && !locales) {
