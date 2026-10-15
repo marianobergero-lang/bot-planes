@@ -808,6 +808,85 @@
     .nav-abajo button.on { color: var(--text); }
     .chat-dock { bottom: calc(70px + env(safe-area-inset-bottom)); }
   }
+
+  /* ── v2: filtros en 3 niveles (Qué · Cuándo · Afinar) y resultados compactos ── */
+  .topbar { padding: 26px 28px 0; }
+  .tb-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 40px; }
+  .tb-izq { min-width: 0; }
+  .tb-h1 { font-size: 38px; letter-spacing: -1.4px; }
+  .tb-ubic-row { margin-top: 6px; display: flex; align-items: center; gap: 0; flex-wrap: wrap; font-size: 13.5px; color: var(--dim); }
+  .tb-ubic-row .near-note { display: inline !important; font-size: 13.5px; color: var(--dim); }
+  .tb-ubic-row .near-note b { color: var(--muted); font-weight: 600; }
+  .tb-ubic { position: relative; }
+  .tb-ubic .near, .tb-ubic .near.on { height: auto; padding: 0; border: none; background: none; color: var(--link); font: 600 13.5px 'DM Sans', sans-serif; border-radius: 0; }
+  .tb-ubic .near:hover { text-decoration: underline; }
+  .tb-ubic .near-pop { top: calc(100% + 8px); left: 0; right: auto; width: 340px; }
+  .cats-wrap { position: relative; min-width: 0; }
+  .cats { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; border-bottom: 1px solid rgba(242,238,232,.1); }
+  .cat, .cat.on { height: auto; background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0; color: #B3ADA4; font: 600 15.5px 'DM Sans', sans-serif; padding: 10px 2px 12px; margin-bottom: -1px; white-space: nowrap; cursor: pointer; }
+  .cat:hover { color: var(--text); }
+  .cat.on { color: var(--text); border-bottom-color: #E9682E; }
+  .cat.volver-cat { color: var(--muted); }
+  .cat-sep { width: 1px; height: 20px; background: rgba(242,238,232,.18); flex-shrink: 0; }
+  .cats-flecha { display: none; }
+  .tb-barra { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-top: 22px; padding: 14px 0; border-top: 1px solid rgba(242,238,232,.07); border-bottom: 1px solid rgba(242,238,232,.07); }
+  .chips.mom { gap: 2px; padding: 3px; border-radius: 12px; background: #171614; }
+  .chips.mom .chip { height: 38px; padding: 0 15px; border-radius: 9px; }
+  .sep-v { width: 1px; height: 28px; background: rgba(242,238,232,.14); }
+  .mom-wrap[hidden] + .sep-v { display: none; }
+  .afinar-k { font: 700 11.5px 'DM Sans', sans-serif; color: var(--dim); text-transform: uppercase; letter-spacing: 1.2px; }
+  .rapidos, .rapidos:empty { display: flex; gap: 8px; flex-wrap: wrap; padding: 0; margin: 0; border: none; }
+  .rap { height: 36px; padding: 0 12px; gap: 6px; border-radius: 8px; border: none; background: #1A1816; color: #C9C3BA; font: 500 13.5px 'DM Sans', sans-serif; }
+  .rap:hover { background: #24211e; color: var(--text); }
+  .rap.on { background: rgba(233,104,46,.16); color: #F5A57B; border: none; }
+  .rap .ic { margin: 0; width: 14px; height: 14px; stroke-width: 3; }
+  .rap.mas { background: transparent; border: 1px dashed rgba(242,238,232,.22); color: var(--text); font-weight: 500; }
+  .rap.mas .mf-ic { display: none; }
+  .cuerpo { grid-template-columns: minmax(0, 1fr) !important; }
+  .res-head { align-items: center; padding-bottom: 12px; margin-bottom: 0; }
+  .icon-sq { width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(242,238,232,.16); background: transparent; color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+  .icon-sq:hover { border-color: var(--muted); }
+  .icon-sq .ic { margin: 0; width: 17px; height: 17px; }
+  .dia-n, .dia-acc { display: none; }
+  .franja { display: flex; align-items: center; gap: 10px; margin: 4px 0 6px; padding: 10px 12px 10px 14px; border-radius: 12px; background: #1F1712; border: 1px solid rgba(233,104,46,.35); font-size: 14px; }
+  .franja[hidden] { display: none; }
+  .franja .txt { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
+  .franja .txt b { color: var(--text); }
+  .franja .ver { background: none; border: none; color: var(--link); font: 700 14px 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap; }
+  .franja .x { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 15px; padding: 2px 4px; }
+  @media (max-width: 1100px) { .tb-h1 { font-size: 32px; } }
+  @media (max-width: 820px) {
+    .topbar { padding: 16px 16px 0; }
+    .tb-top { flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 0; }
+    .tb-h1 { font-size: 26px; letter-spacing: -1px; }
+    .tb-ubic-row { font-size: 13px; margin-top: 4px; }
+    .tb-ubic .near-pop { width: calc(100vw - 32px); }
+    .ask-m { margin-top: 14px; }
+    .cats-wrap { margin: 12px -16px 0; border-bottom: 1px solid rgba(242,238,232,.1); }
+    .cats { flex-wrap: nowrap; overflow-x: auto; gap: 20px; padding: 0 60px 0 16px; border-bottom: none; scrollbar-width: none; scroll-behavior: smooth; }
+    .cats::-webkit-scrollbar { display: none; }
+    .cat, .cat.on { font-size: 15px; padding: 10px 1px 11px; margin-bottom: 0; }
+    .cats-flecha { display: flex; position: absolute; top: 0; bottom: 0; width: 72px; align-items: center; border: none; padding: 0 8px; cursor: pointer; z-index: 2; color: var(--text); }
+    .cats-flecha[hidden] { display: none; }
+    .cats-flecha.der { right: 0; justify-content: flex-end; background: linear-gradient(90deg, rgba(13,12,11,0), var(--bg) 55%); }
+    .cats-flecha.izq { left: 0; justify-content: flex-start; background: linear-gradient(270deg, rgba(13,12,11,0), var(--bg) 55%); }
+    .cats-flecha .ic { margin: 0; width: 32px; height: 32px; padding: 8px; border-radius: 999px; border: 1px solid rgba(242,238,232,.2); background: #1C1A17; }
+    .tb-barra { display: block; margin-top: 12px; padding: 0 0 12px; border: none; }
+    .chips.mom .chip { flex: 1; padding: 0 6px; font-size: 13.5px; }
+    .sep-v, .afinar-k { display: none; }
+    .rapidos, .rapidos:empty { flex-wrap: nowrap; overflow-x: auto; gap: 6px; margin: 10px -16px 0; padding: 0 16px; scrollbar-width: none; }
+    .rapidos::-webkit-scrollbar { display: none; }
+    .rap { height: 38px; flex-shrink: 0; }
+    .rap.mas { order: -1; padding: 0 10px; }
+    .rap.mas .mf-ic { display: inline-flex; } .rap.mas .mf-txt { display: none; }
+    .res-head.normal { display: none; }
+    .dia-n { display: inline; font: 400 13px 'DM Sans', sans-serif; color: var(--dim); text-transform: none; letter-spacing: 0; }
+    .dia-acc { display: flex; gap: 6px; margin-left: auto; }
+    .day.primero::after { display: none; }
+    .day.primero { margin-top: 14px; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; white-space: nowrap; }
+    .day.primero b { font-size: 18px; letter-spacing: -0.2px; }
+    .day.primero .mes { display: none; }
+  }
 </style>
 <script data-goatcounter="https://partia.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <script>
@@ -960,37 +1039,37 @@ document.addEventListener('click', ev => {
 
   <div class="main-wrap">
     <div class="topbar" id="topbar">
-      <div class="tb-head">
-        <h1 class="tb-h1"><span id="h1mom">Esta noche en</span> <span class="city-in"><select id="city" aria-label="Ciudad"></select></span></h1>
-      </div>
-      <div class="tb-ubic-row"><div class="near-note" id="nearnote"></div>
-        <div class="tb-ubic"><button class="near" id="near" onclick="abrirCerca(event)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Mi ubicación</button>
+      <div class="tb-top">
+        <div class="tb-izq">
+          <h1 class="tb-h1"><span id="h1mom">Esta noche en</span> <span class="city-in"><select id="city" aria-label="Ciudad"></select></span></h1>
+          <div class="tb-ubic-row"><span class="near-note" id="nearnote"></span><span class="tb-ubic"><button class="near" id="near" onclick="abrirCerca(event)">Cambiar ubicación</button>
           <div class="near-pop" id="nearpop">
         <button class="cerrar-x" onclick="event.stopPropagation();document.getElementById('nearpop').classList.remove('open')" aria-label="Cerrar">✕</button>
         <button class="near-opt" onclick="usarUbicacion()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Usar mi ubicación actual</button>
         <div class="near-or">o escribí una dirección</div>
         <input id="diri" placeholder="Ej: Carrer de Blai 30, un hotel o un barrio" oninput="sugerirDir()" autocomplete="off">
         <div id="sugs"></div>
-      </div>
+      </div></span></div>
+        </div>
+        <label class="ask-m"><span class="ask-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><input id="askm" placeholder="Techno al aire libre, algo barato…" aria-label="Preguntale a Let's PartIA!" onkeydown="if(event.key==='Enter')desdeCaja('askm')"><button class="send" onclick="desdeCaja('askm')" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></label>
+        <div class="cats-wrap" id="catswrap">
+          <button class="cats-flecha izq" id="catsizq" onclick="moverCats(-1)" aria-label="Ver categorías anteriores" hidden><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+          <nav class="cats" id="cats" aria-label="Qué buscás"></nav>
+          <button class="cats-flecha der" id="catsder" onclick="moverCats(1)" aria-label="Ver más categorías"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
         </div>
       </div>
-      <label class="ask-m"><span class="ask-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><input id="askm" placeholder="Techno al aire libre, algo barato…" aria-label="Preguntale a Let's PartIA!" onkeydown="if(event.key==='Enter')desdeCaja('askm')"><button class="send" onclick="desdeCaja('askm')" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></label>
       <div class="tb-barra">
         <div class="mom-wrap"><div class="chips mom" data-g="cuando" role="group" aria-label="Cuándo">
           <button class="chip" data-v="hoy">Esta noche</button><button class="chip" data-v="manana">Mañana</button><button class="chip" data-v="finde">Finde</button><button class="chip" data-v="cal" id="chip-cal"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Fecha</button>
         </div>
           <div class="mini-cal" id="minical"></div></div>
-        <div class="cats" id="cats" role="group" aria-label="Qué buscás"></div>
+        <span class="sep-v" aria-hidden="true"></span>
+        <span class="afinar-k">Afinar</span>
+        <div class="rapidos" id="rapidos" role="group" aria-label="Afinar"></div>
       </div>
-      <div class="rapidos" id="rapidos" role="group" aria-label="Filtros rápidos"></div>
-      <div class="avisos avisos-m" id="avisos-m" hidden></div>
     </div>
     <div class="cuerpo">
       <main class="main" id="main"></main>
-      <aside class="col-der" id="colder">
-        <div class="mm-box" id="mmbox"><div id="minimapa"></div><button class="ghost" onclick="setModo('mapa')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4-6 2.5V20l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>Ver mapa grande</button></div>
-        <div class="avisos avisos-d" id="avisos-d" hidden></div>
-      </aside>
     </div>
     <div class="chat-dock" id="dock">
       <div class="chat-head"><div class="bot-ico"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></div><div><b>Let's <span>Part</span>IA!</b><small>Contame qué querés y te lo busco</small></div><button class="x" onclick="toggleChat(false)" aria-label="Cerrar">✕</button></div>
@@ -1283,7 +1362,9 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
     'Esta noche': 'Tonight', 'Finde': 'Weekend', 'Fecha': 'Date', 'Todo': 'All', '✨ Todo': '✨ All', '🪩 Fiestas': '🪩 Parties', '🎭 Shows': '🎭 Shows', '🍽️ Comer y beber': '🍽️ Food & drinks', '← Planes': '← Plans', '← Volver a eventos': '← Back to events',
     'Más filtros': 'More filters', 'Ver mapa grande': 'Open big map', 'Explorar': 'Explore', 'Agente': 'Agent', 'Mis planes': 'My plans', 'Navegación': 'Navigation', 'Qué buscás': 'What are you looking for',
     'Preguntale al agente: techno al aire libre el sábado…': 'Ask the agent: open-air techno on Saturday…', 'Techno al aire libre, algo barato…': 'Open-air techno, something cheap…',
-    'Lo que': 'What you', 'Horario no informado': 'Hours not listed', 'Vegetariana': 'Vegetarian', 'Esto es lo que entendí:': 'Here’s what I understood:', 'Mi favorito': 'My pick', 'Otras opciones': 'Other options', 'en total, en pantalla.': 'in total, on screen.',
+    'Lo que': 'What you', 'Cerca de': 'Near', 'Cambiar ubicación': 'Change location', 'Cambiar': 'Change', 'Volver al centro': 'Back to centre', 'Afinar': 'Refine', 'Fiestas': 'Parties', 'Conciertos': 'Concerts', 'Shows': 'Shows', 'Deportes': 'Sports',
+    'Comer y beber': 'Food & drinks', '← Eventos': '← Events', 'Bares': 'Bars', 'Restaurantes': 'Restaurants', 'Cine': 'Movies', 'Los más cercanos primero': 'Closest first', 'Elegí un tipo en Afinar para ver más': 'Pick a type in Refine to see more',
+    'juega': 'plays', 'tiene fecha nueva': 'has a new date', 'anunció fecha': 'announced a date', 'Ver': 'See', 'Ocultar': 'Hide', 'Compartir búsqueda': 'Share search', 'Ver en el mapa': 'See on the map', 'Ver categorías anteriores': 'Previous categories', 'Ver más categorías': 'More categories', 'Horario no informado': 'Hours not listed', 'Vegetariana': 'Vegetarian', 'Esto es lo que entendí:': 'Here’s what I understood:', 'Mi favorito': 'My pick', 'Otras opciones': 'Other options', 'en total, en pantalla.': 'in total, on screen.',
     'Sumá un bar para la previa': 'Add a bar for drinks before', 'Algo más temprano': 'Something earlier', 'Ver en el mapa': 'See on the map', 'Elijo lo mejor para vos…': 'Picking the best for you…', 'Sacar este filtro': 'Remove this filter',
     'No encontré nada con eso 😕 Probá sacando algún filtro de arriba o pedime otra cosa.': 'Couldn’t find anything for that 😕 Try removing a filter above or ask me something else.', 'Filtros rápidos': 'Quick filters', 'Cerrar mapa': 'Close map', 'seguís': 'follow', 'Nada por acá': 'Nothing here', 'Ver resultados': 'See results', 'Volver': 'Back', 'También en:': 'Also on:', 'Cómo llegar': 'Directions', 'Volver': 'Back', 'Guardar en Mis planes': 'Save to My plans', 'Detalle del plan': 'Plan details' });
 })();
@@ -1296,6 +1377,7 @@ function cambiarIdioma(l) {
 }
 const IC = {"heart": "<path d=\"M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z\"/>", "bell": "<path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8\"/><path d=\"M10 20a2 2 0 0 0 4 0\"/>", "pin": "<path d=\"M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z\"/><circle cx=\"12\" cy=\"10\" r=\"2.5\"/>", "spark": "<path d=\"M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z\"/><path d=\"M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z\"/>", "send": "<path d=\"M12 19V5M5 12l7-7 7 7\"/>", "cal": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M16 3v4M8 3v4M3 10h18\"/>", "share": "<path d=\"M7 17 17 7M8 7h9v9\"/>", "locate": "<circle cx=\"12\" cy=\"12\" r=\"7\"/><circle cx=\"12\" cy=\"12\" r=\"2.5\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3\"/>", "users": "<circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5\"/><path d=\"M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.8 3 2.6 3.5 5.2\"/>", "list": "<path d=\"M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01\"/>", "map": "<path d=\"m9 4-6 2.5V20l6-2.5 6 2.5 6-2.5V4l-6 2.5z\"/><path d=\"M9 4v13.5M15 6.5V20\"/>", "ticket": "<path d=\"M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z\"/><path d=\"M14 7v2M14 11v2M14 15v2\"/>", "chat": "<path d=\"M21 12a8 8 0 0 1-11.8 7L4 20l1.1-4.6A8 8 0 1 1 21 12z\"/>", "mail": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"m3 7 9 6 9-6\"/>", "link": "<path d=\"M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1\"/>", "globe": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18\"/>", "phone": "<path d=\"M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2\"/>", "star": "<path d=\"m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3l-5.5 2.9 1-6.2L3 9.6l6.2-.9z\"/>", "walk": "<circle cx=\"13\" cy=\"4.5\" r=\"2\"/><path d=\"m9 21 2.5-6.5L14 17v4M7.5 12.5 10 8l4 1.5 2.5 3\"/>", "x": "<path d=\"M18 6 6 18M6 6l12 12\"/>", "check": "<path d=\"m5 12 5 5 9-10\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>", "more": "<circle cx=\"5\" cy=\"12\" r=\"1.2\"/><circle cx=\"12\" cy=\"12\" r=\"1.2\"/><circle cx=\"19\" cy=\"12\" r=\"1.2\"/>"};
 IC.back = '<path d="M15 18l-6-6 6-6"/>';
+IC.sliders = '<path d="M4 6h16M7 12h10M10 18h4"/>';
 function ic(n) { return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`; }
 function favTxt(on) { return on ? `${ic('heart')}${LANG === 'en' ? 'Saved' : 'En mis planes'}` : `${ic('heart')}${LANG === 'en' ? 'Save' : 'Mis planes'}`; }
 function selectorIdioma() {
@@ -1393,21 +1475,30 @@ function pintar() {
   const hayFiltros = ['aire', 'franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].some(k => st[k])
     || st.cuando === 'cal' || st.km !== KM_DEFECTO[kmClave()] || (ubic && !ubic.auto);
   document.getElementById('resetf').hidden = !hayFiltros;
-  const n = ['aire', 'franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].reduce((t, k) => t + valores(st[k]).length, 0) + (st.km !== KM_DEFECTO[kmClave()] ? 1 : 0);
+  const n = clavesTab().reduce((t, k) => t + valores(st[k]).length, 0) + (st.km !== KM_DEFECTO[kmClave()] ? 1 : 0);
   const nf = document.getElementById('nfiltros'); if (nf) nf.textContent = n || '';
   document.querySelector('.mom-wrap').hidden = esBar || esCine;
   const fsum = document.getElementById('fsummary'); if (fsum) fsum.textContent = (esBar ? [st.tab === 'restaurantes' ? st.tipoRest : st.tipoBar, st.tab === 'restaurantes' ? st.extraRest : null, st.abierto ? 'abierto ahora' : null, kmTxt] : [et[st.cuando], st.aire === 'abierto' ? 'aire libre' : st.aire === 'cerrado' ? 'cerrado' : null, st.franja, st.precio, st.genero, kmTxt]).filter(Boolean).map(x => x === kmTxt ? x : valores(x).map(trClave).join(' + ')).join(' · ');
 }
 
 // ── CATEGORÍAS Y TÍTULO DE LA HOME ──────────────────────────────────────────
-const CATS = [['todo', 'Todo'], ['clubs', '🪩 Fiestas'], ['conciertos', '🎤 Conciertos'], ['teatro', '🎭 Shows'], ['deportes', '⚽ Deportes']];
+const CATS = [['todo', 'Todo'], ['clubs', 'Fiestas'], ['conciertos', 'Conciertos'], ['teatro', 'Shows'], ['deportes', 'Deportes']];
 function pintarCats() {
-  const lista = esLugar()
-    ? [['todo', '← Volver a eventos', 'volver-cat'], ['bares', '🍸 Bares'], ['restaurantes', '🍽️ Restaurantes']]
-    : [...CATS, ...(BETA ? [['cine', '🎬 Cine']] : []), ['bares', '🍽️ Comer y beber']];
-  document.getElementById('cats').innerHTML = lista.map(([t, txt, cl]) =>
-    `<button class="cat ${cl || ''} ${t === st.tab && !cl ? 'on' : ''}" data-tab="${t}" aria-pressed="${t === st.tab && !cl}">${txt}</button>`).join('');
+  const tabOn = st.tab === 'cine' ? 'teatro' : st.tab;
+  const btn = ([t, txt, cl]) => `<button class="cat ${cl || ''} ${t === tabOn && !cl ? 'on' : ''}" data-tab="${t}" aria-current="${t === tabOn && !cl ? 'true' : 'false'}">${txt}</button>`;
+  document.getElementById('cats').innerHTML = esLugar()
+    ? [btn(['todo', '← Eventos', 'volver-cat']), '<span class="cat-sep" aria-hidden="true"></span>', btn(['bares', 'Bares']), btn(['restaurantes', 'Restaurantes'])].join('')
+    : CATS.map(btn).join('') + '<span class="cat-sep" aria-hidden="true"></span>' + btn(['bares', 'Comer y beber']);
+  setTimeout(flechasCats, 0);
 }
+// Celular: la fila de "Qué" se desliza; flechas ‹ › según haya más para ver
+function flechasCats() {
+  const c = document.getElementById('cats'); if (!c) return;
+  const max = c.scrollWidth - c.clientWidth;
+  document.getElementById('catsizq').hidden = c.scrollLeft < 8;
+  document.getElementById('catsder').hidden = max <= 8 || c.scrollLeft >= max - 8;
+}
+function moverCats(dir) { const c = document.getElementById('cats'); c.scrollBy({ left: dir * c.clientWidth * 0.6, behavior: 'smooth' }); }
 // Filtros rápidos: lo más usado a la vista según la categoría + los que estén puestos desde "Más filtros" (con ✕)
 const RAPIDOS = {
   todo: [['precio', 'gratis'], ['aire', 'abierto'], ['franja', 'sunset'], ['franja', 'afters']],
@@ -1423,19 +1514,20 @@ function etiquetaFiltro(k, v) {
   const b = document.querySelector(`.side .chips[data-g="${k}"] .chip[data-v="${CSS.escape(v)}"]`);
   if (!b) return v;
   const c = b.cloneNode(true); c.querySelectorAll('small, i').forEach(x => x.remove());
-  return c.textContent.trim();
+  return c.textContent.trim().replace(/^[^\p{L}\p{N}]+/u, '');
 }
+function clavesTab() { return st.tab === 'bares' ? ['tipoBar', 'abierto'] : st.tab === 'restaurantes' ? ['tipoRest', 'extraRest', 'abierto'] : st.tab === 'cine' ? ['genero'] : ['aire', 'franja', 'precio', 'genero']; }
 function activo(k, v) { return MULTI.includes(k) ? valores(st[k]).includes(v) : st[k] === v; }
 function pintarRapidos() {
   const box = document.getElementById('rapidos'); if (!box) return;
-  if (st.tab === 'cine') { box.innerHTML = `<button class="rap mas" onclick="abrirFiltros()">+ ${esc(tr('Filtros'))}<b id="nfiltros"></b></button>`; return; }
-  const base = (RAPIDOS[st.tab] || []).filter(([k]) => k !== 'genero' || (GENEROS[st.tab] || []).length);
+  const mas = `<button class="rap mas" onclick="abrirFiltros()" aria-label="Más filtros"><span class="mf-ic">${ic('sliders')}</span><span class="mf-txt">+ ${esc(tr('Más filtros'))}</span><b id="nfiltros"></b></button>`;
+  const cine = BETA && (st.tab === 'teatro' || st.tab === 'cine') ? `<button class="rap ${st.tab === 'cine' ? 'on' : ''}" data-cine="1" aria-pressed="${st.tab === 'cine'}">${st.tab === 'cine' ? ic('check') : ''}${esc(tr('Cine'))}</button>` : '';
+  const base = st.tab === 'cine' ? [] : (RAPIDOS[st.tab] || []).filter(([k]) => k !== 'genero' || (GENEROS[st.tab] || []).length);
   const extra = [];
-  ['aire', 'franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].forEach(k =>
+  clavesTab().forEach(k =>
     (MULTI.includes(k) ? valores(st[k]) : st[k] ? [st[k]] : []).forEach(v => { if (!base.some(([a, b]) => a === k && b === v)) extra.push([k, v]); }));
-  box.innerHTML = [...extra.map(f => [...f, 'quitar']), ...base].map(([k, v, cl]) =>
-    `<button class="rap ${activo(k, v) ? 'on' : ''} ${cl || ''}" data-k="${k}" data-v="${esc(v)}" aria-pressed="${activo(k, v)}">${esc(etiquetaFiltro(k, v))}</button>`).join('')
-    + `<button class="rap mas" onclick="abrirFiltros()" aria-label="Más filtros">+ ${esc(tr('Filtros'))}<b id="nfiltros"></b></button>`;
+  box.innerHTML = cine + [...extra, ...base].map(([k, v]) => { const on = activo(k, v);
+    return `<button class="rap ${on ? 'on' : ''}" data-k="${k}" data-v="${esc(v)}" aria-pressed="${on}">${on ? ic('check') : ''}${esc(etiquetaFiltro(k, v))}</button>`; }).join('') + mas;
 }
 function tocarFiltro(k, v) {
   usoFiltros = true;
@@ -1597,7 +1689,6 @@ async function buscar() {
     if (data.error) throw new Error(data.error);
     actual = { items: data.eventos || [], total: data.total_ra || 0, porDia: data.por_dia || {}, titulo: null };
     renderActual();
-    if (modoVista !== 'mapa') pintarMiniMapa(actual.items);
   } catch (e) {
     if (e.name === 'AbortError') return;
     main.innerHTML = volver() + `<div class="empty"><b>Uy, se me cortó algo 😅</b>No pude traer los eventos. Probá de nuevo en un ratito.</div>`;
@@ -1632,7 +1723,7 @@ function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
   const activos = [...valores(st.franja).map(trClave), ...valores(st.precio).map(trClave), ...valores(st.genero).map(x => (GENEROS[st.tab] || []).find(g => g[0] === x)?.[1] || x)].map(x => `<span>${esc(x)}</span>`).join('');
   const n = Math.max(total, eventos.length);
   const h2 = titulo ? `<h2>${titulo}</h2>` : `<div class="res-count">${eventos.length ? `${n} ${(w => LANG === 'en' ? EN_PLURAL[w] || w : w)(TAB_TXT[st.tab][n === 1 ? 0 : 1])}` : 'Nada por acá'}</div>`;
-  let html = volver() + `<div class="res-head">${h2}<div class="head-tools">${titulo ? '' : botonCompartir() + segVista()}</div></div>${extra}`;
+  let html = volver() + (titulo ? '' : '<div class="franja" id="franja" hidden></div>') + `<div class="res-head ${titulo ? '' : 'normal'}">${h2}<div class="head-tools">${titulo ? '' : botonCompartir() + segVista()}</div></div>${extra}`;
   if (!eventos.length) {
     const tm = st.tab !== 'clubs' && !titulo;
     html += `<div class="empty"><b>No encontré exactamente lo que buscás 😕</b>
@@ -1641,12 +1732,14 @@ function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
     main.innerHTML = html; return;
   }
   const porCercania = ubic && (!ubic.auto || st.km !== '99');
-  html += `<div class="res-sub" style="margin-top:10px">${porCercania ? `Ordenados por día y por cercanía a ${esc(ubic.txt)}.` : `${total > eventos.length ? `Te muestro los ${eventos.length} más destacados.` : ''} Ordenados por día.`}</div>`;
+  if (porCercania) html += `<div class="res-sub" style="margin-top:6px">${esc(tr('Los más cercanos primero'))} · ${esc(ubic.txt)}</div>`;
   const dias = [...new Set(eventos.map(e => e.fecha))];
-  dias.forEach(dia => {
+  const plural = (w => LANG === 'en' ? EN_PLURAL[w] || w : w)(TAB_TXT[st.tab][n === 1 ? 0 : 1]);
+  dias.forEach((dia, k) => {
     const delDia = eventos.filter(e => e.fecha === dia);
     const d = deIso(dia);
-    html += `<div class="day"><b>${DIAS_L[d.getDay()]} ${d.getDate()}</b> ${MESES_L[d.getMonth()]}</div>`;
+    const extraDia = k === 0 && !titulo ? `<span class="dia-n">· ${n} ${plural}</span><span class="dia-acc">${botonCompartir()}<button class="icon-sq" onclick="setModo('mapa')" aria-label="Ver en el mapa" title="Ver en el mapa">${ic('map')}</button></span>` : '';
+    html += `<div class="day ${k === 0 ? 'primero' : ''}"><b>${DIAS_L[d.getDay()]} ${d.getDate()}</b> <span class="mes">${MESES_L[d.getMonth()]}</span>${extraDia}</div>`;
     html += `<div class="grid" id="grid-${dia}">${delDia.map(tarjeta).join('')}</div>`;
     const hay = porDia[dia] || 0;
     if (!titulo && !porCercania && st.tab !== 'todo' && hay > delDia.length) {
@@ -1655,6 +1748,7 @@ function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
   });
   main.innerHTML = html;
   main.scrollTop = 0; const app = document.querySelector('.app'); if (app) app.scrollTop = 0;
+  if (!titulo) pintarFranja();
   if (EV_PENDIENTE) abrirPendiente();
 }
 
@@ -1941,13 +2035,13 @@ function mostrarBares(items) {
   items.sort((a, b) => ((a.d ?? 999) - 0.1 * (a.info || 0)) - ((b.d ?? 999) - 0.1 * (b.info || 0)));
   const total = Math.max(actual.total || 0, items.length);
   const plural = TAB_TXT[st.tab][1];
-  const h2 = total > items.length ? `Los ${plural} más recomendados ${donde}` : `${total} ${TAB_TXT[st.tab][total === 1 ? 0 : 1]} ${donde}`;
-  const sub = total > items.length ? `<div class="res-sub" style="margin-top:6px">Te muestro ${items.length} de ${total.toLocaleString('es-ES')} · ${st.tab === 'restaurantes' ? 'Elegí un tipo de cocina' : 'Elegí un tipo de bar'} para afinar</div>` : '';
+  const h2 = `${total.toLocaleString('es-ES')} ${(w => LANG === 'en' ? EN_PLURAL[w] || w : w)(TAB_TXT[st.tab][total === 1 ? 0 : 1])}`;
+  const sub = `<div class="res-sub" style="margin-top:2px">${esc(tr('Los más cercanos primero'))}${total > items.length ? ` · ${esc(tr('Elegí un tipo en Afinar para ver más'))}` : ''}</div>`;
   let html = volver() + cartelGuia() + `<div class="res-head"><div class="res-count">${h2}</div><div class="head-tools">${botonCompartir()}${segVista()}</div></div>${sub}`;
   if (!items.length) {
     html += `<div class="empty"><b>No encontré ${TAB_TXT[st.tab][1]} con esos filtros 😕</b>${st.km !== '99' ? 'Probá ampliando la distancia a "Cerca < 3 km".' : 'Probá con otro tipo.'}</div>`;
   } else {
-    html += `<div class="res-sub" style="margin-top:10px">Los más cercanos primero${ubic && ubic.auto ? '. Tocá "◎ Mi ubicación" para buscar desde tu ubicación o una dirección' : ''}.</div><div class="grid" style="margin-top:16px" id="grid-bares">${items.map(tarjetaBar).join('')}</div>`;
+    html += `<div class="grid" style="margin-top:14px" id="grid-bares">${items.map(tarjetaBar).join('')}</div>`;
     if (total > items.length) html += `<button class="more" id="more-bares" onclick="masBares()">Ver más ${TAB_TXT[st.tab][1]} (${total - items.length} más) ↓</button>`;
   }
   html += `<div class="osm-note">Datos de ${TAB_TXT[st.tab][1]}: © colaboradores de OpenStreetMap.</div>`;
@@ -2408,7 +2502,7 @@ async function compartirBusqueda(ev) {
   ev.currentTarget.parentElement.style.position = 'relative';
   ev.currentTarget.parentElement.appendChild(m);
 }
-function botonCompartir() { return `<button class="share-bus" onclick="compartirBusqueda(event)">${ic('share')}Compartir</button>`; }
+function botonCompartir() { return `<button class="icon-sq share-bus" onclick="compartirBusqueda(event)" aria-label="Compartir búsqueda" title="Compartir búsqueda">${ic('share')}</button>`; }
 // ── SEGUIR ARTISTAS Y EQUIPOS (se guarda en este navegador) ────────────────
 function leerSeguidos() { try { return JSON.parse(localStorage.getItem('lp_sigo') || '[]'); } catch (e) { return []; } }
 function guardarSeguidos(l) { try { localStorage.setItem('lp_sigo', JSON.stringify(l)); } catch (e) {} }
@@ -2465,6 +2559,22 @@ async function pintarAvisos(id) {
     return `<div class="aviso"><a onclick="verSeguido(${i})">${txt}</a><button title="Dejar de seguir" onclick="dejarSeguir(${i}, '${id}')">✕</button></div>`;
   }).join('');
   box.innerHTML = `<h4>${ic('bell')}Lo que seguís</h4>${filas}`;
+  box.hidden = false;
+}
+// "De quien seguís": franja arriba de la lista, solo si hay una fecha nueva que todavía no viste
+function leerVistos() { try { return JSON.parse(localStorage.getItem('lp_visto') || '[]'); } catch (e) { return []; } }
+function marcarVisto(id) { try { const v = leerVistos(); if (!v.includes(id)) localStorage.setItem('lp_visto', JSON.stringify([...v, id].slice(-200))); } catch (e) {} }
+async function pintarFranja() {
+  const box = document.getElementById('franja'); if (!box || !leerSeguidos().length) return;
+  const l = await cargarAvisos();
+  const vistos = leerVistos();
+  const i = l.findIndex(x => x.eventos && x.eventos[0] && !vistos.includes(idEvento(x.eventos[0])));
+  if (i < 0 || !document.body.contains(box)) return;
+  const x = l[i], e = x.eventos[0], idv = idEvento(e);
+  const verbo = x.tipo === 'equipo' ? tr('juega') : x.tipo === 'lugar' ? tr('tiene fecha nueva') : tr('anunció fecha');
+  box.innerHTML = `${ic('bell')}<span class="txt"><b>${esc(x.real)}</b> ${verbo} · ${fechaMini(e.fecha)}${e.venue ? ' · ' + esc(e.venue) : ''}</span>
+    <button class="ver" onclick="marcarVisto('${esc(idv).replace(/'/g, '&#39;')}'); verSeguido(${i})">${tr('Ver')} →</button>
+    <button class="x" onclick="marcarVisto('${esc(idv).replace(/'/g, '&#39;')}'); this.parentElement.hidden = true" aria-label="${tr('Ocultar')}">✕</button>`;
   box.hidden = false;
 }
 function contarSiguiendo() {
@@ -2770,9 +2880,9 @@ function actualizarNota() {
   const b = document.getElementById('near'), n = document.getElementById('nearnote');
   const manual = ubic && !ubic.auto;
   b.classList.toggle('on', !!manual);
-  b.innerHTML = manual ? `${ic('x')}${tr('Mi ubicación')}` : `${ic('locate')}${tr('Mi ubicación')}`;
+  b.textContent = manual ? tr('Volver al centro') : (MOVIL() ? tr('Cambiar') : tr('Cambiar ubicación'));
   n.classList.toggle('show', !!ubic);
-  n.innerHTML = ubic ? `Ubicación exacta: <b>${esc(ubic.txt)}</b>` : '';
+  n.innerHTML = ubic ? `${esc(tr('Cerca de'))} <b>${esc(ubic.txt)}</b> ·&nbsp;` : '';
 }
 document.addEventListener('click', e => { if (!e.target.closest('#nearpop') && !e.target.closest('#near')) document.getElementById('nearpop').classList.remove('open'); });
 
@@ -3147,12 +3257,16 @@ document.getElementById('thread').addEventListener('click', e => {
   b.closest('.entendi').innerHTML = chipsEntendido();
 });
 document.getElementById('rapidos').addEventListener('click', e => {
-  const b = e.target.closest('.rap'); if (b && b.dataset.k) tocarFiltro(b.dataset.k, b.dataset.v);
+  const b = e.target.closest('.rap'); if (!b) return;
+  if (b.dataset.cine) return cambiarTab(st.tab === 'cine' ? 'teatro' : 'cine');
+  if (b.dataset.k) tocarFiltro(b.dataset.k, b.dataset.v);
 });
 document.addEventListener('click', e => {
   if (!cal.abierto || e.target.closest('#minical') || e.target.closest('#chip-cal')) return;
   cal.abierto = false; pintarCal();
 });
+document.getElementById('cats').addEventListener('scroll', flechasCats, { passive: true });
+addEventListener('resize', () => flechasCats());
 document.getElementById('cats').addEventListener('click', e => {
   const b = e.target.closest('.cat'); if (!b) return;
   cambiarTab(b.dataset.tab);
