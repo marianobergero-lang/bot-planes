@@ -306,6 +306,7 @@
   .mapa-lista .card .res-wrap > button { width: 100%; }
   .mapa-lista .dist { font-size: 12px; padding: 3px 6px; left: 6px; top: 6px; }
   .mapa-info { font-size: 13px; color: var(--dim); padding: 2px 4px 4px; }
+  .mapa-info.sin-ub { margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-weight: 600; }
   .leaflet-container { font-family: 'Space Grotesk', sans-serif; background: #1a1916; }
   .leaflet-tile-pane { opacity: .5; }
   .leaflet-container { background: #0D0C0B !important; }
@@ -1362,7 +1363,7 @@ const EN_CLAVES = { 'aire libre': 'open air', cerrado: 'indoor', tarde: 'afterno
     'Esta noche': 'Tonight', 'Finde': 'Weekend', 'Fecha': 'Date', 'Todo': 'All', '✨ Todo': '✨ All', '🪩 Fiestas': '🪩 Parties', '🎭 Shows': '🎭 Shows', '🍽️ Comer y beber': '🍽️ Food & drinks', '← Planes': '← Plans', '← Volver a eventos': '← Back to events',
     'Más filtros': 'More filters', 'Ver mapa grande': 'Open big map', 'Explorar': 'Explore', 'Agente': 'Agent', 'Mis planes': 'My plans', 'Navegación': 'Navigation', 'Qué buscás': 'What are you looking for',
     'Preguntale al agente: techno al aire libre el sábado…': 'Ask the agent: open-air techno on Saturday…', 'Techno al aire libre, algo barato…': 'Open-air techno, something cheap…',
-    'Lo que': 'What you', 'Cerca de': 'Near', 'Cambiar ubicación': 'Change location', 'Cambiar': 'Change', 'Volver al centro': 'Back to centre', 'Afinar': 'Refine', 'Fiestas': 'Parties', 'Conciertos': 'Concerts', 'Shows': 'Shows', 'Deportes': 'Sports',
+    'Lo que': 'What you', 'Sin ubicación en el mapa': 'No location on the map', 'Cerca de': 'Near', 'Cambiar ubicación': 'Change location', 'Cambiar': 'Change', 'Volver al centro': 'Back to centre', 'Afinar': 'Refine', 'Fiestas': 'Parties', 'Conciertos': 'Concerts', 'Shows': 'Shows', 'Deportes': 'Sports',
     'Comer y beber': 'Food & drinks', '← Eventos': '← Events', 'Bares': 'Bars', 'Restaurantes': 'Restaurants', 'Cine': 'Movies', 'Los más cercanos primero': 'Closest first', 'Elegí un tipo en Afinar para ver más': 'Pick a type in Refine to see more',
     'juega': 'plays', 'tiene fecha nueva': 'has a new date', 'anunció fecha': 'announced a date', 'Ver': 'See', 'Ocultar': 'Hide', 'Compartir búsqueda': 'Share search', 'Ver en el mapa': 'See on the map', 'Ver categorías anteriores': 'Previous categories', 'Ver más categorías': 'More categories', 'Horario no informado': 'Hours not listed', 'Vegetariana': 'Vegetarian', 'Esto es lo que entendí:': 'Here’s what I understood:', 'Mi favorito': 'My pick', 'Otras opciones': 'Other options', 'en total, en pantalla.': 'in total, on screen.',
     'Sumá un bar para la previa': 'Add a bar for drinks before', 'Algo más temprano': 'Something earlier', 'Ver en el mapa': 'See on the map', 'Elijo lo mejor para vos…': 'Picking the best for you…', 'Sacar este filtro': 'Remove this filter',
@@ -2015,7 +2016,10 @@ function renderActual() {
   main.classList.remove('loading');
   let items = actual.items.map(x => ({ ...x, d: ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null }));
   const esBar = esLugar();
-  if (modoVista === 'mapa') return renderMapa(items, esBar);
+  if (modoVista === 'mapa') {
+    if (ubic && st.km !== '99') items = items.filter(x => x.d == null || x.d <= Number(st.km));
+    return renderMapa(items, esBar);
+  }
   let extra = '';
   if (ubic && st.km !== '99') {
     const lim = Number(st.km), antes = items.length;
@@ -2070,6 +2074,7 @@ function renderMapa(items, esBar) {
   if (ubic) {
     L.marker([ubic.lat, ubic.lng], { icon: L.divIcon({ className: '', html: '<div class="pin me"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }) })
       .addTo(mapa).bindTooltip(ubic.auto ? ubic.txt : 'Vos', { permanent: true, direction: 'top', offset: [0, -10] });
+    if (st.km !== '99') L.circle([ubic.lat, ubic.lng], { radius: Number(st.km) * 1000, color: '#E9682E', weight: 1.5, opacity: .8, fillColor: '#E9682E', fillOpacity: .06, interactive: false }).addTo(mapa);
     if (vistaGuardada) mapa.setView(vistaGuardada.c, vistaGuardada.z);
     else mapa.setView([ubic.lat, ubic.lng], esBar ? ({ '1.5': 17, '3': 15 }[st.km] || 14) : 15);
     vistaGuardada = null;
@@ -2111,7 +2116,9 @@ function actualizarMapa() {
     ids.forEach(id => { pines[id] = m; GRUPO_DE[id] = ids; });
   });
   const info = total ? `${vis.length} en esta zona${total > MAX_MAPA ? ` · los ${MAX_MAPA} más destacados de ${total}, acercate para ver más` : ''}` : 'No hay nada en esta zona del mapa. Alejate o movete un poco 🗺️';
-  document.getElementById('mapalista').innerHTML = `<div class="mapa-info">${info}</div>` + vis.map(x => esBarMapa ? tarjetaBar(x) : tarjeta(x)).join('');
+  const sinUb = esBarMapa ? [] : (actual.items || []).filter(x => !tieneCoords(x));
+  document.getElementById('mapalista').innerHTML = (total || !sinUb.length ? `<div class="mapa-info">${info}</div>` : '') + vis.map(x => esBarMapa ? tarjetaBar(x) : tarjeta(x)).join('')
+    + (sinUb.length ? `<div class="mapa-info sin-ub">${ic('pin')}${esc(tr('Sin ubicación en el mapa'))} (${sinUb.length})</div>` + sinUb.map(tarjeta).join('') : '');
   if (seleccionado && pines[seleccionado]) seleccionar(seleccionado);
 }
 let seleccionado = null, GRUPO_DE = {};
@@ -2600,7 +2607,14 @@ async function verArtista(nombre) {
   try {
     const r = await fetch(`${API}/proximos?tipo=artista&max=40&nombre=${encodeURIComponent(nombre)}`);
     const d = await r.json();
-    const evs = d.eventos || [];
+    const plano = t => (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const q = plano(nombre), hoyS = iso(hoy0());
+    const evs = [...(d.eventos || [])];
+    const ids = new Set(evs.map(idEvento));
+    [...(actual.items || []), ...Object.values(EVENTOS)].forEach(e => {
+      if (e && e.fecha >= hoyS && !ids.has(idEvento(e)) && (e.artistas || []).some(a => plano(a) === q)) { ids.add(idEvento(e)); evs.push(e); }
+    });
+    evs.sort((a, b) => (a.fecha + (a.hora || '')).localeCompare(b.fecha + (b.hora || '')));
     mostrar(evs, evs.length, `Próximas fechas de <span>${esc(d.nombre || nombre)}</span>`, {}, barraSeguir('artista', d.nombre || nombre));
     if (!evs.length) main.insertAdjacentHTML('beforeend', '');
   } catch (e) { toast('No pude traer sus fechas 😕'); }
@@ -2662,7 +2676,7 @@ function abrirDetalle(id, sinHistorial) {
   const artistas = (e.artistas || []).slice(0, 8);
   const quien = artistas.length ? `<div class="det-who">Con ${artistas.map(a => `<span class="lnk" onclick="cerrarDetalle(); verArtista('${esc(a).replace(/'/g, '&#39;')}')">${esc(a)}</span>`).join(', ')}</div>` : '';
   const cat = e.categoria || st.tab;
-  const seguir = artistas.length ? barraSeguir('artista', artistas[0]) : e.venue ? barraSeguir('lugar', e.venue, { ciudad: ciudad(), cat }) : '';
+  const seguir = e.venue ? barraSeguir('lugar', e.venue, { ciudad: ciudad(), cat }) : artistas.length ? barraSeguir('artista', artistas[0]) : '';
   const lugarSub = [e.direccion || e.ciudad_venue || ciudadTxt(), e.d != null ? `${fmtDist(e.d)} · ${aPie(e.d)}` : ''].filter(Boolean).join(' · ');
   const pr = precioCorto(e);
   const otros = (e.otros_links || []);

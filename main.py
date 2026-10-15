@@ -1982,20 +1982,26 @@ def buscar_fever(ciudad, categoria, desde, hasta):
 # ── SEGUIR ARTISTAS Y EQUIPOS ───────────────────────────────────────────────
 def proximos_artista(nombre):
     """Próximas fechas de un artista en Resident Advisor. Devuelve (eventos, nombre_real)."""
-    k = f"seg-art-{nombre.lower().strip()}"
+    plano = "".join(c for c in unicodedata.normalize("NFD", nombre) if unicodedata.category(c) != "Mn")  # Ogazón → Ogazon
+    k = f"seg-art-{plano.lower().strip()}"
     v = cache_get(k, 3 * 3600)
     if v is not None:
         return v
     slugs = []
     try:
-        data = ra_request_direct({"operationName": "SEARCH_ARTISTS", "variables": {"query": nombre}, "query": RA_QUERY_ARTIST_SEARCH})
-        for a in (data.get("data", {}) or {}).get("artistSearch", [])[:2]:
-            sl = (a.get("contentUrl") or "").replace("/dj/", "").strip("/")
-            if sl:
-                slugs.append(sl)
+        for q in dict.fromkeys([plano, nombre]):
+            data = ra_request_direct({"operationName": "SEARCH_ARTISTS", "variables": {"query": q}, "query": RA_QUERY_ARTIST_SEARCH})
+            for a in (data.get("data", {}) or {}).get("artistSearch", [])[:2]:
+                sl = (a.get("contentUrl") or "").replace("/dj/", "").strip("/")
+                if sl and sl not in slugs:
+                    slugs.append(sl)
+            if slugs:
+                break
     except Exception as e:
         print(f"[SEGUIR] {e}")
-    slugs.append(re.sub(r"[^a-z0-9]+", "", nombre.lower()))
+    sl0 = re.sub(r"[^a-z0-9]+", "", plano.lower())
+    if sl0 not in slugs:
+        slugs.append(sl0)
     hoy = datetime.now().strftime("%Y-%m-%d")
     res = ([], nombre)
     for sl in slugs:
@@ -2005,8 +2011,10 @@ def proximos_artista(nombre):
         if art and art.get("id"):
             evs = [formatear_evento(e) for e in (art.get("events") or []) if e]
             evs = sorted([e for e in evs if e.get("fecha", "") >= hoy], key=lambda e: e["fecha"])
-            res = (evs, art.get("name") or nombre)
-            break
+            if evs or res[0] == []:
+                res = (evs, art.get("name") or nombre)
+            if evs:
+                break
     cache_set(k, res)
     return res
 
