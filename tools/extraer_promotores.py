@@ -22,9 +22,13 @@ area = int(sys.argv[1]) if len(sys.argv) > 1 else 20
 desde = sys.argv[2] if len(sys.argv) > 2 else vie.isoformat()
 hasta = sys.argv[3] if len(sys.argv) > 3 else (vie + dt.timedelta(days=2)).isoformat()
 
-filas, page = [], 1
-while True:
-    v = {"filters": {"areas": {"eq": area}, "listingDate": {"gte": desde, "lte": hasta}}, "pageSize": 100, "page": page}
+filas = []
+d0, d1 = dt.date.fromisoformat(desde), dt.date.fromisoformat(hasta)
+dias = [(d0 + dt.timedelta(days=i)).isoformat() for i in range((d1 - d0).days + 1)]
+for dia in dias:
+  page = 1
+  while True:
+    v = {"filters": {"areas": {"eq": area}, "listingDate": {"gte": dia, "lte": dia}}, "pageSize": 100, "page": page}
     d = None
     for q in (Q, Q_MIN):
         r = requests.post(URL, headers=H, json={"query": q, "variables": v}, timeout=30)
@@ -49,7 +53,7 @@ while True:
                 "seguidores_ra": p.get("followerCount"), "proximos_eventos": p.get("upcomingEventsCount"),
                 "zona_promotor": (p.get("area") or {}).get("name") or "",
             })
-    print(f"página {page}: {len(el['data'])} de {el['totalResults']}")
+    LOG.append(f"{dia} página {page}: {len(el['data'])} de {el['totalResults']}")
     if page * 100 >= el["totalResults"] or not el["data"]: break
     page += 1; time.sleep(1)
 
