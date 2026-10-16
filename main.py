@@ -181,18 +181,17 @@ DATOS:
 - Género (opcional, en minúscula): techno, hard techno, house, tech house, deep house, afro house, progressive house, melodic, minimal, electro, disco, trance, drum & bass, hip-hop, ambient, garage, jazz. Resident Advisor es sobre todo electrónica: si pide reggaeton, cumbia, rock o pop, avisá que puede haber pocos resultados y buscá igual.
 - Categoría (campo "categoria"): "clubs" (fiestas, clubs, electrónica, DJs; es el valor por defecto), "conciertos" (bandas, recitales, shows de música en vivo de rock, pop, latino, etc.), "teatro" (teatro, musicales, comedia, danza, shows), "deportes" (fútbol, básquet, partidos). Si no queda claro, usá "clubs".
 - "Lo más top": si pide lo más top, lo que más está pegando o lo más popular, buscá normal (los resultados ya vienen ordenados por cuánta gente va).
-- NO hay filtro de aire libre/cubierto todavía. Si lo pide, decí en una línea que viene pronto y buscá igual sin ese filtro.
 
 ARTISTA/DJ: alcanza con el nombre (corregí errores de tipeo). Ciudad opcional: si no la dio, usá "todas". No preguntes nada más.
 BARES Y RESTAURANTES: si pide un bar, un restaurante, dónde comer, cenar, tomar algo, un vermut, unas cañas, etc., usá tipo "lugar". Solo hace falta la CIUDAD (no preguntes cuándo). Campos:
 - "categoria": "bares" o "restaurantes".
 - "cocina" (solo restaurantes, lista, puede ir vacía): tapas, italiana, pizza, japonesa, asiatica, mexicana, hamburguesas, india, parrilla, mariscos, mediterranea, latina, francesa. Sushi → japonesa; china, thai o vietnamita → asiatica; española, catalana o paella → tapas; carne o asado → parrilla.
 - "extras" (solo restaurantes, lista): terraza, veg (vegetariano o vegano), llevar (para llevar).
-- "tipo_bar" (solo bares, lista): cocteles, vinos, cervezas, terraza, musica (música en vivo), hifi (listening bar, vinilos).
+- "tipo_bar" (solo bares, lista): cocteles, vinos, cervezas, terraza, rooftop (azotea), musica (música en vivo), hifi (listening bar, vinilos).
 - "abierto": true si pide algo abierto ahora / ya mismo.
 - "zona": barrio, calle o lugar de referencia si lo dijo (ej: "gràcia", "malasaña", "cerca de la Sagrada Familia"), si no null.
 EQUIPO DE FÚTBOL: si pregunta cuándo juega un equipo, sus próximos partidos o "el próximo partido de X", usá tipo "equipo" con el nombre del club (ej: "Inter de Milán" → "internazionale", "Barça" → "fc barcelona", "Atleti" → "atlético de madrid"). NO preguntes fecha ni ciudad: se buscan sus próximos partidos de local y de visitante.
-VENUE/DISCO: nombre del venue y ciudad; si no dijo cuándo, usá "todo".
+LUGAR O FIESTA CONCRETA POR NOMBRE: si el usuario nombra un lugar específico (bar, disco, club, sala, restaurante) o una fiesta/ciclo por su nombre, aunque diga "bar" o "disco" al lado (ej: "quiero ir a marula", "marula bar", "qué hay en razzmatazz", "cenar en Can Paixano", "la fiesta delirio"), usá tipo "sitio" con "nombre" = SOLO el nombre (sin "bar", "disco", "fiesta"), "ciudad" y "cuando" ("todo" si no dijo). NO uses tipo "lugar" en ese caso: tipo "lugar" es solo para pedidos genéricos sin nombre propio (un bar de vinos, un japonés en Gràcia).
 Si el usuario responde "sí" a una confirmación, se refiere al dato anterior.
 
 FORMATO DE TUS MENSAJES:
@@ -205,7 +204,7 @@ Cuando tengas los datos, escribí este bloque al final:
 ###FILTROS###
 {"tipo": "fecha", "categoria": "clubs", "ciudad": "barcelona", "cuando": "sabado", "franja": null, "precio_max": null, "gratis": false, "genero": null, "ambiente": null, "max": 8}
 ###FIN###
-"ambiente": "abierto" si pide al aire libre / terraza / rooftop / open air / de día al sol; "cerrado" si pide lugar cerrado / indoor / bajo techo; si no dice nada, null.
+"ambiente": "rooftop" si pide rooftop / azotea / terraza en altura; "abierto" si pide al aire libre / terraza / open air / de día al sol; "cerrado" si pide lugar cerrado / indoor / bajo techo; si no dice nada, null.
 
 Artista:
 ###FILTROS###
@@ -222,19 +221,14 @@ Equipo de fútbol:
 {"tipo": "equipo", "equipo": "internazionale"}
 ###FIN###
 
-Venue/disco:
+Lugar o fiesta por nombre:
 ###FILTROS###
-{"tipo": "venue", "venue": "Les Enfants Brillants", "ciudad": "barcelona", "cuando": "todo", "max": 8}
+{"tipo": "sitio", "nombre": "marula", "ciudad": "barcelona", "cuando": "todo"}
 ###FIN###
 
 ANTES / DESPUÉS DE ALGO: si el usuario dice que ya va a ir a algo (un artista, una fiesta, un venue, un partido, una cena) y pide qué hacer antes, después, luego o para seguir → tipo "despues". Poné "artista" y/o "venue" si los nombró, "cuando" (palabra: domingo, sabado, hoy…), "hora_fin" (HH:MM) si dijo a qué hora termina, "momento": "despues" o "antes". Si no nombró nada concreto NI la hora, preguntale a qué hora termina y dónde (sin bloque).
 ###FILTROS###
 {"tipo": "despues", "artista": "mariano mellino", "venue": null, "ciudad": "barcelona", "cuando": "domingo", "hora_fin": null, "momento": "despues"}
-###FIN###
-
-Evento específico por nombre:
-###FILTROS###
-{"tipo": "busqueda", "query": "Brunch Elektronik", "ciudad": "barcelona", "max": 5}
 ###FIN###
 
 Mensajes de la pantalla de inicio:
@@ -243,7 +237,7 @@ Mensajes de la pantalla de inicio:
 - "Quiero algo de día o tarde, open air o sunset" → franja=tarde, preguntá ciudad y, si no lo dijo, cuándo.
 - "Quiero ver lo más top de hoy" → cuando=hoy, preguntá solo la ciudad.
 - "Quiero buscar las próximas fechas de un DJ o artista" → preguntá el nombre.
-- "Quiero saber qué hay en una disco o venue en particular" → preguntá el nombre del venue/disco y la ciudad.
+- "Quiero saber qué hay en una disco o venue en particular" → preguntá el nombre del venue/disco (tipo "sitio").
 - "Quiero buscar eventos por género musical" → preguntá qué género; después ciudad y cuándo si faltan.
 - "Quiero ver festivales" → preguntá ciudad y cuándo; buscá tipo "fecha".""".replace(
     "CIUDADES_DISPONIBLES", ", ".join(AREAS_RA.keys()))
@@ -566,6 +560,9 @@ def pasa_filtros(ev_fmt, hora_min=None, hora_max=None, gratis=False, precio_max=
         else:  # cruza medianoche (noche 21:00 → 03:00)
             dentro = hora >= hora_min or hora <= hora_max
         if not dentro:
+            return False
+        # "Afters" es para fiestas: una visita guiada a las 9 de la mañana no es un after
+        if (hora_min, hora_max) == FRANJAS["afters"] and (ev_fmt.get("categoria") or "clubs") != "clubs":
             return False
     elif hora_min and hora and hora >= "08:00" and hora < hora_min:
         return False
@@ -925,8 +922,44 @@ def chat():
         if ciudad_corregida != ciudad_raw.lower():
             pass
 
+        if ciudad_raw.lower() in ["todas", "all", "cualquiera", ""] and ciudad_pag in AREAS_RA:
+            ciudad_corregida = ciudad_pag
+        # "quiero ir a marula bar": si el pedido de bar/restaurante trae un nombre propio que existe, es un lugar concreto
+        if tipo == "lugar" and not (filtros.get("cocina") or filtros.get("tipo_bar") or filtros.get("extras")):
+            ult = next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), "")
+            resto = tokens_busq(ult, ciudad_corregida)
+            zona = _norm(filtros.get("zona") or "")
+            resto = [t for t in resto if t not in zona.split()]
+            if resto:
+                try:
+                    r_ = buscar_texto(" ".join(resto), ciudad_corregida, sugerir=False)
+                    if r_["locales"] or r_["venues"]:
+                        tipo = filtros["tipo"] = "sitio"
+                        filtros["nombre"] = " ".join(resto)
+                except Exception as e:
+                    print(f"[SITIO GUARD] {e}")
+        if tipo in ("venue", "busqueda"):  # todo lo que es "por nombre" se resuelve igual
+            filtros["nombre"] = filtros.get("nombre") or filtros.get("venue") or filtros.get("query") or ""
+            tipo = filtros["tipo"] = "sitio"
+
         if tipo == "lugar":
             filtros["ciudad"] = ciudad_corregida  # la app filtra bares y restaurantes con sus propios datos
+
+        elif tipo == "sitio":
+            filtros["ciudad"] = ciudad_corregida
+            nombre = (filtros.get("nombre") or "").strip()
+            r_ = buscar_texto(nombre, ciudad_corregida) if nombre else {"eventos": [], "venues": [], "locales": [], "sugerencias": []}
+            evs = r_["eventos"]
+            cuando = filtros.get("cuando") or "todo"
+            if evs and cuando != "todo":
+                desde, hasta = calc_fechas(cuando)
+                en_fecha = [e for e in evs if desde <= e.get("fecha", "") <= hasta]
+                if en_fecha:
+                    evs = en_fecha
+                else:
+                    filtros["sin_fecha"] = True  # no hay ese día: mostramos las próximas
+            eventos_out, total_ra = evs, r_.get("total", len(evs))
+            filtros["venues"], filtros["locales"], filtros["sugerencias"] = r_["venues"], r_["locales"], r_["sugerencias"]
 
         elif tipo == "despues":
             # Buscamos el evento al que va (por artista o venue) en la fecha que dijo; la app arma previa y after
@@ -989,13 +1022,6 @@ def chat():
                 gratis     = filtros.get("gratis", False),
                 precio_max = filtros.get("precio_max"),
                 genero     = filtros.get("genero"),
-            )
-
-        elif tipo == "busqueda":
-            eventos_out, total_ra = buscar_por_busqueda(
-                query  = filtros.get("query", ""),
-                ciudad = ciudad_corregida,
-                max_ev = filtros.get("max", 5),
             )
 
         elif tipo == "artista":
@@ -1093,35 +1119,6 @@ def chat():
                 print(f"[ARTISTA ERROR] {e}")
                 return jsonify({"error": str(e)}), 500
 
-        elif tipo == "venue":
-            venue_raw = filtros.get("venue", "")
-            desde, hasta = calc_fechas(filtros.get("cuando", "todo"))
-            todos, _ = buscar_por_fecha(ciudad_corregida, desde, hasta, max_ev=100)
-
-            # Fuzzy matching de venue
-            todos_venues = list({e.get("venue", "") for e in todos if e.get("venue")})
-            from difflib import get_close_matches
-            matches = get_close_matches(venue_raw.lower(), [v.lower() for v in todos_venues], n=1, cutoff=0.5)
-
-            if matches:
-                venue_match = matches[0]
-                if venue_match != venue_raw.lower():
-                    clean = L(f"(Entendí '{venue_match.title()}' por '{venue_raw}') ", f"(I took '{venue_raw}' as '{venue_match.title()}') ") + clean
-                eventos_out = [e for e in todos if venue_match in e.get("venue", "").lower()]
-            else:
-                # Búsqueda parcial
-                eventos_out = [e for e in todos if venue_raw.lower() in e.get("venue", "").lower()]
-
-            if not eventos_out:
-                return jsonify({
-                    "reply": L(f"No veo nada anunciado en {venue_raw} para esas fechas 😕 ¿Probamos otras fechas o revisamos el nombre del venue/disco?",
-                              f"I don't see anything at {venue_raw} for those dates 😕 Try other dates or check the venue name?"),
-                    "filtros": filtros, "eventos": [], "total_ra": 0
-                })
-
-            eventos_out = eventos_out[:filtros.get("max", 8)]
-            total_ra = len(eventos_out)
-
     if filtros and (filtros.get("tipo") or "fecha") == "fecha":
         try:
             c = str(filtros.get("cuando") or "")
@@ -1157,6 +1154,13 @@ def es_aire_libre(e):
     if e.get("aire_libre"):
         return True
     return bool(AIRE_LIBRE.search(f"{e.get('titulo', '')} | {e.get('venue', '')}"))
+
+# Rooftop: se reconoce por el nombre de la fiesta o del lugar (o la etiqueta de Fever)
+ROOFTOP = re.compile(r"roof ?top|roof ?garden|roofpark|azotea|terrat\b|sky ?bar|skybar|sky ?lounge|skyline|360 ?[°º]|\bmirador\b", re.I)
+def es_rooftop(e):
+    if "Terraces and Rooftops" in (e.get("generos_fever") or []):
+        return True
+    return bool(ROOFTOP.search(f"{e.get('titulo', '')} | {e.get('venue', '')}"))
 
 @app.route("/eventos")
 def eventos():
@@ -1196,7 +1200,12 @@ def eventos():
 
     def _extra_ok(e):
         e["aire_libre"] = es_aire_libre(e)
+        e["rooftop"] = es_rooftop(e)
+        if e["rooftop"]:
+            e["aire_libre"] = True
         if ambiente == "abierto" and not e["aire_libre"] or ambiente == "cerrado" and e["aire_libre"]:
+            return False
+        if ambiente == "rooftop" and not e["rooftop"]:
             return False
         if franjas and not any(pasa_filtros(e, *FRANJAS[f]) for f in franjas):
             return False
@@ -1558,6 +1567,8 @@ def tipos_bar(t):
         tipos.append("musica")
     if RE_HIFI.search(nombre) or RE_HIFI.search(t.get("description", "")):
         tipos.append("hifi")
+    if ROOFTOP.search(nombre):
+        tipos.append("rooftop")
     return tipos
 
 ETIQUETA_TIPO = {"cocteles": "Cócteles", "vinos": "Vinos", "cervezas": "Cervezas", "terraza": "Terraza", "musica": "Música en vivo", "hifi": "HiFi"}
@@ -1980,8 +1991,161 @@ def buscar_fever(ciudad, categoria, desde, hasta):
                 "url": p.get("u", ""), "imagen": p.get("img"), "lat": p.get("la"), "lng": p.get("lo"),
                 "fuente": "Fever", "categoria": categoria, "relevancia": rel, "comision": bool(p.get("com")),
                 "aire_libre": bool({"Outdoor Activities", "Terraces and Rooftops"} & set(p.get("g") or [])),
+                "generos_fever": p.get("g") or [],
             })
     return out
+
+# ── BÚSQUEDA POR NOMBRE (fiestas, lugares, bares y restaurantes) ───────────────
+def _norm(s):
+    s = "".join(c for c in unicodedata.normalize("NFD", (s or "").lower()) if unicodedata.category(c) != "Mn")
+    return " ".join(re.findall(r"[a-z0-9]+", s))
+
+# palabras que no son parte del nombre ("quiero ir a marula bar" → "marula")
+STOP_BUSQ = set(_norm("""quiero queremos ir vamos voy a al un una unos unas el la los las lo de del en por para con sin y o que
+    me nos te recomendas recomendame recomendá busco buscame buscá buscar mostrame decime hay algo algun alguno alguna
+    bar bares pub pubs disco discos discoteca discotecas boliche club clubs sala local lugar sitio restaurante restaurantes
+    resto comer cenar almorzar tomar copa copas cerveza cervezas birra vino vinos trago tragos coctel cocteles cóctel
+    donde dónde esta está este finde hoy mañana manana noche tarde fiesta fiestas evento eventos planes plan salir
+    bueno buena buenos buenas lindo linda barato barata cerca rico rica the at in to go want a an quiero ir llamado llamada
+    se llama tal cual qué que hacer pasa pasando toca tocan""").split())
+
+def tokens_busq(q, ciudad=""):
+    st_ = STOP_BUSQ | set(_norm(ciudad).split())
+    t = [x for x in _norm(q).split() if x not in st_ and len(x) > 1]
+    return t
+
+def _coincide(toks, texto):
+    """Todas las palabras buscadas aparecen (palabra entera, o dentro si tiene 4+ letras)."""
+    if not toks:
+        return False
+    palabras = set(texto.split())
+    return all(t in palabras or (len(t) >= 4 and t in texto) for t in toks)
+
+def _parecido(toks, nombres, corte=0.75):
+    """Nombres parecidos a lo buscado (errores de tipeo): 'razmatas' → 'Razzmatazz'."""
+    from difflib import SequenceMatcher
+    q = " ".join(toks)
+    res = []
+    for orig in nombres:
+        n = _norm(orig)
+        if not n:
+            continue
+        r = SequenceMatcher(None, q, n).ratio()
+        ws = [w for w in n.split() if len(w) >= 3]
+        if ws:  # palabra por palabra: cada palabra buscada contra la más parecida del nombre
+            r = max(r, sum(max(SequenceMatcher(None, t, w).ratio() for w in ws) for t in toks) / len(toks))
+        if r >= corte:
+            res.append((r, orig))
+    res.sort(key=lambda x: -x[0])
+    return [o for _, o in res]
+
+def pool_ciudad(ciudad, dias=42):
+    """Todo lo que hay en la ciudad en las próximas semanas (RA por semana para no chocar con el tope, + TM, fútbol y Fever)."""
+    k = f"pool-{ciudad}-{dias}"
+    v = cache_get(k, 3600)
+    if v is not None:
+        return v
+    hoy = _hoy()
+    f = lambda n: (hoy + timedelta(days=n)).strftime("%Y-%m-%d")
+    d0, d1 = f(0), f(dias - 1)
+    tramos = [(f(i), f(min(i + 6, dias - 1))) for i in range(0, dias, 7)]
+    def _ra(t):
+        try:
+            return buscar_por_fecha(ciudad, t[0], t[1], 100000)[0]
+        except Exception as e:
+            print(f"[POOL RA] {e}")
+            return []
+    with ThreadPoolExecutor(3) as ex:
+        ra = [dict(e, categoria=e.get("categoria") or "clubs") for l in ex.map(_ra, tramos) for e in l]
+    otros = []
+    for cat in ("conciertos", "teatro", "deportes"):
+        try:
+            otros += [dict(e, categoria=e.get("categoria") or cat) for e in buscar_ticketmaster(ciudad, d0, d1, cat, 100000)[0]]
+        except Exception as e:
+            print(f"[POOL TM] {e}")
+    try:
+        otros += [dict(e, categoria="deportes") for e in buscar_futbol(ciudad, d0, d1)]
+    except Exception as e:
+        print(f"[POOL FUTBOL] {e}")
+    fever = []
+    for cat in ("clubs", "conciertos", "teatro"):
+        fever += buscar_fever(ciudad, cat, d0, d1)
+    v = sin_duplicados(ra + otros + fever)
+    cache_set(k, v)
+    return v
+
+_LUGARES_CACHE = {}
+def lugares_ciudad(ciudad):
+    """Bares y restaurantes guardados (datos/bares, datos/restaurantes)."""
+    if ciudad in _LUGARES_CACHE:
+        return _LUGARES_CACHE[ciudad]
+    base = os.path.join(os.path.dirname(os.path.abspath(__file__)), "datos")
+    out = []
+    for carpeta, clave, tipo in (("bares", "bares", "bar"), ("restaurantes", "restaurantes", "restaurante")):
+        try:
+            with open(os.path.join(base, carpeta, f"{ciudad.replace(' ', '-')}.json"), encoding="utf-8") as fh:
+                for b in json.load(fh).get(clave) or []:
+                    out.append({"id": b["id"] if tipo == "bar" else "osm-" + b["id"], "tipo": tipo, "nombre": b.get("n", ""),
+                                "categoria": b.get("c") or ("Restaurante" if tipo == "restaurante" else "Bar"), "direccion": b.get("d", "")})
+        except Exception:
+            pass
+    _LUGARES_CACHE[ciudad] = out
+    return out
+
+def buscar_texto(q, ciudad, max_ev=40, sugerir=True):
+    """Busca por nombre en fiestas/eventos (título, lugar, artistas) y en bares/restaurantes.
+    Devuelve eventos, lugares de eventos que coinciden, bares/restaurantes y sugerencias si no hubo nada."""
+    toks = tokens_busq(q, ciudad) or [x for x in _norm(q).split() if len(x) > 1]
+    res = {"query": q, "tokens": toks, "eventos": [], "venues": [], "locales": [], "sugerencias": []}
+    if not toks:
+        return res
+    pool = pool_ciudad(ciudad) if ciudad in AREAS_RA else []
+    evs, por_venue, vistos = [], {}, {}
+    for e in pool:
+        texto = _norm(" ".join([e.get("titulo", ""), e.get("venue", ""), " ".join(e.get("artistas") or [])]))
+        if not _coincide(toks, texto):
+            continue
+        clave = (clave_titulo(e.get("titulo")), _norm(e.get("venue")))
+        vistos[clave] = vistos.get(clave, 0) + 1
+        if vistos[clave] > 3:  # un plan de Fever que se repite todos los días: con 3 fechas alcanza
+            continue
+        evs.append(e)
+        if e.get("venue") and _coincide(toks, _norm(e["venue"])):
+            por_venue[e["venue"]] = por_venue.get(e["venue"], 0) + 1
+    evs.sort(key=lambda e: (e.get("fecha", ""), e.get("hora") or "99"))
+    res["eventos"] = evs[:max_ev]
+    res["total"] = len(evs)
+    res["venues"] = [{"nombre": n, "eventos": c} for n, c in sorted(por_venue.items(), key=lambda x: -x[1])][:4]
+    locales = [l for l in lugares_ciudad(ciudad) if _coincide(toks, _norm(l["nombre"]))]
+    locales.sort(key=lambda l: (len(_norm(l["nombre"])), l["tipo"] != "bar"))  # el nombre más justo primero
+    res["locales"] = locales[:6]
+    if sugerir and not evs and not locales:
+        nombres = list({e.get("venue") for e in pool if e.get("venue")}) + [l["nombre"] for l in lugares_ciudad(ciudad)]
+        nombres += list({e.get("titulo") for e in pool if e.get("titulo") and len(e["titulo"]) <= 40})
+        sug = {}
+        for n in _parecido(toks, nombres):
+            sug.setdefault(_norm(n), n)  # "Marula Café" y "Marula Cafè" son lo mismo
+        res["sugerencias"] = list(sug.values())[:4]
+    return res
+
+def _precargar_pool():
+    time.sleep(30)
+    for c in ("barcelona", "madrid"):
+        try:
+            pool_ciudad(c)
+            print(f"[POOL] precargado {c}")
+        except Exception as e:
+            print(f"[POOL] {e}")
+threading.Thread(target=_precargar_pool, daemon=True).start()
+
+@app.route("/buscar")
+def buscar_ruta():
+    """Búsqueda por nombre. /buscar?q=delirio&ciudad=barcelona"""
+    q = (request.args.get("q") or "").strip()[:80]
+    ciudad = (request.args.get("ciudad") or "barcelona").lower().strip()
+    if not q:
+        return jsonify({"error": "q requerido"}), 400
+    return jsonify(buscar_texto(q, ciudad, min(int(request.args.get("max", 60)), 150)))
 
 # ── SEGUIR ARTISTAS Y EQUIPOS ───────────────────────────────────────────────
 def proximos_artista(nombre):
@@ -2044,24 +2208,15 @@ def proximos_tm_keyword(nombre):
     return out
 
 def eventos_lugar(nombre, ciudad, categoria="clubs"):
-    k = f"lugar-{ciudad}-{categoria}-{nombre.lower()}"
-    v = cache_get(k, 3600)
-    if v is None:
-        hoy = _hoy()
-        d0, d1 = hoy.strftime("%Y-%m-%d"), (hoy + timedelta(days=42)).strftime("%Y-%m-%d")
-        try:
-            if categoria in TM_SEGMENTOS:
-                todos, _ = buscar_ticketmaster(ciudad, d0, d1, categoria, 100000)
-            else:
-                todos, _ = buscar_por_fecha(ciudad, d0, d1, 100000)
-        except Exception as e:
-            print(f"[LUGAR] {e}")
-            todos = []
-        n = nombre.lower()
-        v = sorted([e for e in todos if n == (e.get("venue") or "").lower() or n in (e.get("venue") or "").lower()],
-                   key=lambda e: (e.get("fecha", ""), e.get("hora") or "99"))
-        cache_set(k, v)
-    return v
+    """Lo que viene en un lugar (próximas 6 semanas, todas las fuentes)."""
+    n = (nombre or "").lower()
+    try:
+        todos = pool_ciudad(ciudad)
+    except Exception as e:
+        print(f"[LUGAR] {e}")
+        todos = []
+    return sorted([e for e in todos if n == (e.get("venue") or "").lower() or n in (e.get("venue") or "").lower()],
+                  key=lambda e: (e.get("fecha", ""), e.get("hora") or "99"))
 
 @app.route("/lugar")
 def lugar():

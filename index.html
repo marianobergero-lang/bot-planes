@@ -862,6 +862,20 @@
   .rap .ic { margin: 0; width: 14px; height: 14px; stroke-width: 3; }
   .rap.mas { background: transparent; border: 1px dashed rgba(242,238,232,.22); color: var(--text); font-weight: 500; }
   .rap.mas .mf-ic { display: none; }
+  .herr { display: flex; gap: 10px; align-items: center; margin-left: auto; }
+  .qbox { display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 8px 0 10px; border-radius: 8px; background: #1A1816; color: var(--dim); width: 190px; transition: width .2s; }
+  .qbox:focus-within, .qbox.on { color: var(--text); box-shadow: inset 0 0 0 1px rgba(233,104,46,.5); }
+  .qbox .ic { margin: 0; width: 15px; height: 15px; flex-shrink: 0; }
+  .qbox input { flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--text); font: 500 13.5px 'DM Sans', sans-serif; }
+  .qbox input::-webkit-search-cancel-button { display: none; }
+  .qbox .qx { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 13px; padding: 2px 4px; }
+  .orden { display: flex; align-items: center; gap: 6px; font: 500 12.5px 'DM Sans', sans-serif; color: var(--dim); }
+  .orden[hidden] { display: none; }
+  .orden select { height: 36px; border-radius: 8px; border: none; background: #1A1816; color: #C9C3BA; font: 500 13.5px 'DM Sans', sans-serif; padding: 0 8px; cursor: pointer; }
+  .orden select.on { background: rgba(233,104,46,.16); color: #F5A57B; }
+  .rapidas.col { flex-direction: column; align-items: stretch; }
+  .rapidas.col button { text-align: left; white-space: normal; line-height: 1.3; height: auto; padding: 9px 12px; }
+  .rapidas.col button small { display: block; color: var(--dim); font-size: 12px; font-weight: 400; }
   .cuerpo { grid-template-columns: minmax(0, 1fr) !important; }
   .res-head { align-items: center; padding-bottom: 12px; margin-bottom: 0; }
   .icon-sq { width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(242,238,232,.16); background: transparent; color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
@@ -898,6 +912,11 @@
     .rapidos::-webkit-scrollbar { display: none; }
     .rap { height: 38px; flex-shrink: 0; }
     .rap.mas { order: -1; padding: 0 10px; }
+    .herr { margin: 10px 0 0; width: 100%; }
+    .qbox, .qbox:focus-within, .qbox.on { flex: 1 1 0; min-width: 0; width: auto; height: 38px; }
+    .orden { flex-shrink: 0; }
+    .orden > span { display: none; }
+    .orden select { height: 38px; max-width: 135px; }
     .rap.mas .mf-ic { display: inline-flex; } .rap.mas .mf-txt { display: none; }
     .res-head.normal { display: none; }
     .dia-n { display: inline; font: 400 13px 'DM Sans', sans-serif; color: var(--dim); text-transform: none; letter-spacing: 0; }
@@ -1010,6 +1029,7 @@ document.addEventListener('click', ev => {
       <h4>Ambiente</h4>
       <div class="chips" data-g="aire">
         <button class="chip" data-v="abierto">☀️ Aire libre</button>
+        <button class="chip" data-v="rooftop">🏙️ Rooftop</button>
         <button class="chip" data-v="cerrado">🏠 Cerrado</button>
       </div>
     </div>
@@ -1021,7 +1041,7 @@ document.addEventListener('click', ev => {
       <h4>Tipo</h4>
       <div class="chips" data-g="tipoBar" id="chips-tipo">
         <button class="chip" data-v="cocteles">🍸 Cócteles</button><button class="chip" data-v="vinos">🍷 Vinos</button><button class="chip" data-v="cervezas">🍺 Cervezas</button>
-        <button class="chip" data-v="terraza">☀️ Terraza</button><button class="chip" data-v="musica">🎷 Música en vivo</button><button class="chip" data-v="hifi">🎧 HiFi</button>
+        <button class="chip" data-v="terraza">☀️ Terraza</button><button class="chip" data-v="musica">🎷 Música en vivo</button><button class="chip" data-v="hifi">🎧 HiFi</button><button class="chip" data-v="rooftop">🏙️ Rooftop</button>
       </div>
     </div>
     <div class="group g-rest" hidden>
@@ -1086,6 +1106,12 @@ document.addEventListener('click', ev => {
         <span class="sep-v" aria-hidden="true"></span>
         <span class="afinar-k">Afinar</span>
         <div class="rapidos" id="rapidos" role="group" aria-label="Afinar"></div>
+        <div class="herr">
+          <label class="qbox" id="qbox"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="qtxt" type="search" placeholder="Buscar por nombre…" aria-label="Buscar por nombre" autocomplete="off" oninput="escribirBusqueda()" onkeydown="if(event.key==='Enter'){clearTimeout(qTimer);aplicarBusqueda()}"><button class="qx" id="qx" hidden onclick="limpiarBusqueda()" aria-label="Borrar búsqueda">✕</button></label>
+          <label class="orden" id="ordenbox"><span>Ordenar</span><select id="orden" onchange="cambiarOrden(this.value)" aria-label="Ordenar por">
+            <option value="">Recomendado</option><option value="cerca">Más cerca</option><option value="gente">Más convocantes</option><option value="precio">Más barato</option>
+          </select></label>
+        </div>
       </div>
     </div>
     <div class="cuerpo">
@@ -1169,6 +1195,13 @@ const EN_PLURAL = { 'plan': 'plan', 'planes': 'plans', 'concierto': 'concert', '
   'evento deportivo': 'sports event', 'eventos deportivos': 'sports events', 'bar': 'bar', 'bares': 'bars', 'restaurante': 'restaurant',
   'restaurantes': 'restaurants', 'película': 'movie', 'películas': 'movies' };
 const EN = {
+  // buscar y ordenar
+  'Buscar por nombre…': 'Search by name…', 'Buscar fiesta, lugar o artista…': 'Search party, venue or artist…', 'Buscar bar…': 'Search bars…', 'Buscar restaurante…': 'Search restaurants…', 'Buscar película…': 'Search movies…',
+  'Ordenar': 'Sort', 'Recomendado': 'Recommended', 'Más cerca': 'Nearest', 'Más convocantes': 'Most popular', 'Más barato': 'Cheapest',
+  'Los más convocantes primero': 'Most popular first', 'Del más barato al más caro': 'Cheapest first', 'Buscando': 'Searching', 'Resultados para': 'Results for',
+  'Próximas 6 semanas en': 'Next 6 weeks in', 'no hay en esta categoría, te muestro todo': 'nothing in this category, showing everything', '¿Quisiste decir…?': 'Did you mean…?',
+  'Pero hay lugares con ese nombre, arriba 👆': 'But there are places with that name, above 👆', 'Probá con otra parte del nombre, o preguntale al agente.': 'Try another part of the name, or ask the agent.',
+  'Lo que viene en': "What's on at", 'restaurante': 'restaurant', 'Restaurante': 'Restaurant', '🏙️ Rooftop': '🏙️ Rooftop',
   // cabezal y pestañas
   'Todos tus planes, en un solo lugar': 'All your plans, in one place', 'powered by': 'powered by',
   '🪩 Fiestas y clubs': '🪩 Parties & clubs', '🎤 Conciertos': '🎤 Concerts', '🍸 Bares': '🍸 Bars', '🍽️ Restaurantes': '🍽️ Restaurants',
@@ -1406,13 +1439,13 @@ function selectorIdioma() {
 
 
 // ── ESTADO ─────────────────────────────────────────────────────────────────
-const st = { tab: 'todo', cuando: null, aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, km: '99' };
+const st = { tab: 'todo', cuando: null, aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, km: '99', orden: null, q: '' };
 function esLugar() { return st.tab === 'bares' || st.tab === 'restaurantes'; }
 const MULTI = ['franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest'];  // filtros que se pueden combinar
 const MOVIL = () => matchMedia('(max-width: 820px)').matches;
 function lado() { return 'en "Más filtros"'; }
 function borrarFiltros() {
-  Object.assign(st, { cuando: null, aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null });
+  Object.assign(st, { cuando: null, aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, orden: null, q: '' });
   cal.a = cal.b = null; cal.abierto = false; pintarCal();
   st.km = KM_DEFECTO[kmClave()];
   ubic = puntoCentro(); actualizarNota();
@@ -1487,13 +1520,15 @@ function pintar() {
   document.querySelectorAll('.g-rest').forEach(g => g.hidden = st.tab !== 'restaurantes');
   document.querySelectorAll('.g-lugar').forEach(g => g.hidden = !esBar);
   document.getElementById('dist-hint').textContent = ubic ? `· desde ${ubic.txt}` : '';
-  const todo = document.querySelector('.chips[data-g=km] .chip[data-v="99"]');
-  const bloqueado = esBar && !tipoLugar();
-  todo.disabled = bloqueado;
-  todo.title = bloqueado ? (st.tab === 'restaurantes' ? 'Elegí un tipo de cocina para buscar en toda la ciudad' : 'Elegí un tipo de bar para buscar en toda la ciudad') : '';
+  document.getElementById('ordenbox').hidden = esBar || esCine;
+  const sel = document.getElementById('orden'); sel.value = st.orden || ''; sel.classList.toggle('on', !!st.orden);
+  if (LANG === 'en' && !sel.dataset.tr) { sel.dataset.tr = 1; sel.querySelectorAll('option').forEach(o => o.textContent = tr(o.textContent)); }
+  const qi = document.getElementById('qtxt'); if (document.activeElement !== qi) qi.value = st.q || '';
+  document.getElementById('qx').hidden = !st.q; document.getElementById('qbox').classList.toggle('on', !!st.q);
+  qi.placeholder = tr(esBar ? (st.tab === 'restaurantes' ? 'Buscar restaurante…' : 'Buscar bar…') : esCine ? 'Buscar película…' : 'Buscar por nombre…');
   const kmTxt = st.km !== '99' && ubic ? `< ${st.km.replace('.', ',')} km` : null;
   const hayFiltros = ['aire', 'franja', 'precio', 'genero', 'tipoBar', 'tipoRest', 'extraRest', 'abierto'].some(k => st[k])
-    || st.cuando === 'cal' || st.km !== KM_DEFECTO[kmClave()] || (ubic && !ubic.auto);
+    || st.cuando === 'cal' || st.km !== KM_DEFECTO[kmClave()] || (ubic && !ubic.auto) || !!st.orden || !!st.q;
   document.getElementById('resetf').hidden = !hayFiltros;
   const n = clavesTab().reduce((t, k) => t + valores(st[k]).length, 0) + (st.km !== KM_DEFECTO[kmClave()] ? 1 : 0);
   const nf = document.getElementById('nfiltros'); if (nf) nf.textContent = n || '';
@@ -1520,14 +1555,14 @@ function flechasCats() {
 }
 function moverCats(dir) { const c = document.getElementById('cats'); c.scrollBy({ left: dir * c.clientWidth * 0.6, behavior: 'smooth' }); }
 // Filtros rápidos: lo más usado a la vista según la categoría + los que estén puestos desde "Más filtros" (con ✕)
-const COMUNES = [['precio', 'gratis'], ['aire', 'abierto'], ['franja', 'sunset'], ['franja', 'afters']];
+const COMUNES = [['precio', 'gratis'], ['aire', 'abierto'], ['aire', 'rooftop'], ['franja', 'sunset'], ['franja', 'afters']];
 const RAPIDOS = {
   todo: COMUNES,
   clubs: [['genero', 'techno'], ['genero', 'house'], ['genero', 'tech house'], ['genero', 'melodic'], ...COMUNES],
   conciertos: [['genero', 'rock'], ['genero', 'pop'], ['genero', 'latin'], ['genero', 'jazz'], ...COMUNES],
   teatro: [['genero', 'teatro'], ['genero', 'musical'], ['genero', 'comedia'], ...COMUNES],
   deportes: [['genero', 'fútbol'], ['genero', 'básquet'], ['genero', 'tenis'], ['genero', 'motor'], ...COMUNES],
-  bares: [['abierto', 'si'], ['tipoBar', 'terraza'], ['tipoBar', 'cocteles'], ['tipoBar', 'vinos'], ['tipoBar', 'cervezas'], ['tipoBar', 'musica'], ['tipoBar', 'hifi']],
+  bares: [['abierto', 'si'], ['tipoBar', 'terraza'], ['tipoBar', 'rooftop'], ['tipoBar', 'cocteles'], ['tipoBar', 'vinos'], ['tipoBar', 'cervezas'], ['tipoBar', 'musica'], ['tipoBar', 'hifi']],
   restaurantes: [['abierto', 'si'], ['extraRest', 'terraza'], ['extraRest', 'veg'], ['tipoRest', 'tapas'], ['tipoRest', 'italiana'], ['tipoRest', 'japonesa']],
 };
 function etiquetaFiltro(k, v) {
@@ -1558,7 +1593,6 @@ function tocarFiltro(k, v) {
   usoFiltros = true;
   if (MULTI.includes(k)) { const l = valores(st[k]); st[k] = (l.includes(v) ? l.filter(x => x !== v) : [...l, v]).join(',') || null; }
   else st[k] = st[k] === v ? null : v;
-  if (['tipoBar', 'tipoRest', 'extraRest'].includes(k) && !tipoLugar() && st.km === '99') st.km = '3';
   pintar(); autoBuscar();
 }
 function pintarTitulo() {
@@ -1588,7 +1622,6 @@ function cambiarTab(t) {
   const antes = kmClave();
   st.tab = t;
   if (kmClave() !== antes) st.km = KM_DEFECTO[kmClave()];
-  if (esLugar() && !tipoLugar() && st.km === '99') st.km = '3';
   st.genero = valores(st.genero).filter(x => (GENEROS[st.tab] || []).some(g => g[0] === x)).join(',') || null;
   modoVista = modoVista === 'mapa' ? 'mapa' : 'lista';
   pintarGeneros(); pintar(); buscar();
@@ -1603,6 +1636,7 @@ function cerrarFiltros() {
 function marcarNav(id) { document.querySelectorAll('.nav-abajo button').forEach(b => b.classList.toggle('on', b.id === id)); }
 function irExplorar() {
   cerrarDetalle(); cerrarFiltros(); toggleChat(false); marcarNav('nav-explorar');
+  st.q = ''; pintar();
   document.getElementById('landing').hidden = true;
   buscar();
   document.querySelector('.app').scrollTop = 0; document.getElementById('main').scrollTop = 0;
@@ -1701,6 +1735,7 @@ function autoBuscar() {
 async function buscar() {
   if (esLugar()) return buscarBares();
   if (st.tab === 'cine') return buscarCine();
+  if (st.q) { guardarURL(); return buscarNombreEventos(); }
   if (!st.cuando) { st.cuando = 'hoy'; pintar(); }
   guardarURL();
   marcarNav('nav-explorar');
@@ -1710,7 +1745,7 @@ async function buscar() {
   main.classList.add('loading');
   esqueleto();
   const [a, b] = rango();
-  const completo = (ubic && (!ubic.auto || st.km !== '99')) || modoVista === 'mapa';
+  const completo = (ubic && (!ubic.auto || st.km !== '99')) || modoVista === 'mapa' || !!st.orden;
   const p = new URLSearchParams({ ciudad: ciudad(), categoria: st.tab, desde: iso(a), hasta: iso(b), max: completo ? 300 : 30 });
   if (completo) p.set('coords', '1');
   if (st.franja) p.set('franja', st.franja);
@@ -1768,8 +1803,9 @@ function mostrar(eventos, total, titulo, porDia = {}, extra = '') {
       ${tm ? '<br><br>Ojo: estos eventos vienen de Ticketmaster, que en algunas ciudades (como Barcelona o Madrid) tiene poca oferta.' : ''}</div>`;
     main.innerHTML = html; return;
   }
-  const porCercania = ubic && (!ubic.auto || st.km !== '99');
-  if (porCercania) html += `<div class="res-sub" style="margin-top:6px">${esc(tr('Los más cercanos primero'))} · ${esc(ubic.txt)}</div>`;
+  const porCercania = (ubic && (!ubic.auto || st.km !== '99')) || !!st.orden;
+  const ORD_TXT = { cerca: `Los más cercanos primero${ubic ? ' · ' + ubic.txt : ''}`, gente: 'Los más convocantes primero', precio: 'Del más barato al más caro' };
+  if (!titulo && porCercania) html += `<div class="res-sub" style="margin-top:6px">${esc(tr(st.orden ? ORD_TXT[st.orden] : 'Los más cercanos primero'))}${!st.orden ? ' · ' + esc(ubic.txt) : ''}</div>`;
   const dias = [...new Set(eventos.map(e => e.fecha))];
   const plural = (w => LANG === 'en' ? EN_PLURAL[w] || w : w)(TAB_TXT[st.tab][n === 1 ? 0 : 1]);
   dias.forEach((dia, k) => {
@@ -1903,7 +1939,7 @@ function mostrarCine() {
   const main = document.getElementById('main');
   main.classList.remove('loading');
   const todas = cineData[ciudad() + '|' + cineTipo] || [];
-  const pelis = st.genero ? todas.filter(p => valores(st.genero).some(g => (p.generos || []).includes(g))) : todas;
+  const pelis = (st.genero ? todas.filter(p => valores(st.genero).some(g => (p.generos || []).includes(g))) : todas).filter(p => !st.q || coincide(st.q, [p.titulo, p.original, p.titulo_original].filter(Boolean).join(' ')));
   const seg = `<div class="seg"><button class="${cineTipo === 'cartelera' ? 'on' : ''}" onclick="setCineTipo('cartelera')">🍿 En cartelera</button><button class="${cineTipo === 'estrenos' ? 'on' : ''}" onclick="setCineTipo('estrenos')">🗓️ Próximos estrenos</button></div>`;
   const h2 = pelis.length ? `${pelis.length} ${TAB_TXT.cine[pelis.length === 1 ? 0 : 1]} ${cineTipo === 'cartelera' ? 'en cartelera' : 'por estrenarse'} en <span>${esc(ciudadTxt())}</span>` : `Nada por acá en <span>${esc(ciudadTxt())}</span>`;
   let html = volver() + cartelGuia() + `<div class="res-head"><h2>${h2}</h2><div class="head-tools"><div class="active">${valores(st.genero).map(g => `<span>${esc(g)}</span>`).join('')}</div>${botonCompartir()}${seg}</div></div>`;
@@ -2050,8 +2086,9 @@ function renderActual() {
   if (st.tab === 'cine') return mostrarCine();
   const main = document.getElementById('main');
   main.classList.remove('loading');
-  let items = actual.items.map(x => ({ ...x, d: ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null }));
   const esBar = esLugar();
+  const base = esBar && modoVista === 'mapa' && actual.todos ? actual.todos : actual.items;  // en el mapa, todos los bares (no solo los 20 de la lista)
+  let items = base.map(x => ({ ...x, d: ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null }));
   if (modoVista === 'mapa') {
     if (ubic && st.km !== '99') items = items.filter(x => x.d == null || x.d <= Number(st.km));
     return renderMapa(items, esBar);
@@ -2064,7 +2101,8 @@ function renderActual() {
     if (!esBar && sinCoords) extra = `<div class="res-sub" style="margin-top:10px">${sinCoords} de ${antes} sin ubicación exacta no entran en el filtro de distancia.</div>`;
   }
   if (esBar) return mostrarBares(items);
-  if (ubic && (!ubic.auto || st.km !== '99')) items.sort((a, b) => a.fecha.localeCompare(b.fecha) || ((a.d ?? 999) - (b.d ?? 999)));
+  if (st.orden) items = ordenar(items);
+  else if (ubic && (!ubic.auto || st.km !== '99')) items.sort((a, b) => a.fecha.localeCompare(b.fecha) || ((a.d ?? 999) - (b.d ?? 999)));
   mostrar(items, ubic && st.km !== '99' ? items.length : actual.total, null, actual.porDia, extra);
 }
 
@@ -2077,10 +2115,11 @@ function mostrarBares(items) {
   const total = Math.max(actual.total || 0, items.length);
   const plural = TAB_TXT[st.tab][1];
   const h2 = `${total.toLocaleString('es-ES')} ${(w => LANG === 'en' ? EN_PLURAL[w] || w : w)(TAB_TXT[st.tab][total === 1 ? 0 : 1])}`;
-  const sub = `<div class="res-sub" style="margin-top:2px">${esc(tr('Los más cercanos primero'))}${total > items.length ? ` · ${esc(tr('Elegí un tipo en Afinar para ver más'))}` : ''}</div>`;
+  const sub = `<div class="res-sub" style="margin-top:2px">${st.q ? `${esc(tr('Buscando'))} «${esc(st.q)}» · ` : ''}${esc(tr('Los más cercanos primero'))}</div>`;
   let html = volver() + cartelGuia() + `<div class="res-head"><div class="res-count">${h2}</div><div class="head-tools">${botonCompartir()}${segVista()}</div></div>${sub}`;
   if (!items.length) {
-    html += `<div class="empty"><b>No encontré ${TAB_TXT[st.tab][1]} con esos filtros 😕</b>${st.km !== '99' ? 'Probá ampliando la distancia a "Cerca < 3 km".' : 'Probá con otro tipo.'}</div>`;
+    html += st.q ? `<div class="empty"><b>No encontré ${TAB_TXT[st.tab][1]} con «${esc(st.q)}» 😕</b>Probá con otra parte del nombre, o preguntale al agente.</div>`
+      : `<div class="empty"><b>No encontré ${TAB_TXT[st.tab][1]} con esos filtros 😕</b>${st.km !== '99' ? 'Probá ampliando la distancia a "Toda la ciudad".' : 'Probá con otro tipo.'}</div>`;
   } else {
     html += `<div class="grid" style="margin-top:14px" id="grid-bares">${items.map(tarjetaBar).join('')}</div>`;
     if (total > items.length) html += `<button class="more" id="more-bares" onclick="masBares()">Ver más ${TAB_TXT[st.tab][1]} (${total - items.length} más) ↓</button>`;
@@ -2125,7 +2164,7 @@ function renderMapa(items, esBar) {
     // En bares: si te alejás, ampliamos la distancia y traemos más (sin mover el mapa)
     if (!esBarMapa) return;
     const z = mapa.getZoom();
-    const nuevo = st.km === '1.5' && z <= 15 ? '3' : (st.km === '3' && z <= 13 && tipoLugar() ? '99' : null);
+    const nuevo = st.km === '1.5' && z <= 15 ? '3' : (st.km === '3' && z <= 13 ? '99' : null);
     if (nuevo) { st.km = nuevo; vistaGuardada = { c: mapa.getCenter(), z }; pintar(); buscarBares(); }
   });
   document.getElementById('mapalista').addEventListener('click', e => {
@@ -2194,6 +2233,7 @@ function resaltar(card, on) {
 
 // ── BARES ──────────────────────────────────────────────────────────────────
 const BARES_LOCALES = {};
+const ROOF_RE = /roof ?top|roof ?garden|roofpark|azotea|terrat\b|sky ?bar|skybar|sky ?lounge|skyline|360 ?[°º]|\bmirador\b/i;  // rooftop: lo dice el nombre
 const ETQ = { cocteles: 'Cócteles', vinos: 'Vinos', cervezas: 'Cervezas' };
 async function baresLocales(c) {
   if (c in BARES_LOCALES) return BARES_LOCALES[c];
@@ -2202,7 +2242,7 @@ async function baresLocales(c) {
     if (!r.ok) throw new Error('sin archivo');
     const j = await r.json();
     BARES_LOCALES[c] = (j.bares || []).map(b => ({
-      id: b.id, tipo: 'bar', titulo: b.n, lat: b.la, lng: b.lo, categoria: b.c, tipos: b.t || [],
+      id: b.id, tipo: 'bar', titulo: b.n, lat: b.la, lng: b.lo, categoria: b.c, tipos: [...(b.t || []), ...(ROOF_RE.test(b.n || '') ? ['rooftop'] : [])],
       tags: (b.t || []).filter(x => ETQ[x]).map(x => ETQ[x]), terraza: (b.t || []).includes('terraza'),
       musica: (b.t || []).includes('musica'), hifi: (b.t || []).includes('hifi'),
       direccion: b.d, barrio: b.b, horario: b.h, web: b.w, telefono: b.p,
@@ -2249,8 +2289,9 @@ async function buscarBares() {
   if (locales) {
     const c = CENTRO[ciudad()];
     const desde = ubic ? [ubic.lat, ubic.lng] : [c[0], c[1]];
-    const radio = st.km === '99' ? 8 : Number(st.km);
+    const radio = st.km === '99' || st.q ? 15 : Number(st.km);  // buscando por nombre: toda la ciudad
     const lista = locales
+      .filter(b => !st.q || coincide(st.q, b.titulo))
       .filter(b => esRest
         ? (!st.tipoRest || valores(st.tipoRest).some(t => b.tipos.includes(t))) && valores(st.extraRest).every(t => b.tipos.includes(t))
         : (!st.tipoBar || valores(st.tipoBar).some(t => b.tipos.includes(t))))
@@ -2506,7 +2547,7 @@ function agregarCalendario(ev, id) {
   document.getElementById('modal').classList.add('open');
 }
 // ── LINKS PARA COMPARTIR BÚSQUEDAS ─────────────────────────────────────────
-const URL_CLAVES = [['cuando', 'w'], ['aire', 'a'], ['franja', 'f'], ['precio', 'p'], ['genero', 'g'], ['tipoBar', 'tb'], ['tipoRest', 'k'], ['extraRest', 'x'], ['abierto', 'ab']];
+const URL_CLAVES = [['cuando', 'w'], ['aire', 'a'], ['franja', 'f'], ['precio', 'p'], ['genero', 'g'], ['tipoBar', 'tb'], ['tipoRest', 'k'], ['extraRest', 'x'], ['abierto', 'ab'], ['orden', 'o']];
 function urlEstado() {
   const p = new URLSearchParams();
   p.set('c', ciudad()); p.set('t', st.tab);
@@ -3073,6 +3114,139 @@ function burbuja(txt, quien) {
   return m;
 }
 
+// ── BUSCAR POR NOMBRE Y ORDENAR ─────────────────────────────────────────────
+function normTxt(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+// Todas las palabras buscadas están en el texto (palabra entera, o dentro si tiene 4+ letras)
+function coincide(q, texto) {
+  const t = normTxt(texto), w = new Set(t.split(' '));
+  const toks = normTxt(q).split(' ').filter(x => x.length > 1);
+  return toks.length > 0 && toks.every(x => w.has(x) || (x.length >= 4 && t.includes(x)));
+}
+function ordenar(items) {
+  const k = { cerca: x => x.d ?? 1e9, gente: x => -(x.asistentes || 0) + (x.relevancia || 0) / 1000, precio: x => x.gratis ? 0 : (x.precio_num ?? 1e9) }[st.orden];
+  return k ? [...items].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || '') || k(a) - k(b)) : items;
+}
+function cambiarOrden(v) { st.orden = v || null; usoFiltros = true; pintar(); buscar(); }
+let qTimer = null;
+function escribirBusqueda() {
+  const v = document.getElementById('qtxt').value;
+  document.getElementById('qx').hidden = !v;
+  clearTimeout(qTimer);
+  // bares, restaurantes y pelis se filtran al toque; eventos esperan a que termines de escribir
+  qTimer = setTimeout(aplicarBusqueda, esLugar() || st.tab === 'cine' ? 250 : 700);
+}
+function aplicarBusqueda() {
+  const v = document.getElementById('qtxt').value.trim();
+  if (v === st.q) return;
+  if (v && !esLugar() && st.tab !== 'cine' && v.length < 3) return;
+  st.q = v; usoFiltros = true;
+  if (v) track('busqueda/texto');
+  pintar();
+  if (st.tab === 'cine') return mostrarCine();
+  buscar();
+}
+function limpiarBusqueda() { document.getElementById('qtxt').value = ''; clearTimeout(qTimer); st.q = ''; pintar(); buscar(); }
+async function localPorId(id) {
+  const c = ciudad();
+  const l = [...(await baresLocales(c) || []), ...(await restLocales(c) || [])];
+  return l.find(x => x.id === id) || null;
+}
+async function verLocal(id) {
+  const x = await localPorId(id); if (!x) return toast('No lo encontré 😕');
+  EVENTOS[id] = x; verDireccion(id);
+}
+// Eventos por nombre: título, lugar o artista, en las próximas 6 semanas
+async function buscarNombreEventos() {
+  const q = st.q, main = document.getElementById('main');
+  vista = 'resultados'; marcarNav('nav-explorar');
+  main.classList.add('loading');
+  esqueleto(`${tr('Buscando')} «${q}»…`);
+  let d;
+  try { d = await (await fetch(`${API}/buscar?q=${encodeURIComponent(q)}&ciudad=${encodeURIComponent(ciudad())}&max=150`)).json(); }
+  catch (e) { main.classList.remove('loading', 'esq-on'); main.innerHTML = `<div class="empty"><b>Uy, se me cortó algo 😅</b>Probá de nuevo en un ratito.</div>`; return; }
+  if (q !== st.q) return;
+  const todos = (d.eventos || []).map(e => ({ ...e, categoria: e.categoria || 'clubs' }));
+  const cat = st.tab === 'todo' ? null : st.tab;
+  const enCat = cat ? todos.filter(e => e.categoria === cat) : todos;
+  const evs = enCat.length ? enCat : todos;
+  const otraCat = cat && !enCat.length && todos.length;
+  actual = { items: evs, total: evs.length, porDia: {}, titulo: null };
+  main.classList.remove('loading');
+  if (modoVista === 'mapa') return renderActual();
+  const locales = (d.locales || []).slice(0, 4);
+  let extra = `<div class="res-sub" style="margin-top:2px">${esc(tr('Próximas 6 semanas en'))} ${esc(ciudadTxt())}${otraCat ? ` · ${esc(tr('no hay en esta categoría, te muestro todo'))}` : ''}</div>`;
+  if (locales.length) extra += `<div class="rapidas" style="margin-top:10px">${locales.map(l => `<button onclick="verLocal('${esc(l.id)}')">${l.tipo === 'bar' ? '🍸' : '🍽️'} ${esc(l.nombre)} <small>· ${esc(tr(l.tipo === 'bar' ? 'bar' : 'restaurante'))}</small></button>`).join('')}</div>`;
+  if (!evs.length && (d.sugerencias || []).length) {
+    extra += `<div class="empty"><b>${LANG === 'en' ? `Couldn't find «${esc(q)}»` : `No encontré «${esc(q)}»`} 😕</b>${esc(tr('¿Quisiste decir…?'))}<div class="rapidas" style="justify-content:center;margin-top:10px">${d.sugerencias.map(x => `<button onclick="document.getElementById('qtxt').value=this.dataset.q;aplicarBusqueda()" data-q="${esc(x)}">${esc(x)}</button>`).join('')}</div></div>`;
+    return mostrarVacio(extra);
+  }
+  if (!evs.length) return mostrarVacio(extra + `<div class="empty"><b>${LANG === 'en' ? `Couldn't find «${esc(q)}» in` : `No encontré «${esc(q)}» en`} ${esc(ciudadTxt())} 😕</b>${locales.length ? esc(tr('Pero hay lugares con ese nombre, arriba 👆')) : esc(tr('Probá con otra parte del nombre, o preguntale al agente.'))}</div>`);
+  mostrar(st.orden ? ordenar(evs.map(x => ({ ...x, d: ubic && tieneCoords(x) ? distKm([ubic.lat, ubic.lng], [x.lat, x.lng]) : null }))) : evs, evs.length, `${tr('Resultados para')} <span>«${esc(q)}»</span>`, {}, extra);
+}
+function mostrarVacio(html) {
+  const main = document.getElementById('main');
+  main.classList.remove('esq-on', 'loading');
+  main.innerHTML = `<div class="res-head"><h2>${tr('Resultados para')} <span>«${esc(st.q)}»</span></h2></div>` + html;
+}
+
+// Chat: "quiero ir a marula" → buscamos el nombre en fiestas, lugares, bares y restaurantes
+let SITIO_OPS = [];
+async function resolverSitio(f, eventos) {
+  const en = LANG === 'en';
+  if (f.ciudad && CIUDADES.some(c => c[0] === f.ciudad) && f.ciudad !== ciudad()) {
+    document.getElementById('city').value = f.ciudad; try { localStorage.setItem('lp_ciudad', f.ciudad); } catch (e) {}
+    preciosCiudad(); ubic = puntoCentro(); actualizarNota(); pintar();
+  }
+  const nombre = f.nombre || '';
+  const evs = (eventos || []).map(e => ({ ...e, categoria: e.categoria || 'clubs' }));
+  const ops = [];
+  const venues = f.venues || [];
+  venues.forEach(v => {
+    const delV = evs.filter(e => e.venue === v.nombre);
+    if (delV.length) ops.push({ tipo: 'venue', nombre: v.nombre, evs: delV, label: `🎧 ${v.nombre}`, sub: en ? `Parties & events · ${delV.length} upcoming date${delV.length > 1 ? 's' : ''}` : `Fiestas y eventos · ${delV.length} fecha${delV.length > 1 ? 's' : ''} próxima${delV.length > 1 ? 's' : ''}` });
+  });
+  const sueltos = evs.filter(e => !venues.some(v => v.nombre === e.venue));
+  if (sueltos.length) {
+    const t0 = sueltos[0];
+    const unico = sueltos.every(e => normTxt(e.titulo) === normTxt(t0.titulo));
+    ops.push({ tipo: 'eventos', nombre, evs: sueltos, label: `🎟️ ${unico ? t0.titulo : `«${nombre}»`}`, sub: `${unico && t0.venue ? t0.venue + ' · ' : ''}${sueltos.length} ${en ? (sueltos.length > 1 ? 'dates' : 'date') : (sueltos.length > 1 ? 'fechas' : 'fecha')}` });
+  }
+  (f.locales || []).slice(0, 4).forEach(l => ops.push({ tipo: 'local', id: l.id, nombre: l.nombre, label: `${l.tipo === 'bar' ? '🍸' : '🍽️'} ${l.nombre}`, sub: [tr(l.tipo === 'bar' ? (l.categoria || 'Bar') : 'Restaurante'), l.direccion].filter(Boolean).join(' · ') }));
+  SITIO_OPS = ops;
+  if (ops.length === 1) return elegirSitio(0, f.sin_fecha);
+  if (ops.length > 1) {
+    burbujaHTML(`<div class="rec-t">${en ? `I found a few things called “${esc(nombre)}”. Which one?` : `Encontré varias cosas con «${esc(nombre)}». ¿Cuál buscás?`}</div><div class="rapidas col">${ops.map((o, i) => `<button onclick="elegirSitio(${i})">${esc(o.label)}<small>${esc(o.sub)}</small></button>`).join('')}</div>`);
+    return;
+  }
+  if ((f.sugerencias || []).length) {
+    burbujaHTML(`<div class="rec-t">${en ? `I couldn't find “${esc(nombre)}”. Did you mean…?` : `No encontré «${esc(nombre)}». ¿Quisiste decir…?`}</div><div class="rapidas col">${f.sugerencias.map(x => `<button data-q="${esc(x)}" onclick="preguntar((LANG === 'en' ? 'I want to go to ' : 'Quiero ir a ') + this.dataset.q)">${esc(x)}</button>`).join('')}</div>`);
+    return;
+  }
+  burbuja(en ? `I couldn't find “${nombre}” in ${ciudadTxt()} 😕 Is it a bar, a club or a restaurant? Try the full name.`
+    : `No encontré «${nombre}» en ${ciudadTxt()} 😕 ¿Es un bar, una disco o un restaurante? Probá con el nombre completo.`, 'bot');
+}
+async function elegirSitio(i, sinFecha) {
+  const o = SITIO_OPS[i]; if (!o) return;
+  const en = LANG === 'en';
+  document.getElementById('landing').hidden = true;
+  if (o.tipo === 'local') {
+    const x = await localPorId(o.id);
+    if (!x) return burbuja(en ? 'I lost it 😕 Try again?' : 'Se me perdió 😕 ¿Probamos de nuevo?', 'bot');
+    EVENTOS[x.id] = x;
+    burbujaHTML(`<div class="rec-t">${esc(x.titulo)}</div><button class="rec-card" onclick="verDireccion('${esc(x.id)}')"><div class="th">${emojiLugar(x)}</div><span><b>${esc(x.titulo)}</b><small>${esc([x.tags && x.tags.join(' · ') || x.categoria, x.direccion].filter(Boolean).join(' · '))}</small></span></button>`);
+    verDireccion(x.id);
+    return;
+  }
+  if (st.tab === 'bares' || st.tab === 'restaurantes' || st.tab === 'cine') { st.tab = 'todo'; pintarGeneros(); pintar(); }
+  const evs = o.evs;
+  const titulo = o.tipo === 'venue' ? `${tr('Lo que viene en')} <span>${esc(o.nombre)}</span>` : `${tr('Resultados para')} <span>«${esc(o.nombre)}»</span>`;
+  mostrar(evs, evs.length, titulo, {}, (o.tipo === 'venue' ? barraSeguir('lugar', o.nombre, { ciudad: ciudad(), cat: 'clubs' }) : '') + `<div class="res-sub" style="margin-top:2px">${esc(tr('Próximas 6 semanas en'))} ${esc(ciudadTxt())}</div>`);
+  vista = 'especial';
+  const intro = sinFecha ? (en ? 'Nothing that day, but this is coming up:' : 'Ese día no hay nada, pero esto es lo que viene:') : (en ? 'This is coming up:' : 'Esto es lo que viene:');
+  burbujaHTML(`<div class="rec-t">${intro}</div>${evs.slice(0, 3).map(e => recCard(e, '')).join('')}${evs.length > 3 ? `<div class="res-sub" style="margin-top:6px">${en ? `+${evs.length - 3} more on screen.` : `Y ${evs.length - 3} más en pantalla.`}</div>` : ''}`);
+  const v = botonVerResultados(); if (v) burbujaHTML(v, 'msg-acc');
+}
+
 async function aplicarLugarDelBot(f) {
   const cambia = f.ciudad && CIUDADES.some(c => c[0] === f.ciudad) && f.ciudad !== ciudad();
   if (cambia) { document.getElementById('city').value = f.ciudad; try { localStorage.setItem('lp_ciudad', f.ciudad); } catch (e) {} preciosCiudad(); }
@@ -3090,7 +3264,6 @@ async function aplicarLugarDelBot(f) {
       if (x && x.lat != null) ubic = { lat: x.lat, lng: x.lng, txt: x.nombre || f.zona, auto: false };
     } catch (e) {}
   }
-  if (!tipoLugar() && st.km === '99') st.km = '3';
   document.getElementById('landing').hidden = true;
   usoFiltros = true;
   pintarGeneros(); actualizarNota(); pintar(); buscar();
@@ -3112,7 +3285,7 @@ function aplicarFiltrosDelBot(f) {
   st.franja = ['tarde', 'sunset', 'noche', 'afters'].includes(f.franja) ? f.franja : null;
   st.precio = f.gratis ? 'gratis' : f.precio_max ? (f.precio_max <= 15 ? 'bajo' : f.precio_max <= 30 ? 'medio' : null) : null;
   st.genero = f.genero ? String(f.genero).toLowerCase().split(',').map(v => { v = v.trim(); const L = GENEROS[st.tab] || []; const g = L.find(x => x[0] === v) || L.filter(x => x[0].includes(v) || v.includes(x[0])).sort((a, b) => b[0].length - a[0].length)[0]; return g ? g[0] : v; }).join(',') : null;
-  st.aire = ['abierto', 'cerrado'].includes(f.ambiente) ? f.ambiente : null;
+  st.aire = ['abierto', 'cerrado', 'rooftop'].includes(f.ambiente) ? f.ambiente : null;
   preciosCiudad(); pintarGeneros(); pintar();
 }
 
@@ -3162,6 +3335,8 @@ async function preguntar(textoFijo) {
         burbuja(que ? (en ? `I couldn't find ${que} on that day 😕 What time does it end and where is it? I'll find you something for after.` : `No encontré a ${que} ese día 😕 ¿A qué hora termina y dónde es? Así te busco qué hacer después.`)
           : (reply || (en ? 'What time does it end and where is it?' : '¿A qué hora termina y dónde es?')), 'bot');
       }
+    } else if (f.tipo === 'sitio') {
+      await resolverSitio(f, data.eventos);
     } else if (f.tipo === 'lugar') {
       await aplicarLugarDelBot(f);
       burbuja(`¡Listo! Te dejé ${f.categoria === 'bares' ? 'los bares' : 'los restaurantes'} en pantalla. Podés afinarlos con los filtros o seguir preguntándome por acá.`, 'bot');
@@ -3315,7 +3490,6 @@ document.querySelectorAll('.chips').forEach(g => {
       const l = valores(st[k]);
       st[k] = (l.includes(v) ? l.filter(x => x !== v) : [...l, v]).join(',') || null;
     } else st[k] = st[k] === v && k !== 'cuando' ? null : v;
-    if (['tipoBar', 'tipoRest', 'extraRest'].includes(k) && !tipoLugar() && st.km === '99') st.km = '3';  // sin tipo no se puede "toda la ciudad"
     pintar(); autoBuscar();
   });
 });
