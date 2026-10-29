@@ -236,6 +236,17 @@ Noche armada (varias cosas juntas: cena/bar/fiesta, o "armame la noche"):
 ###FIN###
 "que" = lo principal: "cena" (si incluye comer), "bar" (si es tomar algo y no hay cena), "fiesta", "concierto", "show" o "deporte". "despues" = "bar", "disco" o null.
 
+ORDENAR O FILTRAR LO QUE YA ESTÁ EN PANTALLA: si el usuario pide ordenar, filtrar, "más barato", "solo gratis", "lo más cerca", "lo más convocante", "al aire libre", "de noche", "sacá los filtros", etc. sobre lo que está mirando (ver PANTALLA ACTUAL) → tipo "ajuste" y HACELO, no vuelvas a buscar de cero ni pidas más datos.
+- Si es claro ("ordenalos por precio", "del más barato", "lo más cerca primero") → aplicalo directo.
+- Si es ambiguo ("ordenalos", "ordenalos en algún sentido", solo "precio") → preguntá UNA vez ofreciendo las opciones: "¿Los ordeno por precio (más barato primero), por cercanía o por los más convocantes?" (sin bloque). Si después responde "precio", "sí", "dale" o similar → aplicalo con el bloque.
+- Nuestros filtros de precio son: gratis, bajo (hasta 15 €), medio (15–30 €), alto (más de 30 €). Si pide algo que no tenemos exacto (ej: "menos de 20 €"), usá lo más cercano que lo cubra (gratis + bajo + medio) y avisalo en tu frase: "Te muestro hasta 30 €, que es nuestro filtro más cercano 👌".
+- Franjas: tarde (14–20), sunset (18–21), noche (21–03), afters (05–09). Ambiente: abierto (aire libre), rooftop, cerrado. Distancia: "1.5" (a pie), "3" (cerca), "99" (toda la ciudad).
+- Con bares y restaurantes no hay orden por precio: van por cercanía; sí se puede "abierto ahora", tipo de bar y distancia.
+###FILTROS###
+{"tipo": "ajuste", "orden": "precio", "precios": null, "franja": null, "ambiente": null, "abierto_ahora": false, "tipo_bar": null, "distancia": null, "limpiar": false}
+###FIN###
+"orden": "precio" | "cerca" | "gente" | "ninguno" | null. "precios": lista de "gratis","bajo","medio","alto" o null. "franja": lista o null. "limpiar": true si pide sacar todos los filtros.
+
 Lugar o fiesta por nombre:
 ###FILTROS###
 {"tipo": "sitio", "nombre": "marula", "ciudad": "barcelona", "cuando": "todo"}
@@ -901,6 +912,12 @@ def chat():
     if ciudad_pag and re.fullmatch(r"[a-z ]{2,30}", ciudad_pag):
         extra = (f"\n\nCIUDAD ACTUAL: el usuario está mirando {ciudad_pag}. Si no menciona otra ciudad, usá \"{ciudad_pag}\" y NO le preguntes la ciudad. "
                  f"Si nombra otra ciudad (ej: Berlín), usá esa.")
+    vista = body.get("vista") or {}
+    if isinstance(vista, dict) and vista.get("pantalla"):
+        try:
+            extra += "\n\nPANTALLA ACTUAL (lo que el usuario está mirando): " + json.dumps(vista, ensure_ascii=False)[:400]
+        except Exception:
+            pass
     extra += ("\nIMPORTANTE con \"cuando\": si el usuario nombra un día de la semana (lunes…domingo) o hoy/mañana/finde, poné esa PALABRA "
               "(ej: \"sabado\"), nunca la conviertas vos a fecha. Tolerá errores de tipeo en géneros (rogressive → progressive).")
     # El idioma lo define cómo escribe el usuario (no el navegador)
@@ -926,7 +943,7 @@ def chat():
 
     if filtros:
         tipo = filtros.get("tipo", "fecha")
-        ciudad_raw = filtros.get("ciudad", "berlin")
+        ciudad_raw = filtros.get("ciudad") or ciudad_pag or "barcelona"
 
         # Para búsqueda por artista la ciudad es opcional
         tipo = filtros.get("tipo", "fecha")

@@ -1492,6 +1492,7 @@ const EN_PLURAL = { 'plan': 'plan', 'planes': 'plans', 'concierto': 'concert', '
   'evento deportivo': 'sports event', 'eventos deportivos': 'sports events', 'bar': 'bar', 'bares': 'bars', 'restaurante': 'restaurant',
   'restaurantes': 'restaurants', 'película': 'movie', 'películas': 'movies' };
 const EN = {
+  'Tocá el primer día y después el último (hasta 7 días)': 'Tap the first day, then the last (up to 7 days)', 'Ahora tocá el último día (o el mismo, si es uno solo)': 'Now tap the last day (or the same one for a single day)',
   // v2
   'Armala': 'Plan it',
   'Armame la noche con esto': 'Plan my night around this',
@@ -2181,16 +2182,24 @@ function pintarCal() {
   }
   const esMesActual = y === H.getFullYear() && m === H.getMonth();
   el.innerHTML = `<div class="mc-top"><button ${esMesActual ? 'disabled' : ''} onclick="cal.mes=new Date(${y},${m - 1},1);pintarCal()">‹</button>${MESES_L[m]} ${y}<button onclick="cal.mes=new Date(${y},${m + 1},1);pintarCal()">›</button></div>
-    <div class="mc-grid">${g}</div><div class="mc-note">${cal.a && !cal.b ? 'Tocá otro día para elegir un rango' : 'Tocá un día, o dos para un rango (hasta 7 días)'}</div>
-    <button class="mc-ok" ${cal.a ? '' : 'disabled'} onclick="cal.abierto=false;pintarCal()">Listo</button>`;
+    <div class="mc-grid">${g}</div><div class="mc-note">${cal.esperando ? 'Ahora tocá el último día (o el mismo, si es uno solo)' : 'Tocá el primer día y después el último (hasta 7 días)'}</div>
+    <button class="mc-ok" ${cal.a ? '' : 'disabled'} onclick="aplicarCal()">Listo</button>`;
 }
 function elegirDia(y, m, i) {
   const d = new Date(y, m, i);
-  st.cuando = 'cal';
-  if (!cal.a || cal.b) { cal.a = d; cal.b = null; }
-  else if (d < cal.a) cal.a = d;
-  else if (d.getTime() !== cal.a.getTime()) cal.b = (d - cal.a) / 864e5 > 6 ? addDays(cal.a, 6) : d;
-  if (cal.b) setTimeout(() => { cal.abierto = false; pintarCal(); }, 350);
+  // 1er toque: inicio · 2do toque: fin (el mismo día = un solo día)
+  if (!cal.esperando) { cal.a = d; cal.b = null; cal.esperando = true; pintarCal(); return; }
+  cal.esperando = false;
+  if (d < cal.a) { cal.b = cal.a; cal.a = d; }
+  else if (+d === +cal.a) cal.b = null;
+  else cal.b = d;
+  if (cal.b && (cal.b - cal.a) / 864e5 > 6) cal.b = addDays(cal.a, 6);
+  aplicarCal();
+}
+function aplicarCal() {
+  if (!cal.a) return;
+  cal.esperando = false; st.cuando = 'cal';
+  setTimeout(() => { cal.abierto = false; pintarCal(); }, 300);
   pintarCal(); pintar(); autoBuscar();
 }
 
@@ -2558,6 +2567,7 @@ function setModo(m) {
   if (m === modoVista) return;
   modoVista = m;
   document.body.classList.toggle('sin-col', m === 'mapa' || st.tab === 'cine');
+  const bm = document.getElementById('btnmapa-t'); if (bm) bm.textContent = tr(m === 'mapa' ? 'Ver lista' : 'Ver mapa');
   if (esLugar()) renderActual(); else buscar();
 }
 
@@ -3769,6 +3779,14 @@ function aplicarFiltrosDelBot(f) {
   preciosCiudad(); pintarGeneros(); pintar();
 }
 
+// Lo que el usuario está mirando, para que la IA pueda ordenar o filtrar "esto"
+function vistaParaIA() {
+  if (!document.getElementById('landing').hidden) return { pantalla: 'inicio' };
+  if (!document.getElementById('wiz').hidden) return { pantalla: 'armame la noche' };
+  const act = [];
+  clavesTab().forEach(k => valores(st[k]).forEach(v => act.push(etiquetaFiltro(k, v))));
+  return { pantalla: 'resultados', categoria: st.tab, cuando: esLugar() ? null : (st.cuando === 'cal' ? textoFechas() : st.cuando), filtros: act, orden: st.orden, km: st.km };
+}
 async function preguntar(textoFijo) {
   const inp = document.getElementById('ask');
   const texto = (textoFijo || inp.value).trim();
@@ -3782,7 +3800,7 @@ async function preguntar(textoFijo) {
   track('chat/mensaje');
   const esperando = burbuja('…', 'bot typing');
   try {
-    const r = await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: historial, lang: LANG, ciudad: ciudad() }) });
+    const r = await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: historial, lang: LANG, ciudad: ciudad(), vista: vistaParaIA() }) });
     const data = await r.json();
     esperando.remove();
     const reply = (data.reply || '').replace(/\*\*/g, '');
@@ -3815,6 +3833,23 @@ async function preguntar(textoFijo) {
         burbuja(que ? (en ? `I couldn't find ${que} on that day 😕 What time does it end and where is it? I'll find you something for after.` : `No encontré a ${que} ese día 😕 ¿A qué hora termina y dónde es? Así te busco qué hacer después.`)
           : (reply || (en ? 'What time does it end and where is it?' : '¿A qué hora termina y dónde es?')), 'bot');
       }
+    } else if (f.tipo === 'ajuste') {
+      const en = LANG === 'en';
+      if (!document.getElementById('wiz').hidden || !document.getElementById('landing').hidden) { document.getElementById('landing').hidden = true; cerrarWiz(true); }
+      const lugar = esLugar();
+      if (f.limpiar) Object.assign(st, { aire: null, franja: null, precio: null, genero: null, tipoBar: null, tipoRest: null, extraRest: null, abierto: null, orden: null });
+      if (['cerca', 'gente', 'precio'].includes(f.orden)) { if (lugar && f.orden !== 'cerca') burbuja(en ? 'Bars and restaurants are sorted by distance 🙂' : 'Los bares y restaurantes van ordenados por cercanía 🙂', 'bot'); else if (!lugar) st.orden = f.orden; }
+      if (f.orden === 'ninguno') st.orden = null;
+      const ok = (l, v) => (Array.isArray(l) ? l : l ? [l] : []).map(x => String(x).toLowerCase()).filter(x => v.includes(x));
+      const pr = ok(f.precios, ['gratis', 'bajo', 'medio', 'alto']); if (pr.length && !lugar) st.precio = pr.join(',');
+      const fr = ok(f.franja, ['tarde', 'sunset', 'noche', 'afters']); if (fr.length && !lugar) st.franja = fr.join(',');
+      if (['abierto', 'cerrado', 'rooftop'].includes(f.ambiente) && !lugar) st.aire = f.ambiente;
+      if (f.abierto_ahora && lugar) st.abierto = 'si';
+      const tb = ok(f.tipo_bar, ['cocteles', 'vinos', 'cervezas', 'terraza', 'rooftop', 'musica', 'hifi']); if (tb.length && st.tab === 'bares') st.tipoBar = tb.join(',');
+      if (['1.5', '3', '99'].includes(String(f.distancia || ''))) st.km = String(f.distancia);
+      usoFiltros = true; pintar(); await buscar();
+      burbuja(reply || (en ? 'Done 👌' : 'Listo, ya está 👌'), 'bot');
+      const v = botonVerResultados(); if (v) burbujaHTML(v, 'msg-acc');
     } else if (f.tipo === 'noche') {
       if (f.ciudad && CIUDADES.some(c => c[0] === f.ciudad) && f.ciudad !== ciudad()) { document.getElementById('city').value = f.ciudad; preciosCiudad(); ubic = puntoCentro(); actualizarNota(); pintar(); }
       const que = ['cena', 'bar', 'fiesta', 'concierto', 'show', 'deporte'].includes(f.que) ? f.que : 'fiesta';
@@ -4391,7 +4426,7 @@ document.querySelectorAll('.chips').forEach(g => {
     const b = e.target.closest('.chip'); if (!b) return;
     const k = g.dataset.g, v = b.dataset.v;
     usoFiltros = true;
-    if (v === 'cal') { cal.abierto = !cal.abierto; pintarCal(); if (cal.a) { st.cuando = 'cal'; pintar(); autoBuscar(); } return; }
+    if (v === 'cal') { cal.abierto = !cal.abierto; cal.esperando = false; pintarCal(); return; }
     if (k === 'cuando') { cal.abierto = false; pintarCal(); }
     if (k === 'orden') return cambiarOrden(v === 'rec' ? '' : v);
     if (k === 'km') {
@@ -4417,7 +4452,7 @@ document.getElementById('rapidos')?.addEventListener('click', e => {
   if (b.dataset.k) tocarFiltro(b.dataset.k, b.dataset.v);
 });
 document.addEventListener('click', e => {
-  if (!cal.abierto || e.target.closest('#minical') || e.target.closest('#chip-cal')) return;
+  if (!cal.abierto || !e.target.isConnected || e.target.closest('#minical') || e.target.closest('#chip-cal')) return;
   cal.abierto = false; pintarCal();
 });
 document.getElementById('cats').addEventListener('scroll', flechasCats, { passive: true });
