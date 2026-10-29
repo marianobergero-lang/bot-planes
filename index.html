@@ -1188,14 +1188,18 @@
     .chat-dock { bottom: calc(80px + env(safe-area-inset-bottom)); }
     .cuerpo .main { padding-bottom: 170px; }
     .tb-herr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tb-herr .activos { grid-column: 1 / -1; padding-top: 0; }
     .topbar .qbox, .topbar .qbox:focus-within, .topbar .qbox.on { max-width: none; }
     .cats { flex-wrap: nowrap; overflow-x: auto; }
     .l-h1 { font-size: 30px; }
     .wz-h1 { font-size: 27px; }
   }
   @media (min-width: 821px) {
-    .tb-barra, .tb-herr, .activos { display: inline-flex; vertical-align: middle; margin-right: 12px; }
-    .tb-herr { padding-top: 0; }
+    .tb-barra { padding-bottom: 0; }
+    .tb-herr { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding-top: 12px; }
+    .btn-filtros, .btn-mapa { height: 40px; padding: 0 14px; border-radius: 12px; font-size: 14px; }
+    .btn-filtros .ic, .btn-mapa .ic { width: 17px; height: 17px; }
+    .tb-herr .activos { padding-top: 0; margin-left: 6px; }
     .topbar .qbox { margin-bottom: 4px; }
   }
   .wz-der { margin-left: auto; }
@@ -1407,8 +1411,8 @@ document.addEventListener('click', ev => {
       <div class="tb-herr">
         <button class="btn-filtros" onclick="abrirFiltros()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>Filtros</span><b id="nfiltros"></b></button>
         <button class="btn-mapa" id="btnmapa" onclick="setModo(modoVista === 'mapa' ? 'lista' : 'mapa')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4-6 2.5V20l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span id="btnmapa-t">Ver mapa</span></button>
+        <div class="activos" id="activos"></div>
       </div>
-      <div class="activos" id="activos"></div>
       <label class="qbox" id="qbox"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="qtxt" type="search" placeholder="Buscar por nombre…" aria-label="Buscar por nombre" autocomplete="off" oninput="escribirBusqueda()" onkeydown="if(event.key==='Enter'){clearTimeout(qTimer);aplicarBusqueda()}"><button class="qx" id="qx" hidden onclick="limpiarBusqueda()" aria-label="Borrar búsqueda">✕</button></label>
     </div>
     <div class="cuerpo">
@@ -1481,7 +1485,8 @@ const LANG = (() => {
     if (q === 'es' || q === 'en') localStorage.setItem('lp_lang', q);
     const s = localStorage.getItem('lp_lang'); if (s === 'es' || s === 'en') return s;
   } catch (e) { if (q === 'es' || q === 'en') return q; }
-  return /^es\b/i.test(navigator.language || '') ? 'es' : 'en';
+  const ls = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || '']);
+  return ls.some(l => /^(es|ca|gl|eu)\b/i.test(l)) ? 'es' : 'en';
 })();
 const EN_PLURAL = { 'plan': 'plan', 'planes': 'plans', 'concierto': 'concert', 'conciertos': 'concerts', 'show': 'show', 'shows': 'shows',
   'evento deportivo': 'sports event', 'eventos deportivos': 'sports events', 'bar': 'bar', 'bares': 'bars', 'restaurante': 'restaurant',
@@ -3421,7 +3426,14 @@ function usarUbicacion() {
   if (!navigator.geolocation) return toast('Tu navegador no comparte ubicación. Escribí una dirección 👇');
   toast('Buscando tu ubicación…');
   navigator.geolocation.getCurrentPosition(
-    pos => fijarUbic(pos.coords.latitude, pos.coords.longitude, 'tu ubicación actual'),
+    pos => {
+      const c = CENTRO[ciudad()];
+      if (c && distKm([c[0], c[1]], [pos.coords.latitude, pos.coords.longitude]) > 30) {
+        document.getElementById('nearpop').classList.remove('open');
+        return toast(tr(`Parece que no estás en ${ciudadTxt()}: escribí una dirección o elegí tu ciudad`));
+      }
+      fijarUbic(pos.coords.latitude, pos.coords.longitude, 'tu ubicación actual');
+    },
     () => toast('No pude acceder a tu ubicación. Escribí una dirección 👇'),
     { enableHighAccuracy: true, timeout: 10000 });
 }
@@ -3803,6 +3815,21 @@ async function preguntar(textoFijo) {
         burbuja(que ? (en ? `I couldn't find ${que} on that day 😕 What time does it end and where is it? I'll find you something for after.` : `No encontré a ${que} ese día 😕 ¿A qué hora termina y dónde es? Así te busco qué hacer después.`)
           : (reply || (en ? 'What time does it end and where is it?' : '¿A qué hora termina y dónde es?')), 'bot');
       }
+    } else if (f.tipo === 'noche') {
+      if (f.ciudad && CIUDADES.some(c => c[0] === f.ciudad) && f.ciudad !== ciudad()) { document.getElementById('city').value = f.ciudad; preciosCiudad(); ubic = puntoCentro(); actualizarNota(); pintar(); }
+      const que = ['cena', 'bar', 'fiesta', 'concierto', 'show', 'deporte'].includes(f.que) ? f.que : 'fiesta';
+      WZ.que = que; WZ.onda = {}; WZ.cuando = 'hoy'; WZ.fecha = null;
+      if (f.desde && f.hasta) {
+        if (f.desde !== f.hasta) WZ.cuando = 'finde';
+        else { const d = deIso(f.desde); if (+d === +addDays(hoy0(), 1)) WZ.cuando = 'manana'; else if (+d !== +hoy0()) { WZ.cuando = 'fecha'; WZ.fecha = d; } }
+      }
+      if (f.genero && (que === 'fiesta' || que === 'concierto')) WZ.onda.genero = String(f.genero).toLowerCase().split(',').map(x => x.trim());
+      if (que === 'cena' && (f.cocina || []).length) WZ.onda.tipo = f.cocina.map(x => String(x).toLowerCase());
+      if (que === 'bar' && (f.tipo_bar || []).length) WZ.onda.tipo = f.tipo_bar.map(x => String(x).toLowerCase());
+      burbuja(reply || (LANG === 'en' ? 'Planning your night…' : 'Te armo la noche…'), 'bot');
+      abrirWiz('armando');
+      await armar();
+      if (WZ.res && WZ.res.opDesp && (f.despues === 'disco' || f.despues === 'bar')) { WZ.res.desp = f.despues; WZ.res.dli = 0; pintarWiz(); }
     } else if (f.tipo === 'sitio') {
       await resolverSitio(f, data.eventos);
     } else if (f.tipo === 'lugar') {
@@ -4179,7 +4206,7 @@ function pintarNocheWZ() {
   const bar = r.sinPrevia ? null : (r.bares || [])[r.bi], aft = r.sinAfter ? null : (r.afters || [])[r.ai];
   const filas = [];
   if (bar) filas.push(parada(S != null ? hhmm(S - 75) : '', tr('La previa'), tarjetaPlan(bar.b, `${trayecto(bar.d)} ${tr('hasta el plan')}`, accionesBar(bar.b, 'previa', r.bares.length), false)));
-  filas.push(parada(horario(e) || '', tr(WZ.que === 'deporte' ? 'El partido' : 'El plan'), tarjetaPlan(e, r.pq && r.pq[idEvento(e)] || '', accionesEvento(e, 'plan', r.planes.length)), !aft));
+  filas.push(parada(e.hora && e.hora !== '23:59' ? e.hora : '', tr(WZ.que === 'deporte' ? 'El partido' : 'El plan'), tarjetaPlan(e, r.pq && r.pq[idEvento(e)] || '', accionesEvento(e, 'plan', r.planes.length)), !aft));
   if (aft) {
     const d = tieneCoords(e) && tieneCoords(aft) ? distKm([e.lat, e.lng], [aft.lat, aft.lng]) : null;
     filas.push(parada(aft.hora, tr('El after'), tarjetaPlan(aft, [tr('Arranca cuando termina tu plan'), d != null ? trayecto(d) : ''].filter(Boolean).join(' · '), accionesEvento(aft, 'after', r.afters.length), false), true));

@@ -162,16 +162,25 @@ SYSTEM_PROMPT = """Sos Let's PartIA, un amigo que conoce toda la movida nocturna
 
 REGLA DE ORO: ENTENDÉ TODO LO QUE EL USUARIO YA DIJO Y NO LO VUELVAS A PREGUNTAR.
 Antes de responder, extraé de TODA la conversación: ciudad, cuándo, franja, precio, género, artista, venue.
-Para buscar por fecha solo hacen falta DOS datos: CIUDAD y CUÁNDO. Todo lo demás es opcional.
-- Si ya tenés ciudad y cuándo → BUSCÁ YA (mandá el bloque de filtros). No preguntes franja, precio ni género: si no los dijo, van en null y el usuario después puede afinar.
-- Si falta uno de los dos → preguntá SOLO ese, en una frase corta. Nunca hagas listas de preguntas ni numeres preguntas.
-- Si falta todo → preguntá primero la ciudad.
+INTERPRETÁ Y BUSCÁ: preferí siempre buscar con lo que entendiste antes que preguntar. El usuario después afina.
+- CUÁNDO: si dijo un día ("este viernes", "mañana", "el sábado", "este finde", "hoy") usá EXACTAMENTE eso. Si NO dijo cuándo, usá "hoy" y buscá igual: NUNCA preguntes "¿para este finde?" ni "¿para cuándo?".
+- CIUDAD: usá la ciudad que está mirando (CIUDAD ACTUAL). Solo preguntá la ciudad si no hay ninguna.
+- QUÉ (categoría): interpretá las palabras:
+  · comer, cenar, almorzar, restaurante, "un japonés", tapas → tipo "lugar", categoria "restaurantes".
+  · tomar algo, beber, unas cañas, un vermut, tragos, cócteles, vinos, bar → tipo "lugar", categoria "bares".
+  · fiesta, bailar, boliche, disco, club, DJ, techno, house → tipo "fecha", categoria "clubs".
+  · concierto, banda, recital → categoria "conciertos". Teatro, comedia, show, musical → "teatro". Partido, fútbol → "deportes".
+  · Si pide VARIAS cosas juntas para una salida (ej: "cena y después fiesta", "recomendaciones para este viernes: cena, bar, fiesta", "armame la noche", "plan completo") → tipo "noche" (ver abajo).
+  · Si solo dice "quiero salir", "qué hago", "planes" SIN decir qué → preguntá UNA cosa corta para afinar: "¿Te pinta más un bar, una fiesta o cenar algo?" (sin bloque).
+- Si algo queda ambiguo, BUSCÁ con lo más probable y en tu frase ofrecé afinar ("Te busqué para hoy; si querés otro día decime").
 
 Ejemplos:
-- "quiero salir por rio de janeiro en dos semanas" → ciudad=rio de janeiro, cuando=la fecha de HOY + 14 días (YYYY-MM-DD). BUSCÁ YA.
 - "techno en berlin el sábado" → ciudad=berlin, cuando=sabado, genero=techno. BUSCÁ YA.
-- "algo gratis este finde a la tarde" → falta ciudad: "¡Dale! ¿En qué ciudad?"
-- "planes en madrid" → falta cuándo: "¿Para cuándo? ¿Hoy, este finde o alguna fecha en particular?"
+- "algo gratis" → cuando=hoy, gratis=true. BUSCÁ YA.
+- "dónde puedo comer sushi" → tipo lugar, restaurantes, cocina japonesa. BUSCÁ YA.
+- "quiero tomar algo por el born" → tipo lugar, bares, zona "born". BUSCÁ YA.
+- "este viernes cena, bar y fiesta" → tipo noche, que "cena", cuando "viernes", despues "disco". BUSCÁ YA.
+- "quiero salir" → "¿Te pinta más un bar, una fiesta o cenar algo?"
 
 DATOS:
 - Ciudad: CIUDADES_DISPONIBLES. Corregí errores de tipeo vos (lonbon→london, rio→rio de janeiro, bsas→buenos aires, nueva york→new york). En el JSON usá el nombre tal cual de la lista. Si la ciudad no está en la lista, igual mandá el nombre y el sistema avisará.
@@ -220,6 +229,12 @@ Equipo de fútbol:
 ###FILTROS###
 {"tipo": "equipo", "equipo": "internazionale"}
 ###FIN###
+
+Noche armada (varias cosas juntas: cena/bar/fiesta, o "armame la noche"):
+###FILTROS###
+{"tipo": "noche", "que": "cena", "ciudad": "barcelona", "cuando": "viernes", "despues": "disco", "genero": null, "cocina": [], "tipo_bar": []}
+###FIN###
+"que" = lo principal: "cena" (si incluye comer), "bar" (si es tomar algo y no hay cena), "fiesta", "concierto", "show" o "deporte". "despues" = "bar", "disco" o null.
 
 Lugar o fiesta por nombre:
 ###FILTROS###
@@ -888,6 +903,14 @@ def chat():
                  f"Si nombra otra ciudad (ej: Berlín), usá esa.")
     extra += ("\nIMPORTANTE con \"cuando\": si el usuario nombra un día de la semana (lunes…domingo) o hoy/mañana/finde, poné esa PALABRA "
               "(ej: \"sabado\"), nunca la conviertas vos a fecha. Tolerá errores de tipeo en géneros (rogressive → progressive).")
+    # El idioma lo define cómo escribe el usuario (no el navegador)
+    ult = next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), "").lower()
+    es_hits = len(re.findall(r"\b(quiero|para|hoy|mañana|manana|este|esta|finde|salir|fiesta|cena|cenar|comer|tomar|algo|donde|dónde|qué|que|cuándo|cuando|bar|bares|noche|recomendaciones|recomendame|busco|hay|con|sin|el|la|los|las|un|una|y|de|en)\b|[ñáéíóú¿¡]", ult))
+    en_hits = len(re.findall(r"\b(i|want|what|where|when|tonight|tomorrow|weekend|party|dinner|eat|drink|drinks|the|a|an|and|with|for|some|is|are|show|me|find)\b", ult))
+    if es_hits > en_hits:
+        lang = "es"
+    elif en_hits > es_hits:
+        lang = "en"
     try:
         reply = call_groq(messages, lang, extra)
     except Exception as e:
@@ -942,7 +965,11 @@ def chat():
             filtros["nombre"] = filtros.get("nombre") or filtros.get("venue") or filtros.get("query") or ""
             tipo = filtros["tipo"] = "sitio"
 
-        if tipo == "lugar":
+        if tipo == "noche":
+            filtros["ciudad"] = ciudad_corregida
+            filtros["desde"], filtros["hasta"] = calc_fechas(filtros.get("cuando") or "hoy")
+
+        elif tipo == "lugar":
             filtros["ciudad"] = ciudad_corregida  # la app filtra bares y restaurantes con sus propios datos
 
         elif tipo == "sitio":
