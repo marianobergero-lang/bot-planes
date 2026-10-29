@@ -1,40 +1,40 @@
-2026-10-22 03:34 UTC
+2026-10-29 03:46 UTC
 Files: {"@page": "1", "@numpages": "0", "@pagesize": "100", "@total": "0", "@start": "0", "@end": "0", "@uri": "/Mediapartners/***/Catalogs/15532/Files", "@firstpageuri": "/Mediapartners/***/Catalogs/15532/Files?PageSize=100&Page=1", "@previouspageuri": "", "@nextpageuri": "", "@lastpageuri": "", "Files": []}
-Meta: {'@page': '1', '@numpages': '37', '@pagesize': '1000', '@total': '36314', '@start': '0', '@end': '0', '@uri': '/Mediapartners/***/Catalogs/15532/Items?PageSize=1000', '@firstpageuri': '/Mediapartners/***/Catalogs/15532/Items?PageSize=1000', '@previouspageuri': '', '@nextpageuri': '/Mediapartners/***/Catalogs/15532/Items?PageSize=1000&AfterId=OTk5Mjc0Ng==', '@lastpageuri': ''}
-Total: 36314 ítems
-barcelona: 227 planes
-madrid: 492 planes
+Meta: {'@page': '1', '@numpages': '37', '@pagesize': '1000', '@total': '36450', '@start': '0', '@end': '0', '@uri': '/Mediapartners/***/Catalogs/15532/Items?PageSize=1000', '@firstpageuri': '/Mediapartners/***/Catalogs/15532/Items?PageSize=1000', '@previouspageuri': '', '@nextpageuri': '/Mediapartners/***/Catalogs/15532/Items?PageSize=1000&AfterId=MzUwMDY3MQ==', '@lastpageuri': ''}
+Total: 36449 ítems
+barcelona: 224 planes
+madrid: 503 planes
 ibiza: 8 planes
-valencia: 55 planes
-berlin: 82 planes
-london: 657 planes
-amsterdam: 43 planes
-paris: 206 planes
-lisbon: 53 planes
-porto: 31 planes
-rome: 40 planes
-milan: 36 planes
-munich: 55 planes
-hamburg: 72 planes
+valencia: 53 planes
+berlin: 78 planes
+london: 564 planes
+amsterdam: 45 planes
+paris: 220 planes
+lisbon: 51 planes
+porto: 30 planes
+rome: 41 planes
+milan: 38 planes
+munich: 58 planes
+hamburg: 73 planes
 vienna: 63 planes
-brussels: 44 planes
+brussels: 43 planes
 prague: 6 planes
-budapest: 29 planes
+budapest: 28 planes
 stockholm: 19 planes
-buenos aires: 54 planes
-rio de janeiro: 46 planes
-sao paulo: 81 planes
-mexico city: 102 planes
-bogota: 33 planes
-santiago: 30 planes
-new york: 240 planes
-los angeles: 102 planes
-miami: 65 planes
-chicago: 76 planes
-toronto: 58 planes
-montreal: 52 planes
+buenos aires: 53 planes
+rio de janeiro: 50 planes
+sao paulo: 78 planes
+mexico city: 99 planes
+bogota: 37 planes
+santiago: 31 planes
+new york: 221 planes
+los angeles: 99 planes
+miami: 58 planes
+chicago: 75 planes
+toronto: 66 planes
+montreal: 50 planes
 tokyo: 28 planes
 sydney: 50 planes
-melbourne: 54 planes
-turin: 29 planes
-Planes guardados: 3318
+melbourne: 57 planes
+turin: 30 planes
+Planes guardados: 3227
