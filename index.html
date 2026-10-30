@@ -1176,6 +1176,11 @@
   .barra-noche .vaciar { width: 36px; height: 36px; border-radius: 18px; border: none; background: rgba(17,13,23,.12); color: var(--lima-t); display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .barra-noche .vaciar .ic { margin: 0; width: 16px; height: 16px; }
   .toast { z-index: 4000; }
+  .l-legal { text-align: center; font-size: 12px; color: var(--dim); margin-top: 6px; } .l-legal a { color: var(--muted); }
+  .mp-legal { display: block; text-align: center; font-size: 12px; color: var(--muted); padding: 8px 0 0; }
+  .aviso-priv { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 3500; max-width: 560px; margin: 0 auto; display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 16px; border-radius: 18px; background: #221B2C; border: 1px solid var(--borde); box-shadow: 0 14px 34px rgba(0,0,0,.5); font-size: 13.5px; line-height: 1.4; color: #E2DCEA; }
+  .aviso-priv a { color: var(--lima); }
+  .aviso-priv button { flex-shrink: 0; height: 40px; padding: 0 16px; border-radius: 20px; border: none; background: var(--lima); color: var(--lima-t); font: 700 14px 'Manrope', sans-serif; cursor: pointer; }
   .sheet { z-index: 2300 !important; } .modal { z-index: 2400 !important; } .chat-dock { z-index: 2250; } .menu-share { z-index: 2500; }
 
   @media (max-width: 820px) {
@@ -1258,6 +1263,7 @@ document.addEventListener('click', ev => {
         <button role="menuitem" onclick="cerrarPops(); verSiguiendo()"><i><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></i><span>Avisos<small>Cuando lo que seguís anuncia fecha</small></span></button>
         <div class="mp-idioma"><i><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></i><span>Idioma</span><span id="langhead"></span></div>
         <button role="menuitem" class="mp-salir" onclick="pronto()"><i><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/></svg></i><span>Cerrar sesión</span></button>
+        <a class="mp-legal" href="privacidad.html">Privacidad, cookies y aviso legal</a>
         <a class="mp-powered" href="https://stepwiseconsulting.es/eventos" target="_blank" rel="noopener">powered by <b><span class="step">Step</span><span class="wise">Wise</span></b></a>
       </div>
     </div>
@@ -1279,6 +1285,7 @@ document.addEventListener('click', ev => {
         <div class="l-ia-k">¿Ya sabés lo que querés? Contáselo a la IA</div>
         <label class="ia-barra"><i><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></i><input id="askl" placeholder="Ej: techno el sábado en Barcelona" aria-label="Preguntale a la IA" onkeydown="if(event.key==='Enter')desdeLanding()"><button class="send" onclick="desdeLanding()" aria-label="Enviar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></label>
         <a class="l-powered" href="https://stepwiseconsulting.es/eventos" target="_blank" rel="noopener">powered by <b><span class="step">Step</span><span class="wise">Wise</span></b></a>
+        <div class="l-legal"><a href="privacidad.html">Privacidad y cookies</a> · <a href="privacidad.html#afiliados">Links de afiliado</a> · <a href="privacidad.html#legal">Aviso legal</a></div>
       </div>
     </section>
     <section class="paso-l" id="paso-caminos" hidden>
@@ -3807,6 +3814,7 @@ async function preguntar(textoFijo) {
     historial.push({ role: 'assistant', content: data.reply || '' });
     const f = data.filtros;
     if (!f) {
+      track('ia/sin-busqueda', texto.slice(0, 100));
       burbuja(reply || 'Contame un poco más y te busco algo 🙂', 'bot');
     } else if (f.tipo === 'despues') {
       if (f.ciudad && CIUDADES.some(c => c[0] === f.ciudad) && f.ciudad !== ciudad()) { document.getElementById('city').value = f.ciudad; preciosCiudad(); ubic = puntoCentro(); actualizarNota(); pintar(); }
@@ -3903,11 +3911,29 @@ async function preguntar(textoFijo) {
     }
   } catch (e) {
     esperando.remove();
+    registrarError('chat: ' + (e && e.message));
     burbuja('Uy, se me cortó algo 😅 ¿Lo intentamos de nuevo?', 'bot');
   }
   btn.disabled = false;
   inp.focus();
 }
+
+// ── AVISO DE PRIVACIDAD (una vez) Y REGISTRO DE ERRORES ───────────────────
+function avisoPrivacidad() {
+  try { if (localStorage.getItem('lp_aviso')) return; } catch (e) { return; }
+  const d = document.createElement('div');
+  d.className = 'aviso-priv'; d.setAttribute('role', 'region'); d.setAttribute('aria-label', tr('Privacidad'));
+  d.innerHTML = `<span>${LANG === 'en' ? 'We don’t use tracking cookies. Your favourites and preferences stay on this device.' : 'No usamos cookies de seguimiento. Tus favoritos y preferencias quedan solo en este dispositivo.'} <a href="privacidad.html">${LANG === 'en' ? 'More info' : 'Más info'}</a></span><button>${LANG === 'en' ? 'Got it' : 'Entendido'}</button>`;
+  d.querySelector('button').onclick = () => { try { localStorage.setItem('lp_aviso', '1'); } catch (e) {} d.remove(); };
+  document.body.appendChild(d);
+}
+let _errores = 0;
+function registrarError(msg) {
+  if (_errores++ > 4) return;  // como mucho 5 por visita
+  track('error/' + String(msg || 'desconocido').replace(/\s+/g, ' ').slice(0, 90), location.search.slice(0, 80));
+}
+addEventListener('error', e => registrarError(e.message));
+addEventListener('unhandledrejection', e => registrarError(e.reason && (e.reason.message || e.reason)));
 
 // ── V2: INICIO, CAMINOS Y CUENTA ───────────────────────────────────────────
 const TOP = ['barcelona', 'madrid', 'ibiza', 'london', 'berlin', 'amsterdam', 'buenos aires', 'lisbon'];
@@ -4479,7 +4505,7 @@ document.getElementById('city').addEventListener('change', () => {
   document.getElementById('langhead').innerHTML = selectorIdioma();
   arrancarTraductor();
   preciosCiudad(); pintarGeneros(); pintar(); contarGuardados(); contarSiguiendo();
-  hdrAlto(); addEventListener('resize', hdrAlto);
+  hdrAlto(); addEventListener('resize', hdrAlto); setTimeout(avisoPrivacidad, 1500);
   if (!leerURL()) mostrarLanding(guardada ? 'caminos' : 'ciudad');
   pintarBarraNoche();
   addEventListener('resize', () => ajustarCiudad());

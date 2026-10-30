@@ -298,11 +298,30 @@ RA_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
 }
 
-def ra_request(payload):
-    """Request directo a RA sin proxy"""
+# Caché de respuestas de RA (20 min, máx. 400 respuestas): la misma consulta no vuelve a pegarle a RA
+from collections import OrderedDict
+import hashlib, threading as _th
+_RA_CACHE, _RA_LOCK, RA_TTL = OrderedDict(), _th.Lock(), 1200
+def ra_request(payload, fresco=False):
+    """Request a RA con caché"""
+    k = hashlib.md5(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+    now = __import__("time").time()
+    if not fresco:
+        with _RA_LOCK:
+            v = _RA_CACHE.get(k)
+            if v and now - v[0] < RA_TTL:
+                _RA_CACHE.move_to_end(k)
+                return v[1]
     resp = requests.post(RA_GRAPHQL_URL, headers=RA_HEADERS, json=payload, timeout=20)
     resp.raise_for_status()
-    return resp.json()
+    data = resp.json()
+    if not data.get("errors"):
+        with _RA_LOCK:
+            _RA_CACHE[k] = (now, data)
+            _RA_CACHE.move_to_end(k)
+            while len(_RA_CACHE) > 400:
+                _RA_CACHE.popitem(last=False)
+    return data
 
 def ra_request_direct(payload):
     """Para artistas — directo sin proxy, más rápido"""
@@ -2172,15 +2191,6 @@ def buscar_texto(q, ciudad, max_ev=40, sugerir=True):
         res["sugerencias"] = list(sug.values())[:4]
     return res
 
-def _precargar_pool():
-    time.sleep(30)
-    for c in ("barcelona", "madrid"):
-        try:
-            pool_ciudad(c)
-            print(f"[POOL] precargado {c}")
-        except Exception as e:
-            print(f"[POOL] {e}")
-threading.Thread(target=_precargar_pool, daemon=True).start()
 
 @app.route("/buscar")
 def buscar_ruta():
@@ -2362,6 +2372,50 @@ def cine():
         if pelis:
             cache_set(k, pelis)
     return jsonify({"ciudad": ciudad, "pais": pais, "tipo": tipo, "total": len(pelis), "peliculas": pelis})
+
+# Caché de Ticketmaster (20 min): devuelve copias para que nadie modifique lo guardado
+import copy as _copy
+_tm_original = buscar_ticketmaster
+def buscar_ticketmaster(*a, **k):
+    key = "tm-" + json.dumps([a, k], sort_keys=True, default=str)
+    v = cache_get(key, 1200)
+    if v is None:
+        v = _tm_original(*a, **k)
+        cache_set(key, v)
+    return _copy.deepcopy(v)
+
+# ── PRECALENTADO: mantiene frescas las búsquedas más comunes (las primeras visitas cargan rápido) ──
+PRECALENTAR = ["barcelona", "madrid"]
+def _precalentar_loop():
+    time.sleep(45)
+    while True:
+        t0 = time.time()
+        for c in PRECALENTAR:
+            try:
+                hoy = _hoy()
+                f = lambda n: (hoy + timedelta(days=n)).strftime("%Y-%m-%d")
+                d0, d1 = finde_proximo()
+                for a, b in [(f(0), f(0)), (f(1), f(1)), (d0, d1)]:
+                    buscar_por_fecha(c, a, b, 100000)
+                    for cat in ("conciertos", "teatro"):
+                        try:
+                            buscar_ticketmaster(c, a, b, cat, 100000)
+                        except Exception:
+                            pass
+                pool_ciudad(c)
+            except Exception as e:
+                print(f"[PRECALENTAR] {c}: {e}")
+        ESTADO["ultimo_precalentado"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        ESTADO["precalentado_seg"] = round(time.time() - t0)
+        time.sleep(max(60, 15 * 60 - (time.time() - t0)))
+ESTADO = {"arranque": datetime.now().strftime("%Y-%m-%d %H:%M")}
+threading.Thread(target=_precalentar_loop, daemon=True).start()
+
+@app.route("/salud")
+def salud():
+    """Para el monitoreo (UptimeRobot): responde rápido si el servidor está vivo."""
+    return jsonify({"ok": True, **ESTADO, "cache_ra": len(_RA_CACHE),
+                    "claves": {k: bool(os.environ.get(k)) for k in ("GROQ_API_KEY", "TICKETMASTER_API_KEY", "FOOTBALL_DATA_KEY")}})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
